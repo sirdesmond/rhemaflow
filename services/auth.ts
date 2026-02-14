@@ -1,7 +1,7 @@
 import { auth, db } from "./firebase";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import * as AppleAuthentication from "expo-apple-authentication";
-import firebase from "@react-native-firebase/app";
+import authModule, { FirebaseAuthTypes } from "@react-native-firebase/auth";
 import { UserProfile, UserSettings, DeclarationCategory } from "../types";
 
 // Configure Google Sign-In.
@@ -49,7 +49,7 @@ export async function signInWithGoogle() {
   await GoogleSignin.hasPlayServices();
   const response = await GoogleSignin.signIn();
   const idToken = response.data?.idToken ?? null;
-  const credential = firebase.auth.GoogleAuthProvider.credential(idToken);
+  const credential = authModule.GoogleAuthProvider.credential(idToken);
   const result = await auth.signInWithCredential(credential);
   const user = result.user;
   await ensureUserDoc(
@@ -77,10 +77,8 @@ export async function signInWithApple() {
     throw new Error("Apple sign-in failed: no identity token");
   }
 
-  const credential = new firebase.auth.OAuthProvider("apple.com").credential({
-    idToken: identityToken,
-    rawNonce: undefined,
-  });
+  const provider = new authModule.OAuthProvider("apple.com");
+  const credential = provider.credential(identityToken);
 
   const result = await auth.signInWithCredential(credential);
   const user = result.user;
@@ -112,7 +110,7 @@ export async function signOut() {
  * Subscribe to auth state changes.
  */
 export function onAuthStateChanged(
-  callback: (user: firebase.User | null) => void
+  callback: (user: FirebaseAuthTypes.User | null) => void
 ) {
   return auth.onAuthStateChanged(callback);
 }

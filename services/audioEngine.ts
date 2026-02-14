@@ -1,5 +1,5 @@
 import { Audio, AVPlaybackStatus } from "expo-av";
-import * as FileSystem from "expo-file-system";
+import { File, Paths } from "expo-file-system";
 import { AtmosphereType } from "../types";
 import { BUNDLED_TRACK_ASSETS } from "../constants/tracks";
 
@@ -48,11 +48,9 @@ class AudioEngine {
 
     try {
       // 1. Write WAV base64 to a temp file (expo-av needs a URI)
-      const speechUri =
-        FileSystem.cacheDirectory + "speech_" + Date.now() + ".wav";
-      await FileSystem.writeAsStringAsync(speechUri, audioBase64, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
+      const speechFile = new File(Paths.cache, `speech_${Date.now()}.wav`);
+      speechFile.write(audioBase64, { encoding: "base64" });
+      const speechUri = speechFile.uri;
 
       // 2. Load speech sound
       const { sound: speechSound } = await Audio.Sound.createAsync(
