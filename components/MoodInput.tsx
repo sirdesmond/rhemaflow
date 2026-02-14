@@ -52,7 +52,7 @@ export function MoodInput({
           style={{
             flexDirection: "row",
             flexWrap: "wrap",
-            gap: 16,
+            gap: 14,
           }}
         >
           {filteredPresets.map((preset) => (
@@ -69,21 +69,22 @@ export function MoodInput({
                 justifyContent: "center",
                 paddingVertical: 24,
                 paddingHorizontal: 12,
-                backgroundColor: COLORS.slate900,
-                borderRadius: 16,
+                backgroundColor: COLORS.glass,
+                borderRadius: 20,
                 borderWidth: 1,
-                borderColor: "rgba(255,255,255,0.05)",
+                borderColor: COLORS.glassBorder,
               }}
             >
-              <Text style={{ fontSize: 36, marginBottom: 12 }}>
+              <Text style={{ fontSize: 34, marginBottom: 10 }}>
                 {preset.emoji}
               </Text>
               <Text
                 style={{
                   fontFamily: "Lato-Bold",
-                  fontSize: 14,
+                  fontSize: 13,
                   color: COLORS.white,
                   textAlign: "center",
+                  letterSpacing: 0.3,
                 }}
               >
                 {preset.label}
@@ -96,12 +97,12 @@ export function MoodInput({
       {/* Divider */}
       <View style={{ flexDirection: "row", alignItems: "center" }}>
         <View
-          style={{ flex: 1, height: 1, backgroundColor: "rgba(255,255,255,0.1)" }}
+          style={{ flex: 1, height: 1, backgroundColor: COLORS.glassBorder }}
         />
         <Text
           style={{
             fontFamily: "Lato-Bold",
-            fontSize: 11,
+            fontSize: 10,
             color: COLORS.slate400,
             paddingHorizontal: 12,
             textTransform: "uppercase",
@@ -111,7 +112,7 @@ export function MoodInput({
           Or speak your situation
         </Text>
         <View
-          style={{ flex: 1, height: 1, backgroundColor: "rgba(255,255,255,0.1)" }}
+          style={{ flex: 1, height: 1, backgroundColor: COLORS.glassBorder }}
         />
       </View>
 
@@ -120,10 +121,10 @@ export function MoodInput({
           style={{
             flexDirection: "row",
             alignItems: "center",
-            backgroundColor: COLORS.slate900,
+            backgroundColor: COLORS.glass,
             borderRadius: 16,
             borderWidth: 1,
-            borderColor: "rgba(255,255,255,0.1)",
+            borderColor: COLORS.glassBorder,
             paddingRight: 8,
           }}
         >
@@ -131,7 +132,7 @@ export function MoodInput({
             value={customText}
             onChangeText={setCustomText}
             placeholder={PLACEHOLDERS[selectedCategory]}
-            placeholderTextColor={COLORS.slate400}
+            placeholderTextColor={COLORS.slate700}
             editable={!isLoading}
             onSubmitEditing={handleSubmit}
             returnKeyType="send"
@@ -140,7 +141,7 @@ export function MoodInput({
               paddingHorizontal: 20,
               paddingVertical: 16,
               color: COLORS.white,
-              fontSize: 16,
+              fontSize: 15,
               fontFamily: "Lato",
             }}
           />
@@ -148,21 +149,28 @@ export function MoodInput({
             onPress={handleSubmit}
             disabled={isLoading || !customText.trim()}
             style={{
-              width: 48,
-              height: 48,
+              width: 44,
+              height: 44,
               borderRadius: 12,
               backgroundColor:
                 isLoading || !customText.trim()
                   ? COLORS.slate700
-                  : COLORS.electricPurple,
+                  : COLORS.divineGold,
               alignItems: "center",
               justifyContent: "center",
+              ...(customText.trim() && !isLoading && {
+                shadowColor: COLORS.divineGold,
+                shadowOffset: { width: 0, height: 0 },
+                shadowOpacity: 0.4,
+                shadowRadius: 8,
+                elevation: 4,
+              }),
             }}
           >
             {isLoading ? (
-              <Sparkles size={20} color="white" />
+              <Sparkles size={18} color="white" />
             ) : (
-              <ArrowRight size={24} color="white" />
+              <ArrowRight size={20} color={COLORS.voidBlack} />
             )}
           </Pressable>
         </View>

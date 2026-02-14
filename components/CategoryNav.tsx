@@ -1,4 +1,4 @@
-import { ScrollView, Pressable, Text } from "react-native";
+import { ScrollView, Pressable, Text, View } from "react-native";
 import * as Haptics from "expo-haptics";
 import { DeclarationCategory } from "../types";
 import { COLORS } from "../constants/theme";
@@ -32,16 +32,26 @@ export function CategoryNav({ selectedCategory, onSelect }: CategoryNavProps) {
               borderRadius: 9999,
               backgroundColor: isSelected
                 ? COLORS.electricPurple
-                : COLORS.slate900,
-              borderWidth: isSelected ? 0 : 1,
-              borderColor: "rgba(255,255,255,0.05)",
+                : COLORS.glass,
+              borderWidth: 1,
+              borderColor: isSelected
+                ? "rgba(124,58,237,0.5)"
+                : COLORS.glassBorder,
+              ...(isSelected && {
+                shadowColor: COLORS.electricPurple,
+                shadowOffset: { width: 0, height: 0 },
+                shadowOpacity: 0.4,
+                shadowRadius: 8,
+                elevation: 4,
+              }),
             }}
           >
             <Text
               style={{
                 fontFamily: "Lato-Bold",
-                fontSize: 14,
+                fontSize: 13,
                 color: isSelected ? COLORS.white : COLORS.slate400,
+                letterSpacing: 0.3,
               }}
             >
               {cat}

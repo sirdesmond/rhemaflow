@@ -157,20 +157,25 @@ export default function HomeScreen() {
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "space-between",
-          borderBottomWidth: 1,
-          borderBottomColor: "rgba(255,255,255,0.05)",
         }}
       >
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
           {content ? (
             <Pressable
               onPress={goBack}
-              style={{ padding: 8, marginLeft: -8 }}
+              style={{
+                padding: 8,
+                marginLeft: -8,
+                backgroundColor: COLORS.glass,
+                borderRadius: 20,
+                borderWidth: 1,
+                borderColor: COLORS.glassBorder,
+              }}
             >
-              <ChevronLeft size={24} color="white" />
+              <ChevronLeft size={20} color="white" />
             </Pressable>
           ) : (
-            <Flame size={24} color={COLORS.fireOrange} />
+            <Flame size={22} color={COLORS.divineGold} fill={COLORS.fireOrange} />
           )}
           <Text
             style={{
@@ -182,12 +187,25 @@ export default function HomeScreen() {
             }}
           >
             Rhema
-            <Text style={{ color: COLORS.electricPurple }}>Flow</Text>
+            <Text style={{ color: COLORS.divineGold }}>Flow</Text>
           </Text>
         </View>
-        <Pressable onPress={() => router.push("/(tabs)/settings")} style={{ padding: 8 }}>
-          <User size={20} color={COLORS.slate400} />
+        <Pressable
+          onPress={() => router.push("/(tabs)/settings")}
+          style={{
+            padding: 8,
+            borderRadius: 20,
+            borderWidth: 1,
+            borderColor: COLORS.glassBorder,
+            backgroundColor: COLORS.glass,
+          }}
+        >
+          <User size={18} color={COLORS.divineGold} />
         </Pressable>
+      </View>
+      {/* Gold accent line */}
+      <View style={{ height: 1, backgroundColor: COLORS.glassBorder, marginHorizontal: 16 }}>
+        <View style={{ height: 1, width: 60, backgroundColor: COLORS.divineGold, opacity: 0.5 }} />
       </View>
 
       {/* Main Content */}
@@ -199,7 +217,7 @@ export default function HomeScreen() {
         >
         <ScrollView
           style={{ flex: 1 }}
-          contentContainerStyle={{ padding: 20, gap: 32 }}
+          contentContainerStyle={{ padding: 20, paddingBottom: 100, gap: 32 }}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="interactive"
         >
@@ -208,13 +226,13 @@ export default function HomeScreen() {
             <Text
               style={{
                 fontFamily: "Cinzel",
-                fontSize: 36,
+                fontSize: 34,
                 color: "white",
-                lineHeight: 44,
+                lineHeight: 42,
               }}
             >
               UNLEASH{"\n"}
-              <Text style={{ color: COLORS.fireOrange }}>YOUR VOICE</Text>
+              <Text style={{ color: COLORS.divineGold }}>YOUR VOICE</Text>
             </Text>
             <Text
               style={{
@@ -281,9 +299,9 @@ export default function HomeScreen() {
             style={{
               marginTop: 12,
               height: 56,
-              backgroundColor: COLORS.slate900,
+              backgroundColor: COLORS.glass,
               borderWidth: 1,
-              borderColor: "rgba(255,255,255,0.1)",
+              borderColor: COLORS.glassBorder,
               borderRadius: 16,
               flexDirection: "row",
               alignItems: "center",
@@ -291,14 +309,14 @@ export default function HomeScreen() {
               gap: 8,
             }}
           >
-            <Sparkles size={20} color={COLORS.divineGold} />
+            <Sparkles size={18} color={COLORS.warmGold} />
             <Text
               style={{
                 fontFamily: "Lato-Bold",
-                fontSize: 16,
-                color: "white",
+                fontSize: 14,
+                color: COLORS.warmGold,
                 textTransform: "uppercase",
-                letterSpacing: 1,
+                letterSpacing: 1.5,
               }}
             >
               Fresh Fire

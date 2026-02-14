@@ -8,7 +8,6 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { LinearGradient } from "expo-linear-gradient";
 import { Heart, Trash2, BookOpen, ChevronLeft } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import * as Sharing from "expo-sharing";
@@ -167,12 +166,15 @@ export default function SavedScreen() {
         {/* Header with back button */}
         <View style={styles.detailHeader}>
           <Pressable onPress={handleBack} style={styles.backBtn}>
-            <ChevronLeft size={24} color="white" />
+            <ChevronLeft size={18} color="white" />
+            <Typography variant="caption" style={styles.backBtnText}>
+              Back
+            </Typography>
           </Pressable>
           <Typography variant="caption" style={styles.detailHeaderText}>
             SAVED DECLARATION
           </Typography>
-          <View style={{ width: 40 }} />
+          <View style={{ width: 80 }} />
         </View>
 
         <View style={styles.detailContent}>
@@ -212,18 +214,20 @@ export default function SavedScreen() {
     return (
       <Pressable onPress={() => handleCardPress(item)}>
         <View style={styles.card}>
-          <LinearGradient
-            colors={[gradientColors[0] + "20", gradientColors[1] + "10"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.cardGradient}
-          >
+          {/* Left accent bar */}
+          <View
+            style={[
+              styles.accentBar,
+              { backgroundColor: gradientColors[0] },
+            ]}
+          />
+          <View style={styles.cardBody}>
             {/* Category label */}
             <View style={styles.cardHeader}>
               <View
                 style={[
                   styles.categoryPill,
-                  { backgroundColor: gradientColors[0] + "30" },
+                  { backgroundColor: gradientColors[0] + "20" },
                 ]}
               >
                 <Typography
@@ -244,9 +248,9 @@ export default function SavedScreen() {
                   <Heart
                     size={18}
                     color={
-                      item.isFavorite ? COLORS.fireOrange : COLORS.slate400
+                      item.isFavorite ? COLORS.divineGold : COLORS.slate400
                     }
-                    fill={item.isFavorite ? COLORS.fireOrange : "transparent"}
+                    fill={item.isFavorite ? COLORS.divineGold : "transparent"}
                   />
                 </Pressable>
                 <Pressable
@@ -277,7 +281,7 @@ export default function SavedScreen() {
                 {item.reference}
               </Typography>
             </View>
-          </LinearGradient>
+          </View>
         </View>
       </Pressable>
     );
@@ -370,8 +374,20 @@ const styles = StyleSheet.create({
     borderBottomColor: "rgba(255,255,255,0.05)",
   },
   backBtn: {
-    padding: 8,
-    marginLeft: -8,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    backgroundColor: COLORS.glass,
+    borderWidth: 1,
+    borderColor: COLORS.glassBorder,
+  },
+  backBtnText: {
+    color: "white",
+    fontSize: 12,
+    letterSpacing: 0.5,
   },
   detailHeaderText: {
     color: COLORS.slate400,
@@ -382,6 +398,7 @@ const styles = StyleSheet.create({
   detailContent: {
     flex: 1,
     padding: 16,
+    paddingBottom: 100,
   },
   // List view
   filterRow: {
@@ -395,20 +412,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: COLORS.slate900,
+    backgroundColor: COLORS.glass,
     borderWidth: 1,
-    borderColor: "transparent",
+    borderColor: COLORS.glassBorder,
   },
   filterBtnActive: {
-    borderColor: COLORS.electricPurple,
-    backgroundColor: COLORS.electricPurple + "20",
+    borderColor: COLORS.warmGold,
+    backgroundColor: "rgba(212,168,84,0.15)",
   },
   filterText: {
     color: COLORS.slate400,
-    fontSize: 14,
+    fontSize: 13,
+    letterSpacing: 0.5,
   },
   filterTextActive: {
-    color: COLORS.electricPurple,
+    color: COLORS.warmGold,
   },
   list: {
     padding: 20,
@@ -419,9 +437,15 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
+    borderColor: COLORS.glassBorder,
+    backgroundColor: COLORS.glass,
+    flexDirection: "row",
   },
-  cardGradient: {
+  accentBar: {
+    width: 4,
+  },
+  cardBody: {
+    flex: 1,
     padding: 16,
   },
   cardHeader: {

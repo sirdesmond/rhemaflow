@@ -58,12 +58,12 @@ export function DeclarationCard({
       {/* Gradient overlay for readability */}
       <LinearGradient
         colors={[
-          "rgba(0,0,0,0.75)",
-          "rgba(0,0,0,0.55)",
-          "rgba(0,0,0,0.75)",
-          "rgba(0,0,0,0.92)",
+          "rgba(0,0,0,0.70)",
+          "rgba(0,0,0,0.40)",
+          "rgba(0,0,0,0.65)",
+          "rgba(0,0,0,0.95)",
         ]}
-        locations={[0, 0.3, 0.7, 1]}
+        locations={[0, 0.25, 0.65, 1]}
         style={StyleSheet.absoluteFill}
       />
 
@@ -133,7 +133,7 @@ export function DeclarationCard({
         {/* Scripture card */}
         <View style={styles.scriptureOuter}>
           <BlurView
-            intensity={20}
+            intensity={40}
             tint="dark"
             style={styles.scriptureBlur}
           >
@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.1)",
+    borderColor: COLORS.glassBorder,
   },
   cardImage: {
     flex: 1,
@@ -286,8 +286,8 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 9999,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.2)",
-    backgroundColor: "rgba(0,0,0,0.3)",
+    borderColor: COLORS.glassBorder,
+    backgroundColor: COLORS.glass,
   },
   controlPillActive: {
     backgroundColor: "rgba(124,58,237,0.8)",
@@ -300,11 +300,11 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   iconButton: {
-    backgroundColor: "rgba(0,0,0,0.3)",
+    backgroundColor: COLORS.glass,
     padding: 10,
     borderRadius: 9999,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.2)",
+    borderColor: COLORS.glassBorder,
   },
 
   // Scrollable area between top controls and bottom actions
@@ -344,7 +344,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.1)",
+    borderColor: COLORS.glassBorder,
   },
   scriptureInner: {
     padding: 16,
@@ -366,8 +366,8 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 9999,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.2)",
-    backgroundColor: "rgba(255,255,255,0.05)",
+    borderColor: COLORS.glassBorder,
+    backgroundColor: COLORS.glass,
   },
   referenceText: {
     fontFamily: "Lato-Bold",
@@ -396,7 +396,12 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   playButtonDefault: {
-    backgroundColor: "white",
+    backgroundColor: COLORS.warmGold,
+    shadowColor: COLORS.divineGold,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 6,
   },
   playButtonActive: {
     backgroundColor: COLORS.electricPurple,
@@ -417,9 +422,9 @@ const styles = StyleSheet.create({
     width: 56,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(255,255,255,0.1)",
+    backgroundColor: COLORS.glass,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.2)",
+    borderColor: COLORS.glassBorder,
     borderRadius: 16,
   },
 });

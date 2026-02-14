@@ -9,6 +9,7 @@ import {
   Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
 import {
   LogOut,
   Bell,
@@ -136,9 +137,16 @@ export default function SettingsScreen() {
     >
       {/* Profile section */}
       <View style={styles.profileSection}>
-        <View style={styles.avatar}>
-          <User size={32} color={COLORS.slate400} />
-        </View>
+        <LinearGradient
+          colors={[COLORS.electricPurple, COLORS.warmGold]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.avatarRing}
+        >
+          <View style={styles.avatar}>
+            <User size={32} color={COLORS.slate400} />
+          </View>
+        </LinearGradient>
         <View style={styles.profileInfo}>
           <Typography variant="heading" style={styles.profileName}>
             {user?.displayName || "Warrior of Faith"}
@@ -157,7 +165,9 @@ export default function SettingsScreen() {
 
         <View style={styles.row}>
           <View style={styles.rowLeft}>
-            <Bell size={20} color={COLORS.electricPurple} />
+            <View style={[styles.iconCircle, { backgroundColor: COLORS.electricPurple + "20" }]}>
+              <Bell size={18} color={COLORS.electricPurple} />
+            </View>
             <Typography variant="body" style={styles.rowLabel}>
               Daily Reminders
             </Typography>
@@ -182,7 +192,9 @@ export default function SettingsScreen() {
               onPress={() => setShowTimePicker(!showTimePicker)}
             >
               <View style={styles.rowLeft}>
-                <Clock size={20} color={COLORS.fireOrange} />
+                <View style={[styles.iconCircle, { backgroundColor: COLORS.fireOrange + "20" }]}>
+                  <Clock size={18} color={COLORS.fireOrange} />
+                </View>
                 <Typography variant="body" style={styles.rowLabel}>
                   Reminder Time
                 </Typography>
@@ -236,7 +248,9 @@ export default function SettingsScreen() {
           onPress={() => setShowAtmospherePicker(!showAtmospherePicker)}
         >
           <View style={styles.rowLeft}>
-            <Music size={20} color={COLORS.divineGold} />
+            <View style={[styles.iconCircle, { backgroundColor: COLORS.divineGold + "20" }]}>
+              <Music size={18} color={COLORS.divineGold} />
+            </View>
             <Typography variant="body" style={styles.rowLabel}>
               Default Atmosphere
             </Typography>
@@ -283,7 +297,9 @@ export default function SettingsScreen() {
 
         <Pressable style={styles.row} onPress={handleSignOut}>
           <View style={styles.rowLeft}>
-            <LogOut size={20} color="#EF4444" />
+            <View style={[styles.iconCircle, { backgroundColor: "rgba(239,68,68,0.15)" }]}>
+              <LogOut size={18} color="#EF4444" />
+            </View>
             <Typography variant="body" style={[styles.rowLabel, { color: "#EF4444" }]}>
               Sign Out
             </Typography>
@@ -314,18 +330,23 @@ const styles = StyleSheet.create({
     gap: 16,
     paddingVertical: 24,
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(255,255,255,0.06)",
+    borderBottomColor: COLORS.glassBorder,
     marginBottom: 8,
   },
+  avatarRing: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 62,
+    height: 62,
+    borderRadius: 31,
     backgroundColor: COLORS.slate900,
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 2,
-    borderColor: COLORS.electricPurple + "40",
   },
   profileInfo: {
     flex: 1,
@@ -342,7 +363,7 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   sectionTitle: {
-    color: COLORS.slate400,
+    color: COLORS.warmGold,
     fontSize: 11,
     letterSpacing: 2,
     marginBottom: 12,
@@ -352,11 +373,20 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: COLORS.slate900,
+    backgroundColor: COLORS.glass,
     paddingHorizontal: 16,
     paddingVertical: 14,
-    borderRadius: 12,
+    borderRadius: 14,
     marginBottom: 8,
+    borderWidth: 1,
+    borderColor: COLORS.glassBorder,
+  },
+  iconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: "center",
+    alignItems: "center",
   },
   rowLeft: {
     flexDirection: "row",
@@ -386,20 +416,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: COLORS.slate900,
+    backgroundColor: COLORS.glass,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
+    borderColor: COLORS.glassBorder,
   },
   pickerOptionActive: {
-    borderColor: COLORS.electricPurple,
-    backgroundColor: COLORS.electricPurple + "20",
+    borderColor: COLORS.warmGold,
+    backgroundColor: "rgba(212,168,84,0.15)",
   },
   pickerText: {
     color: COLORS.slate400,
     fontSize: 14,
   },
   pickerTextActive: {
-    color: COLORS.electricPurple,
+    color: COLORS.warmGold,
   },
   version: {
     color: COLORS.slate700,

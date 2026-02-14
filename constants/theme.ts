@@ -3,11 +3,15 @@ export const COLORS = {
   deepPurple: "#4C1D95",
   fireOrange: "#F59E0B",
   divineGold: "#FBBF24",
+  warmGold: "#D4A854",
   voidBlack: "#0F172A",
   slate900: "#1E293B",
+  slate800: "#1A2332",
   slate700: "#334155",
   slate400: "#94A3B8",
   white: "#FFFFFF",
+  glass: "rgba(255,255,255,0.06)",
+  glassBorder: "rgba(255,255,255,0.12)",
 } as const;
 
 export const FONTS = {
