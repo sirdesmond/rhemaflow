@@ -40,13 +40,11 @@ export const ATMOSPHERE_TRACKS: TrackMeta[] = [
 ];
 
 // Maps atmosphere IDs to bundled asset requires.
-// Placeholder: replace these with actual royalty-free cinematic loops.
-// Each track should be a ~30-45 second loop, MP3 128kbps (~1-2MB).
+// Each track is a ~45 second loop, MP3 128kbps (~700KB each).
 export const BUNDLED_TRACK_ASSETS: Partial<Record<AtmosphereType, number>> = {
-  // Uncomment once actual track files are placed in assets/tracks/
-  // glory: require("../assets/tracks/glory.mp3"),
-  // warfare: require("../assets/tracks/warfare.mp3"),
-  // peace: require("../assets/tracks/peace.mp3"),
-  // rise: require("../assets/tracks/rise.mp3"),
-  // selah: require("../assets/tracks/selah.mp3"),
+  glory: require("../assets/tracks/glory.mp3"),
+  warfare: require("../assets/tracks/warfare.mp3"),
+  peace: require("../assets/tracks/peace.mp3"),
+  rise: require("../assets/tracks/rise.mp3"),
+  selah: require("../assets/tracks/selah.mp3"),
 };

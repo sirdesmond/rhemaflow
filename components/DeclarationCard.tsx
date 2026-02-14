@@ -1,4 +1,4 @@
-import { View, Text, Pressable, ImageBackground, StyleSheet } from "react-native";
+import { View, Text, Pressable, ImageBackground, StyleSheet, ScrollView } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import {
@@ -58,11 +58,12 @@ export function DeclarationCard({
       {/* Gradient overlay for readability */}
       <LinearGradient
         colors={[
-          "rgba(0,0,0,0.65)",
-          "transparent",
-          "rgba(0,0,0,0.9)",
+          "rgba(0,0,0,0.75)",
+          "rgba(0,0,0,0.55)",
+          "rgba(0,0,0,0.75)",
+          "rgba(0,0,0,0.92)",
         ]}
-        locations={[0, 0.35, 1]}
+        locations={[0, 0.3, 0.7, 1]}
         style={StyleSheet.absoluteFill}
       />
 
@@ -116,29 +117,36 @@ export function DeclarationCard({
         </View>
       </View>
 
-      {/* Declaration text */}
-      <View style={styles.declarationContainer}>
-        <Text style={styles.declarationText}>
-          &ldquo;{text}&rdquo;
-        </Text>
-      </View>
+      {/* Scrollable middle: declaration + scripture */}
+      <ScrollView
+        style={styles.scrollArea}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Declaration text */}
+        <View style={styles.declarationContainer}>
+          <Text style={styles.declarationText}>
+            &ldquo;{text}&rdquo;
+          </Text>
+        </View>
 
-      {/* Scripture card */}
-      <View style={styles.scriptureOuter}>
-        <BlurView
-          intensity={20}
-          tint="dark"
-          style={styles.scriptureBlur}
-        >
-          <View style={styles.scriptureInner}>
-            <Text style={styles.scriptureText}>{scriptureText}</Text>
-            <View style={styles.referenceBadge}>
-              <BookOpen size={12} color={COLORS.divineGold} />
-              <Text style={styles.referenceText}>{reference}</Text>
+        {/* Scripture card */}
+        <View style={styles.scriptureOuter}>
+          <BlurView
+            intensity={20}
+            tint="dark"
+            style={styles.scriptureBlur}
+          >
+            <View style={styles.scriptureInner}>
+              <Text style={styles.scriptureText}>{scriptureText}</Text>
+              <View style={styles.referenceBadge}>
+                <BookOpen size={12} color={COLORS.divineGold} />
+                <Text style={styles.referenceText}>{reference}</Text>
+              </View>
             </View>
-          </View>
-        </BlurView>
-      </View>
+          </BlurView>
+        </View>
+      </ScrollView>
 
       {/* Bottom actions */}
       <View style={styles.bottomActions}>
@@ -299,13 +307,22 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.2)",
   },
 
+  // Scrollable area between top controls and bottom actions
+  scrollArea: {
+    flex: 1,
+    zIndex: 20,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: "center",
+    paddingVertical: 8,
+  },
+
   // Declaration
   declarationContainer: {
-    flex: 1,
-    justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 28,
-    zIndex: 20,
+    marginBottom: 16,
   },
   declarationText: {
     fontFamily: "Cinzel",
@@ -322,7 +339,6 @@ const styles = StyleSheet.create({
   scriptureOuter: {
     marginHorizontal: 20,
     marginBottom: 16,
-    zIndex: 20,
   },
   scriptureBlur: {
     borderRadius: 16,

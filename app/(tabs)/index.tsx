@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, Pressable } from "react-native";
+import { View, Text, ScrollView, Pressable, Alert } from "react-native";
 import { useState, useRef } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Flame, ChevronLeft, Sparkles, User } from "lucide-react-native";
@@ -48,8 +48,12 @@ export default function HomeScreen() {
     try {
       const result = await generateAllContent(category, prompt);
       setContent(result);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Generation failed:", error);
+      Alert.alert(
+        "Generation Failed",
+        error?.message || "Something went wrong. Please try again."
+      );
     } finally {
       setIsLoading(false);
     }

@@ -1,8 +1,5 @@
-import { onCall, HttpsError } from "firebase-functions/v2/https";
-import { defineString } from "firebase-functions/params";
+import * as functions from "firebase-functions/v1";
 import { GoogleGenAI } from "@google/genai";
-
-const geminiKey = defineString("GEMINI_API_KEY");
 
 const SYSTEM_INSTRUCTION = `
 You are a fiery, charismatic prayer warrior. Your goal is to generate PERSONALIZED, EXPLOSIVE faith declarations.
@@ -19,23 +16,29 @@ TONE:
 - Reject sickness, lack, and fear.
 `;
 
-export const generateDeclaration = onCall(
-  { enforceAppCheck: false },
-  async (request) => {
-    if (!request.auth) {
-      throw new HttpsError("unauthenticated", "Must be signed in.");
+export const generateDeclaration = functions
+  .runWith({ timeoutSeconds: 60, memory: "256MB" })
+  .https.onCall(async (data, context) => {
+    if (!context.auth) {
+      throw new functions.https.HttpsError("unauthenticated", "Must be signed in.");
     }
 
-    const { category, mood, customText } = request.data;
+    const { category, mood, customText } = data;
 
     const userSituation = customText || mood;
     if (!userSituation) {
-      throw new HttpsError("invalid-argument", "Mood or custom text is required.");
+      throw new functions.https.HttpsError("invalid-argument", "Mood or custom text is required.");
     }
 
     const prompt = `Category: ${category}. User Situation: "${userSituation}". Write a personal declaration, cite the scripture, and write out the scripture text.`;
 
-    const ai = new GoogleGenAI({ apiKey: geminiKey.value() });
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      console.error("GEMINI_API_KEY not set");
+      throw new functions.https.HttpsError("internal", "Server configuration error.");
+    }
+
+    const ai = new GoogleGenAI({ apiKey });
 
     try {
       const response = await ai.models.generateContent({
@@ -80,5 +83,4 @@ export const generateDeclaration = onCall(
           "Nay, in all these things we are more than conquerors through him that loved us.",
       };
     }
-  }
-);
+  });

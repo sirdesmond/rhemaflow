@@ -1,10 +1,7 @@
-import { onCall, HttpsError } from "firebase-functions/v2/https";
-import { defineString } from "firebase-functions/params";
+import * as functions from "firebase-functions/v1";
 import * as admin from "firebase-admin";
 import { GoogleGenAI } from "@google/genai";
 import { v4 as uuidv4 } from "uuid";
-
-const geminiKey = defineString("GEMINI_API_KEY");
 
 const IMAGE_THEMES: Record<string, string> = {
   "Health & Healing":
@@ -23,23 +20,25 @@ const IMAGE_THEMES: Record<string, string> = {
     "epic divine light, exploding golden rays, dramatic cinematic lighting",
 };
 
-export const generateImage = onCall(
-  {
-    enforceAppCheck: false,
-    timeoutSeconds: 120, // image generation can be slow
-    memory: "512MiB",
-  },
-  async (request) => {
-    if (!request.auth) {
-      throw new HttpsError("unauthenticated", "Must be signed in.");
+export const generateImage = functions
+  .runWith({ timeoutSeconds: 120, memory: "512MB" })
+  .https.onCall(async (data, context) => {
+    if (!context.auth) {
+      throw new functions.https.HttpsError("unauthenticated", "Must be signed in.");
     }
 
-    const { category } = request.data;
+    const { category } = data;
     const visualTheme = IMAGE_THEMES[category] || IMAGE_THEMES["General"];
 
     const prompt = `Epic, cinematic, high-contrast spiritual background. Theme: ${visualTheme}. Intense colors, 4k, digital art style, volumetric lighting. No text.`;
 
-    const ai = new GoogleGenAI({ apiKey: geminiKey.value() });
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      console.error("GEMINI_API_KEY not set");
+      throw new functions.https.HttpsError("internal", "Server configuration error.");
+    }
+
+    const ai = new GoogleGenAI({ apiKey });
 
     try {
       const response = await ai.models.generateContent({
@@ -62,7 +61,7 @@ export const generateImage = onCall(
 
       // Upload to Firebase Storage for persistent access
       const bucket = admin.storage().bucket();
-      const fileName = `declarations/${request.auth.uid}/${uuidv4()}.png`;
+      const fileName = `declarations/${context.auth.uid}/${uuidv4()}.png`;
       const file = bucket.file(fileName);
 
       const imageBuffer = Buffer.from(imagePart.inlineData.data, "base64");
@@ -81,5 +80,4 @@ export const generateImage = onCall(
       console.error("generateImage error:", error);
       return { imageUrl: null };
     }
-  }
-);
+  });

@@ -8,7 +8,7 @@ import { UserProfile, UserSettings, DeclarationCategory } from "../types";
 // The webClientId comes from your Firebase Console → Authentication → Sign-in method → Google.
 // Replace this value with your actual web client ID.
 GoogleSignin.configure({
-  webClientId: "YOUR_WEB_CLIENT_ID.apps.googleusercontent.com",
+  webClientId: "520245432248-d81nbuia4e9c2c1gv99bn1fg0lprbcnn.apps.googleusercontent.com",
 });
 
 const DEFAULT_SETTINGS: UserSettings = {

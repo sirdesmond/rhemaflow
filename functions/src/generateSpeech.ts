@@ -1,8 +1,5 @@
-import { onCall, HttpsError } from "firebase-functions/v2/https";
-import { defineString } from "firebase-functions/params";
+import * as functions from "firebase-functions/v1";
 import { GoogleGenAI } from "@google/genai";
-
-const geminiKey = defineString("GEMINI_API_KEY");
 
 /**
  * Converts raw 16-bit PCM audio from Gemini TTS into a WAV file.
@@ -44,22 +41,25 @@ function pcmToWavBase64(
   return wav.toString("base64");
 }
 
-export const generateSpeech = onCall(
-  {
-    enforceAppCheck: false,
-    timeoutSeconds: 120, // TTS can take a while for long declarations
-  },
-  async (request) => {
-    if (!request.auth) {
-      throw new HttpsError("unauthenticated", "Must be signed in.");
+export const generateSpeech = functions
+  .runWith({ timeoutSeconds: 120, memory: "512MB" })
+  .https.onCall(async (data, context) => {
+    if (!context.auth) {
+      throw new functions.https.HttpsError("unauthenticated", "Must be signed in.");
     }
 
-    const { text } = request.data;
+    const { text } = data;
     if (!text || typeof text !== "string") {
-      throw new HttpsError("invalid-argument", "Text is required.");
+      throw new functions.https.HttpsError("invalid-argument", "Text is required.");
     }
 
-    const ai = new GoogleGenAI({ apiKey: geminiKey.value() });
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      console.error("GEMINI_API_KEY not set");
+      throw new functions.https.HttpsError("internal", "Server configuration error.");
+    }
+
+    const ai = new GoogleGenAI({ apiKey });
 
     try {
       const response = await ai.models.generateContent({
@@ -90,5 +90,4 @@ export const generateSpeech = onCall(
       console.error("generateSpeech error:", error);
       return { audioBase64: null };
     }
-  }
-);
+  });
