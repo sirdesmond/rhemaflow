@@ -32,6 +32,7 @@ interface DeclarationCardProps {
   onShare: () => void;
   onSave: () => void;
   isSaved: boolean;
+  hasAudio: boolean;
 }
 
 export function DeclarationCard({
@@ -49,6 +50,7 @@ export function DeclarationCard({
   onShare,
   onSave,
   isSaved,
+  hasAudio,
 }: DeclarationCardProps) {
   const [gradStart, gradEnd] = CATEGORY_GRADIENTS[category];
   const trackMeta = ATMOSPHERE_TRACKS.find((t) => t.id === atmosphere);
@@ -153,26 +155,41 @@ export function DeclarationCard({
         {/* Speak Life / Pause */}
         <Pressable
           onPress={() => {
+            if (!hasAudio) return;
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
             onPlayToggle();
           }}
           style={[
             styles.playButton,
-            isPlaying ? styles.playButtonActive : styles.playButtonDefault,
+            isPlaying
+              ? styles.playButtonActive
+              : hasAudio
+                ? styles.playButtonDefault
+                : styles.playButtonLoading,
           ]}
         >
           {isPlaying ? (
             <Pause size={20} color="white" fill="white" />
           ) : (
-            <Play size={20} color={COLORS.voidBlack} fill={COLORS.voidBlack} />
+            <Play
+              size={20}
+              color={hasAudio ? COLORS.voidBlack : "rgba(255,255,255,0.5)"}
+              fill={hasAudio ? COLORS.voidBlack : "rgba(255,255,255,0.5)"}
+            />
           )}
           <Text
             style={[
               styles.playButtonText,
-              { color: isPlaying ? "white" : COLORS.voidBlack },
+              {
+                color: isPlaying
+                  ? "white"
+                  : hasAudio
+                    ? COLORS.voidBlack
+                    : "rgba(255,255,255,0.5)",
+              },
             ]}
           >
-            {isPlaying ? "Speaking..." : "Speak Life"}
+            {isPlaying ? "Speaking..." : hasAudio ? "Speak Life" : "Loading..."}
           </Text>
         </Pressable>
 
@@ -397,6 +414,11 @@ const styles = StyleSheet.create({
   },
   playButtonDefault: {
     backgroundColor: "white",
+  },
+  playButtonLoading: {
+    backgroundColor: "rgba(255,255,255,0.1)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.2)",
   },
   playButtonActive: {
     backgroundColor: COLORS.electricPurple,

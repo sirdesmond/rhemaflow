@@ -2,6 +2,7 @@ import { View, Text, ScrollView, Pressable, Alert } from "react-native";
 import { useState, useRef } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Flame, ChevronLeft, Sparkles, User } from "lucide-react-native";
+import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import ViewShot from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
@@ -11,7 +12,8 @@ import { DeclarationCard } from "../../components/DeclarationCard";
 import { LoadingOverlay } from "../../components/LoadingOverlay";
 import { useAudio } from "../../hooks/useAudio";
 import {
-  generateAllContent,
+  generateDeclaration,
+  generateSpeech,
   generateImage,
 } from "../../services/declarations";
 import { saveDeclaration } from "../../services/favorites";
@@ -31,6 +33,7 @@ export default function HomeScreen() {
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
 
+  const router = useRouter();
   const { isPlaying, atmosphere, togglePlayback, cycleAtmosphere, stop } =
     useAudio();
   const viewShotRef = useRef<ViewShot>(null);
@@ -46,16 +49,35 @@ export default function HomeScreen() {
     await stop();
 
     try {
-      const result = await generateAllContent(category, prompt);
-      setContent(result);
+      // Step 1: Get text — show card immediately after this
+      const declaration = await generateDeclaration(category, prompt);
+      setContent({
+        text: declaration.text,
+        reference: declaration.reference,
+        scriptureText: declaration.scriptureText,
+        backgroundImageUrl: null,
+        audioBase64: null,
+      });
+      setIsLoading(false);
+
+      // Step 2: Load speech + image in background (card is already visible)
+      const [audioBase64, imageUrl] = await Promise.all([
+        generateSpeech(declaration.text).catch(() => null),
+        generateImage(category, declaration.text).catch(() => null),
+      ]);
+
+      setContent((prev) =>
+        prev
+          ? { ...prev, audioBase64, backgroundImageUrl: imageUrl }
+          : null
+      );
     } catch (error: any) {
       console.error("Generation failed:", error);
+      setIsLoading(false);
       Alert.alert(
         "Generation Failed",
         error?.message || "Something went wrong. Please try again."
       );
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -155,7 +177,7 @@ export default function HomeScreen() {
             <Text style={{ color: COLORS.electricPurple }}>Flow</Text>
           </Text>
         </View>
-        <Pressable style={{ padding: 8 }}>
+        <Pressable onPress={() => router.push("/(tabs)/settings")} style={{ padding: 8 }}>
           <User size={20} color={COLORS.slate400} />
         </Pressable>
       </View>
@@ -229,6 +251,7 @@ export default function HomeScreen() {
               onShare={handleShare}
               onSave={handleSave}
               isSaved={isSaved}
+              hasAudio={!!content.audioBase64}
             />
           </ViewShot>
 

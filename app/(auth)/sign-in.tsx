@@ -16,7 +16,14 @@ export default function SignInScreen() {
     try {
       await signInWithGoogle();
     } catch (error: any) {
-      Alert.alert("Sign in failed", error.message);
+      console.error("Google sign-in error:", JSON.stringify(error, null, 2));
+      const code = error?.code || "";
+      let message = error.message;
+      if (code === "DEVELOPER_ERROR" || message?.includes("DEVELOPER_ERROR")) {
+        message =
+          "Google Sign-In configuration error. Please check SHA-1 fingerprint and OAuth setup in Firebase Console.";
+      }
+      Alert.alert("Sign in failed", message);
     }
   };
 
