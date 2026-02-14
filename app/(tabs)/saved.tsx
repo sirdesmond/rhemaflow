@@ -14,6 +14,7 @@ import * as Sharing from "expo-sharing";
 import ViewShot from "react-native-view-shot";
 import { Typography } from "../../components/ui/Typography";
 import { DeclarationCard } from "../../components/DeclarationCard";
+import { ShareCard } from "../../components/ShareCard";
 import { COLORS } from "../../constants/theme";
 import { CATEGORY_GRADIENTS } from "../../constants/categories";
 import { Declaration, DeclarationCategory } from "../../types";
@@ -178,26 +179,35 @@ export default function SavedScreen() {
         </View>
 
         <View style={styles.detailContent}>
+          <DeclarationCard
+            text={selected.text}
+            reference={selected.reference}
+            scriptureText={selected.scriptureText}
+            category={selected.category}
+            backgroundImageUrl={selected.imageUrl}
+            isPlaying={isPlaying || isLoadingAudio}
+            onPlayToggle={handlePlayToggle}
+            onRegenerateImage={handleRegenerateImage}
+            isGeneratingImage={isGeneratingImage}
+            atmosphere={atmosphere}
+            onAtmosphereChange={cycleAtmosphere}
+            onShare={handleShare}
+            onSave={handleSaveToggle}
+            isSaved={selected.isFavorite}
+          />
+
+          {/* Hidden off-screen ShareCard for ViewShot capture */}
           <ViewShot
             ref={viewShotRef}
             options={{ format: "png", quality: 1 }}
-            style={{ flex: 1 }}
+            style={{ position: "absolute", left: -9999 }}
           >
-            <DeclarationCard
+            <ShareCard
               text={selected.text}
               reference={selected.reference}
               scriptureText={selected.scriptureText}
               category={selected.category}
               backgroundImageUrl={selected.imageUrl}
-              isPlaying={isPlaying || isLoadingAudio}
-              onPlayToggle={handlePlayToggle}
-              onRegenerateImage={handleRegenerateImage}
-              isGeneratingImage={isGeneratingImage}
-              atmosphere={atmosphere}
-              onAtmosphereChange={cycleAtmosphere}
-              onShare={handleShare}
-              onSave={handleSaveToggle}
-              isSaved={selected.isFavorite}
             />
           </ViewShot>
         </View>

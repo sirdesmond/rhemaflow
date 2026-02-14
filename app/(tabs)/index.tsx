@@ -9,6 +9,7 @@ import * as Sharing from "expo-sharing";
 import { CategoryNav } from "../../components/CategoryNav";
 import { MoodInput } from "../../components/MoodInput";
 import { DeclarationCard } from "../../components/DeclarationCard";
+import { ShareCard } from "../../components/ShareCard";
 import { LoadingOverlay } from "../../components/LoadingOverlay";
 import { useAudio } from "../../hooks/useAudio";
 import {
@@ -263,27 +264,35 @@ export default function HomeScreen() {
         </KeyboardAvoidingView>
       ) : (
         <View style={{ flex: 1, padding: 16 }}>
-          {/* Card wrapped in ViewShot for sharing */}
+          <DeclarationCard
+            text={content.text}
+            reference={content.reference}
+            scriptureText={content.scriptureText}
+            category={currentCategory}
+            backgroundImageUrl={content.backgroundImageUrl}
+            isPlaying={isPlaying}
+            onPlayToggle={() => togglePlayback(content.audioBase64)}
+            onRegenerateImage={handleRegenerateImage}
+            isGeneratingImage={isGeneratingImage}
+            atmosphere={atmosphere}
+            onAtmosphereChange={cycleAtmosphere}
+            onShare={handleShare}
+            onSave={handleSave}
+            isSaved={isSaved}
+          />
+
+          {/* Hidden off-screen ShareCard for ViewShot capture */}
           <ViewShot
             ref={viewShotRef}
             options={{ format: "png", quality: 1 }}
-            style={{ flex: 1 }}
+            style={{ position: "absolute", left: -9999 }}
           >
-            <DeclarationCard
+            <ShareCard
               text={content.text}
               reference={content.reference}
               scriptureText={content.scriptureText}
               category={currentCategory}
               backgroundImageUrl={content.backgroundImageUrl}
-              isPlaying={isPlaying}
-              onPlayToggle={() => togglePlayback(content.audioBase64)}
-              onRegenerateImage={handleRegenerateImage}
-              isGeneratingImage={isGeneratingImage}
-              atmosphere={atmosphere}
-              onAtmosphereChange={cycleAtmosphere}
-              onShare={handleShare}
-              onSave={handleSave}
-              isSaved={isSaved}
             />
           </ViewShot>
 
