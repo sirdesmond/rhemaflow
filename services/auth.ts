@@ -1,0 +1,118 @@
+import { auth, db } from "./firebase";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
+import * as AppleAuthentication from "expo-apple-authentication";
+import firebase from "@react-native-firebase/app";
+import { UserProfile, UserSettings, DeclarationCategory } from "../types";
+
+// Configure Google Sign-In.
+// The webClientId comes from your Firebase Console → Authentication → Sign-in method → Google.
+// Replace this value with your actual web client ID.
+GoogleSignin.configure({
+  webClientId: "YOUR_WEB_CLIENT_ID.apps.googleusercontent.com",
+});
+
+const DEFAULT_SETTINGS: UserSettings = {
+  notificationsEnabled: true,
+  notificationTime: "08:00",
+  defaultAtmosphere: "glory",
+  defaultCategory: DeclarationCategory.GENERAL,
+};
+
+/**
+ * Creates a Firestore user document if one doesn't already exist.
+ */
+async function ensureUserDoc(
+  uid: string,
+  displayName: string,
+  email: string,
+  photoURL: string | null
+) {
+  const userRef = db.collection("users").doc(uid);
+  const doc = await userRef.get();
+  if (!doc.exists) {
+    const profile: UserProfile = {
+      uid,
+      displayName,
+      email,
+      photoURL,
+      createdAt: Date.now(),
+      settings: DEFAULT_SETTINGS,
+    };
+    await userRef.set(profile);
+  }
+}
+
+/**
+ * Sign in with Google. Returns the Firebase user.
+ */
+export async function signInWithGoogle() {
+  await GoogleSignin.hasPlayServices();
+  const response = await GoogleSignin.signIn();
+  const idToken = response.data?.idToken ?? null;
+  const credential = firebase.auth.GoogleAuthProvider.credential(idToken);
+  const result = await auth.signInWithCredential(credential);
+  const user = result.user;
+  await ensureUserDoc(
+    user.uid,
+    user.displayName ?? "",
+    user.email ?? "",
+    user.photoURL
+  );
+  return user;
+}
+
+/**
+ * Sign in with Apple (iOS only). Returns the Firebase user.
+ */
+export async function signInWithApple() {
+  const appleCredential = await AppleAuthentication.signInAsync({
+    requestedScopes: [
+      AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+      AppleAuthentication.AppleAuthenticationScope.EMAIL,
+    ],
+  });
+
+  const { identityToken, fullName } = appleCredential;
+  if (!identityToken) {
+    throw new Error("Apple sign-in failed: no identity token");
+  }
+
+  const credential = new firebase.auth.OAuthProvider("apple.com").credential({
+    idToken: identityToken,
+    rawNonce: undefined,
+  });
+
+  const result = await auth.signInWithCredential(credential);
+  const user = result.user;
+  const name = fullName
+    ? `${fullName.givenName ?? ""} ${fullName.familyName ?? ""}`.trim()
+    : user.displayName ?? "";
+
+  await ensureUserDoc(user.uid, name, user.email ?? "", user.photoURL);
+  return user;
+}
+
+/**
+ * Sign in anonymously. User can link credentials later.
+ */
+export async function signInAnonymously() {
+  const result = await auth.signInAnonymously();
+  await ensureUserDoc(result.user.uid, "Guest", "", null);
+  return result.user;
+}
+
+/**
+ * Sign out the current user.
+ */
+export async function signOut() {
+  await auth.signOut();
+}
+
+/**
+ * Subscribe to auth state changes.
+ */
+export function onAuthStateChanged(
+  callback: (user: firebase.User | null) => void
+) {
+  return auth.onAuthStateChanged(callback);
+}
