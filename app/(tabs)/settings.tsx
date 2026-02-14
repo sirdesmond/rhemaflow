@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Platform,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import {
   LogOut,
   Bell,
@@ -127,8 +128,9 @@ export default function SettingsScreen() {
     "Glory";
 
   return (
+    <SafeAreaView style={styles.container}>
     <ScrollView
-      style={styles.container}
+      style={{ flex: 1 }}
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
     >
@@ -293,6 +295,7 @@ export default function SettingsScreen() {
         RhemaFlow v1.0.0
       </Typography>
     </ScrollView>
+    </SafeAreaView>
   );
 }
 

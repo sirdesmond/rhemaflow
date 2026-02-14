@@ -16,6 +16,16 @@ export async function generateDeclaration(
 }
 
 /**
+ * Calls the standalone generateSpeech Cloud Function.
+ * Used for replaying saved declarations that don't have cached audio.
+ */
+export async function generateSpeech(text: string): Promise<string | null> {
+  const fn = functions.httpsCallable("generateSpeech");
+  const result = await fn({ text });
+  return (result.data as { audioBase64: string | null }).audioBase64;
+}
+
+/**
  * Calls the generateImage Cloud Function.
  * Returns a Firebase Storage URL for the generated image.
  */

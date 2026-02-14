@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   View,
   FlatList,
@@ -7,10 +7,14 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
-import { Heart, Trash2, BookOpen } from "lucide-react-native";
+import { Heart, Trash2, BookOpen, ChevronLeft } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
+import * as Sharing from "expo-sharing";
+import ViewShot from "react-native-view-shot";
 import { Typography } from "../../components/ui/Typography";
+import { DeclarationCard } from "../../components/DeclarationCard";
 import { COLORS } from "../../constants/theme";
 import { CATEGORY_GRADIENTS } from "../../constants/categories";
 import { Declaration, DeclarationCategory } from "../../types";
@@ -19,11 +23,21 @@ import {
   deleteDeclaration,
   toggleFavorite,
 } from "../../services/favorites";
+import { generateSpeech, generateImage } from "../../services/declarations";
+import { useAudio } from "../../hooks/useAudio";
 
 export default function SavedScreen() {
   const [declarations, setDeclarations] = useState<Declaration[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "favorites">("all");
+  const [selected, setSelected] = useState<Declaration | null>(null);
+  const [audioBase64, setAudioBase64] = useState<string | null>(null);
+  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+
+  const { isPlaying, atmosphere, play, togglePlayback, cycleAtmosphere, stop } =
+    useAudio();
+  const viewShotRef = useRef<ViewShot>(null);
 
   useEffect(() => {
     const unsubscribe = onDeclarationsSnapshot((items) => {
@@ -72,78 +86,205 @@ export default function SavedScreen() {
     );
   }, []);
 
+  const handleCardPress = (item: Declaration) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setSelected(item);
+    setAudioBase64(null);
+  };
+
+  const handleBack = async () => {
+    await stop();
+    setSelected(null);
+    setAudioBase64(null);
+  };
+
+  const handlePlayToggle = async () => {
+    if (isPlaying) {
+      await stop();
+      return;
+    }
+
+    // If we already have audio cached, play it
+    if (audioBase64) {
+      await play(audioBase64);
+      return;
+    }
+
+    // Generate speech on demand
+    if (!selected) return;
+    setIsLoadingAudio(true);
+    try {
+      const audio = await generateSpeech(selected.text);
+      if (audio) {
+        setAudioBase64(audio);
+        await play(audio);
+      }
+    } catch (e) {
+      console.error("Speech generation error:", e);
+    } finally {
+      setIsLoadingAudio(false);
+    }
+  };
+
+  const handleRegenerateImage = async () => {
+    if (!selected) return;
+    setIsGeneratingImage(true);
+    try {
+      const newImageUrl = await generateImage(selected.category, selected.text);
+      if (newImageUrl) {
+        setSelected((prev) =>
+          prev ? { ...prev, imageUrl: newImageUrl } : null
+        );
+      }
+    } finally {
+      setIsGeneratingImage(false);
+    }
+  };
+
+  const handleShare = async () => {
+    if (!viewShotRef.current?.capture) return;
+    try {
+      const uri = await viewShotRef.current.capture();
+      await Sharing.shareAsync(uri, { mimeType: "image/png" });
+    } catch (error) {
+      console.error("Share failed:", error);
+    }
+  };
+
+  const handleSaveToggle = async () => {
+    if (!selected) return;
+    await handleToggleFavorite(selected);
+    // Update local selected state to reflect the toggle
+    setSelected((prev) =>
+      prev ? { ...prev, isFavorite: !prev.isFavorite } : null
+    );
+  };
+
+  // Detail view when a card is selected
+  if (selected) {
+    return (
+      <SafeAreaView style={styles.container}>
+        {/* Header with back button */}
+        <View style={styles.detailHeader}>
+          <Pressable onPress={handleBack} style={styles.backBtn}>
+            <ChevronLeft size={24} color="white" />
+          </Pressable>
+          <Typography variant="caption" style={styles.detailHeaderText}>
+            SAVED DECLARATION
+          </Typography>
+          <View style={{ width: 40 }} />
+        </View>
+
+        <View style={styles.detailContent}>
+          <ViewShot
+            ref={viewShotRef}
+            options={{ format: "png", quality: 1 }}
+            style={{ flex: 1 }}
+          >
+            <DeclarationCard
+              text={selected.text}
+              reference={selected.reference}
+              scriptureText={selected.scriptureText}
+              category={selected.category}
+              backgroundImageUrl={selected.imageUrl}
+              isPlaying={isPlaying || isLoadingAudio}
+              onPlayToggle={handlePlayToggle}
+              onRegenerateImage={handleRegenerateImage}
+              isGeneratingImage={isGeneratingImage}
+              atmosphere={atmosphere}
+              onAtmosphereChange={cycleAtmosphere}
+              onShare={handleShare}
+              onSave={handleSaveToggle}
+              isSaved={selected.isFavorite}
+            />
+          </ViewShot>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // List view
   const renderItem = ({ item }: { item: Declaration }) => {
-    const gradientColors = CATEGORY_GRADIENTS[item.category] ||
+    const gradientColors =
+      CATEGORY_GRADIENTS[item.category] ||
       CATEGORY_GRADIENTS[DeclarationCategory.GENERAL];
 
     return (
-      <View style={styles.card}>
-        <LinearGradient
-          colors={[gradientColors[0] + "20", gradientColors[1] + "10"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.cardGradient}
-        >
-          {/* Category label */}
-          <View style={styles.cardHeader}>
-            <View
-              style={[
-                styles.categoryPill,
-                { backgroundColor: gradientColors[0] + "30" },
-              ]}
-            >
-              <Typography
-                variant="caption"
-                style={[styles.categoryText, { color: gradientColors[0] }]}
+      <Pressable onPress={() => handleCardPress(item)}>
+        <View style={styles.card}>
+          <LinearGradient
+            colors={[gradientColors[0] + "20", gradientColors[1] + "10"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.cardGradient}
+          >
+            {/* Category label */}
+            <View style={styles.cardHeader}>
+              <View
+                style={[
+                  styles.categoryPill,
+                  { backgroundColor: gradientColors[0] + "30" },
+                ]}
               >
-                {item.category}
+                <Typography
+                  variant="caption"
+                  style={[styles.categoryText, { color: gradientColors[0] }]}
+                >
+                  {item.category}
+                </Typography>
+              </View>
+              <View style={styles.cardActions}>
+                <Pressable
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    handleToggleFavorite(item);
+                  }}
+                  style={styles.iconBtn}
+                >
+                  <Heart
+                    size={18}
+                    color={
+                      item.isFavorite ? COLORS.fireOrange : COLORS.slate400
+                    }
+                    fill={item.isFavorite ? COLORS.fireOrange : "transparent"}
+                  />
+                </Pressable>
+                <Pressable
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    handleDelete(item);
+                  }}
+                  style={styles.iconBtn}
+                >
+                  <Trash2 size={18} color={COLORS.slate400} />
+                </Pressable>
+              </View>
+            </View>
+
+            {/* Declaration text */}
+            <Typography
+              variant="body"
+              style={styles.declarationText}
+              numberOfLines={4}
+            >
+              {item.text}
+            </Typography>
+
+            {/* Scripture */}
+            <View style={styles.scriptureRow}>
+              <BookOpen size={14} color={COLORS.divineGold} />
+              <Typography variant="caption" style={styles.reference}>
+                {item.reference}
               </Typography>
             </View>
-            <View style={styles.cardActions}>
-              <Pressable
-                onPress={() => handleToggleFavorite(item)}
-                style={styles.iconBtn}
-              >
-                <Heart
-                  size={18}
-                  color={
-                    item.isFavorite ? COLORS.fireOrange : COLORS.slate400
-                  }
-                  fill={item.isFavorite ? COLORS.fireOrange : "transparent"}
-                />
-              </Pressable>
-              <Pressable
-                onPress={() => handleDelete(item)}
-                style={styles.iconBtn}
-              >
-                <Trash2 size={18} color={COLORS.slate400} />
-              </Pressable>
-            </View>
-          </View>
-
-          {/* Declaration text */}
-          <Typography
-            variant="body"
-            style={styles.declarationText}
-            numberOfLines={4}
-          >
-            {item.text}
-          </Typography>
-
-          {/* Scripture */}
-          <View style={styles.scriptureRow}>
-            <BookOpen size={14} color={COLORS.divineGold} />
-            <Typography variant="caption" style={styles.reference}>
-              {item.reference}
-            </Typography>
-          </View>
-        </LinearGradient>
-      </View>
+          </LinearGradient>
+        </View>
+      </Pressable>
     );
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* Filter tabs */}
       <View style={styles.filterRow}>
         <Pressable
@@ -209,7 +350,7 @@ export default function SavedScreen() {
           showsVerticalScrollIndicator={false}
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -218,6 +359,31 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.voidBlack,
   },
+  // Detail view
+  detailHeader: {
+    height: 56,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(255,255,255,0.05)",
+  },
+  backBtn: {
+    padding: 8,
+    marginLeft: -8,
+  },
+  detailHeaderText: {
+    color: COLORS.slate400,
+    fontSize: 11,
+    letterSpacing: 2,
+    textTransform: "uppercase",
+  },
+  detailContent: {
+    flex: 1,
+    padding: 16,
+  },
+  // List view
   filterRow: {
     flexDirection: "row",
     paddingHorizontal: 20,
