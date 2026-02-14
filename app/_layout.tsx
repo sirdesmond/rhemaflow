@@ -25,6 +25,11 @@ SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   const [loaded, error] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    Cinzel: require('../assets/fonts/Cinzel-Bold.ttf'),
+    Lato: require('../assets/fonts/Lato-Regular.ttf'),
+    'Lato-Bold': require('../assets/fonts/Lato-Bold.ttf'),
+    PlayfairDisplay: require('../assets/fonts/PlayfairDisplay-Regular.ttf'),
+    'PlayfairDisplay-Italic': require('../assets/fonts/PlayfairDisplay-Italic.ttf'),
     ...FontAwesome.font,
   });
 
