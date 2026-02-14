@@ -1,11 +1,4 @@
-import {
-  View,
-  Text,
-  Pressable,
-  TextInput,
-  KeyboardAvoidingView,
-  Platform,
-} from "react-native";
+import { View, Text, Pressable, TextInput } from "react-native";
 import { useState } from "react";
 import { ArrowRight, Sparkles } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
@@ -123,9 +116,6 @@ export function MoodInput({
       </View>
 
       {/* Custom Input */}
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
         <View
           style={{
             flexDirection: "row",
@@ -176,7 +166,6 @@ export function MoodInput({
             )}
           </Pressable>
         </View>
-      </KeyboardAvoidingView>
     </View>
   );
 }

@@ -2,27 +2,17 @@ import { functions } from "./firebase";
 import { DeclarationCategory, GeneratedContent } from "../types";
 
 /**
- * Calls the generateDeclaration Cloud Function.
- * Returns declaration text, scripture reference, and scripture text.
+ * Calls the combined generateDeclaration Cloud Function.
+ * Returns declaration text, scripture, AND TTS audio in one round-trip.
  */
 export async function generateDeclaration(
   category: DeclarationCategory,
   mood: string,
   customText?: string
-): Promise<{ text: string; reference: string; scriptureText: string }> {
+): Promise<{ text: string; reference: string; scriptureText: string; audioBase64: string | null }> {
   const fn = functions.httpsCallable("generateDeclaration");
   const result = await fn({ category, mood, customText });
-  return result.data as { text: string; reference: string; scriptureText: string };
-}
-
-/**
- * Calls the generateSpeech Cloud Function.
- * Returns WAV audio as a base64 string (PCM converted to WAV server-side).
- */
-export async function generateSpeech(text: string): Promise<string | null> {
-  const fn = functions.httpsCallable("generateSpeech");
-  const result = await fn({ text });
-  return (result.data as { audioBase64: string | null }).audioBase64;
+  return result.data as { text: string; reference: string; scriptureText: string; audioBase64: string | null };
 }
 
 /**
@@ -39,27 +29,24 @@ export async function generateImage(
 }
 
 /**
- * Full generation pipeline: text first, then speech + image in parallel.
+ * Full generation pipeline: combined text+audio first, then image in parallel.
  */
 export async function generateAllContent(
   category: DeclarationCategory,
   mood: string,
   customText?: string
 ): Promise<GeneratedContent> {
-  // Step 1: Generate declaration text (must complete first — speech needs the text)
+  // Step 1: Combined call — gets text + audio in one round-trip
   const declaration = await generateDeclaration(category, mood, customText);
 
-  // Step 2: Generate speech and image in parallel
-  const [audioBase64, imageUrl] = await Promise.all([
-    generateSpeech(declaration.text),
-    generateImage(category, declaration.text),
-  ]);
+  // Step 2: Image in background (audio already included)
+  const imageUrl = await generateImage(category, declaration.text);
 
   return {
     text: declaration.text,
     reference: declaration.reference,
     scriptureText: declaration.scriptureText,
     backgroundImageUrl: imageUrl,
-    audioBase64,
+    audioBase64: declaration.audioBase64,
   };
 }

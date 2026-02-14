@@ -27,6 +27,10 @@ import {
   scheduleDailyNotification,
   cancelNotifications,
 } from "../../hooks/useNotifications";
+import {
+  getUserSettings,
+  updateUserSettings,
+} from "../../services/settings";
 
 const ATMOSPHERE_OPTIONS: { id: AtmosphereType; label: string }[] =
   ATMOSPHERE_TRACKS.filter((t) => t.id !== "none").map((t) => ({
@@ -52,6 +56,15 @@ export default function SettingsScreen() {
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [showAtmospherePicker, setShowAtmospherePicker] = useState(false);
 
+  // Load saved settings from Firestore on mount
+  useEffect(() => {
+    getUserSettings().then((settings) => {
+      setNotificationsEnabled(settings.notificationsEnabled);
+      setNotificationTime(settings.notificationTime);
+      setDefaultAtmosphere(settings.defaultAtmosphere);
+    });
+  }, []);
+
   const handleToggleNotifications = async (enabled: boolean) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setNotificationsEnabled(enabled);
@@ -63,10 +76,12 @@ export default function SettingsScreen() {
           "Permission Required",
           "Please enable notifications in your device settings to receive daily declarations."
         );
+        return;
       }
     } else {
       await cancelNotifications();
     }
+    updateUserSettings({ notificationsEnabled: enabled });
   };
 
   const handleTimeChange = async (time: string) => {
@@ -75,12 +90,14 @@ export default function SettingsScreen() {
     if (notificationsEnabled) {
       await scheduleDailyNotification(time);
     }
+    updateUserSettings({ notificationTime: time });
   };
 
   const handleAtmosphereChange = (atm: AtmosphereType) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setDefaultAtmosphere(atm);
     setShowAtmospherePicker(false);
+    updateUserSettings({ defaultAtmosphere: atm });
   };
 
   const handleSignOut = () => {

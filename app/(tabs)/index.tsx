@@ -1,5 +1,5 @@
-import { View, Text, ScrollView, Pressable, Alert } from "react-native";
-import { useState, useRef } from "react";
+import { View, Text, ScrollView, Pressable, Alert, KeyboardAvoidingView, Platform } from "react-native";
+import { useState, useRef, useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Flame, ChevronLeft, Sparkles, User } from "lucide-react-native";
 import { useRouter } from "expo-router";
@@ -13,7 +13,6 @@ import { LoadingOverlay } from "../../components/LoadingOverlay";
 import { useAudio } from "../../hooks/useAudio";
 import {
   generateDeclaration,
-  generateSpeech,
   generateImage,
 } from "../../services/declarations";
 import { saveDeclaration } from "../../services/favorites";
@@ -23,6 +22,7 @@ import {
   GeneratedContent,
 } from "../../types";
 import { COLORS } from "../../constants/theme";
+import { getUserSettings } from "../../services/settings";
 
 export default function HomeScreen() {
   const [currentCategory, setCurrentCategory] = useState<DeclarationCategory>(
@@ -34,9 +34,16 @@ export default function HomeScreen() {
   const [isSaved, setIsSaved] = useState(false);
 
   const router = useRouter();
-  const { isPlaying, atmosphere, togglePlayback, cycleAtmosphere, stop } =
+  const { isPlaying, atmosphere, setAtmosphere, play, togglePlayback, cycleAtmosphere, stop } =
     useAudio();
   const viewShotRef = useRef<ViewShot>(null);
+
+  // Load user's default atmosphere preference on mount
+  useEffect(() => {
+    getUserSettings().then((settings) => {
+      setAtmosphere(settings.defaultAtmosphere);
+    });
+  }, []);
 
   const processGeneration = async (
     prompt: string,
@@ -49,27 +56,28 @@ export default function HomeScreen() {
     await stop();
 
     try {
-      // Step 1: Get text — show card immediately after this
+      // Step 1: Combined call — gets text + audio in one round-trip
       const declaration = await generateDeclaration(category, prompt);
+
+      // Show card immediately with text + audio
       setContent({
         text: declaration.text,
         reference: declaration.reference,
         scriptureText: declaration.scriptureText,
         backgroundImageUrl: null,
-        audioBase64: null,
+        audioBase64: declaration.audioBase64,
       });
       setIsLoading(false);
 
-      // Step 2: Load speech + image in background (card is already visible)
-      const [audioBase64, imageUrl] = await Promise.all([
-        generateSpeech(declaration.text).catch(() => null),
-        generateImage(category, declaration.text).catch(() => null),
-      ]);
+      // Auto-play the audio as soon as it's ready
+      if (declaration.audioBase64) {
+        play(declaration.audioBase64);
+      }
 
+      // Load image in background (audio already arrived)
+      const imageUrl = await generateImage(category, declaration.text).catch(() => null);
       setContent((prev) =>
-        prev
-          ? { ...prev, audioBase64, backgroundImageUrl: imageUrl }
-          : null
+        prev ? { ...prev, backgroundImageUrl: imageUrl } : null
       );
     } catch (error: any) {
       console.error("Generation failed:", error);
@@ -184,10 +192,16 @@ export default function HomeScreen() {
 
       {/* Main Content */}
       {!content ? (
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+        >
         <ScrollView
           style={{ flex: 1 }}
           contentContainerStyle={{ padding: 20, gap: 32 }}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
         >
           {/* Hero */}
           <View style={{ paddingTop: 24, gap: 8 }}>
@@ -228,6 +242,7 @@ export default function HomeScreen() {
             selectedCategory={currentCategory}
           />
         </ScrollView>
+        </KeyboardAvoidingView>
       ) : (
         <View style={{ flex: 1, padding: 16 }}>
           {/* Card wrapped in ViewShot for sharing */}
@@ -251,7 +266,6 @@ export default function HomeScreen() {
               onShare={handleShare}
               onSave={handleSave}
               isSaved={isSaved}
-              hasAudio={!!content.audioBase64}
             />
           </ViewShot>
 
