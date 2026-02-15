@@ -33,7 +33,7 @@ export async function verifySubscription(
       return "free";
     }
 
-    const data = await res.json();
+    const data: any = await res.json();
     const entitlements = data?.subscriber?.entitlements;
     if (entitlements?.pro) {
       const expiry = entitlements.pro.expires_date;
