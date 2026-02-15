@@ -8,6 +8,12 @@ export default {
     scheme: "rhemaflow",
     userInterfaceStyle: "dark",
     newArchEnabled: true,
+    updates: {
+      url: "https://u.expo.dev/07320aee-cd96-4da8-8614-8b518ab20b89",
+    },
+    runtimeVersion: {
+      policy: "appVersion",
+    },
     splash: {
       image: "./assets/images/splash-icon.png",
       resizeMode: "contain",
