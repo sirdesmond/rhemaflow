@@ -183,9 +183,14 @@ export function DeclarationCard({
           </Pressable>
         )}
 
-        {/* Save */}
+        {/* Save (Pro) or Lock (Free) */}
         <Pressable
           onPress={() => {
+            if (!isPro) {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              onUpgrade?.();
+              return;
+            }
             Haptics.notificationAsync(
               Haptics.NotificationFeedbackType.Success
             );
@@ -193,11 +198,15 @@ export function DeclarationCard({
           }}
           style={styles.actionButton}
         >
-          <Heart
-            size={22}
-            color={isSaved ? COLORS.electricPurple : "white"}
-            fill={isSaved ? COLORS.electricPurple : "transparent"}
-          />
+          {isPro ? (
+            <Heart
+              size={22}
+              color={isSaved ? COLORS.electricPurple : "white"}
+              fill={isSaved ? COLORS.electricPurple : "transparent"}
+            />
+          ) : (
+            <Lock size={20} color={COLORS.slate400} />
+          )}
         </Pressable>
 
         {/* Share */}

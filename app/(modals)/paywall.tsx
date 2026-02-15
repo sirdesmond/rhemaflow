@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { View, Text, Pressable, Alert, ActivityIndicator, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
-import { X, Flame, Infinity, Mic, ImageIcon, Check } from "lucide-react-native";
+import { X, Flame, Infinity, Mic, Heart, Check } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import { PurchasesPackage } from "react-native-purchases";
 import * as Haptics from "expo-haptics";
@@ -19,7 +19,7 @@ import { signInWithGoogle, signInWithApple } from "../../services/auth";
 const FEATURES = [
   { icon: Infinity, label: "Unlimited declarations" },
   { icon: Mic, label: "TTS audio playback" },
-  { icon: ImageIcon, label: "AI background images" },
+  { icon: Heart, label: "Save to favorites" },
 ];
 
 export default function PaywallScreen() {
