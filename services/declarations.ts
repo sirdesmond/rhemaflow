@@ -77,11 +77,11 @@ export async function generateAllContent(
   customText?: string
 ): Promise<GeneratedContent> {
   try {
-    // Step 1: Combined call — gets text + audio in one round-trip
-    const declaration = await generateDeclaration(category, mood, customText);
-
-    // Step 2: Image in background (audio already included)
-    const imageUrl = await generateImage(category, declaration.text);
+    // Fire both in parallel — image only needs category, not declaration text
+    const [declaration, imageUrl] = await Promise.all([
+      generateDeclaration(category, mood, customText),
+      generateImage(category, ""),
+    ]);
 
     return {
       text: declaration.text,
