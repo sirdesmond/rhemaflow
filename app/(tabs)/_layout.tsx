@@ -3,6 +3,8 @@ import { View } from "react-native";
 import { BlurView } from "expo-blur";
 import { Home, Heart, Settings } from "lucide-react-native";
 import { COLORS } from "../../constants/theme";
+import { useNetwork } from "../../hooks/useNetwork";
+import { OfflineBanner } from "../../components/OfflineBanner";
 
 function ActiveDot({ focused }: { focused: boolean }) {
   if (!focused) return null;
@@ -25,8 +27,12 @@ function ActiveDot({ focused }: { focused: boolean }) {
 }
 
 export default function TabLayout() {
+  const { isConnected } = useNetwork();
+
   return (
-    <Tabs
+    <View style={{ flex: 1 }}>
+      <OfflineBanner visible={!isConnected} />
+      <Tabs
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: COLORS.white,
@@ -101,5 +107,6 @@ export default function TabLayout() {
         }}
       />
     </Tabs>
+    </View>
   );
 }

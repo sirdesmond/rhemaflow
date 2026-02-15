@@ -8,7 +8,7 @@ import { useRouter, useSegments } from "expo-router";
 import { useAuth } from "../hooks/useAuth";
 import "react-native-reanimated";
 
-export { ErrorBoundary } from "expo-router";
+export { ErrorBoundary } from "../components/ErrorBoundary";
 
 SplashScreen.preventAutoHideAsync();
 
