@@ -12,6 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import {
   LogOut,
+  Trash2,
   Bell,
   Clock,
   Music,
@@ -24,7 +25,7 @@ import { COLORS } from "../../constants/theme";
 import { ATMOSPHERE_TRACKS } from "../../constants/tracks";
 import { AtmosphereType } from "../../types";
 import { auth } from "../../services/firebase";
-import { signOut } from "../../services/auth";
+import { signOut, deleteAccount } from "../../services/auth";
 import {
   scheduleDailyNotification,
   cancelNotifications,
@@ -57,6 +58,7 @@ export default function SettingsScreen() {
     useState<AtmosphereType>("glory");
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [showAtmospherePicker, setShowAtmospherePicker] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Load saved settings from Firestore on mount
   useEffect(() => {
@@ -118,6 +120,45 @@ export default function SettingsScreen() {
         },
       },
     ]);
+  };
+
+  const handleDeleteAccount = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    Alert.alert(
+      "Delete Account",
+      "This will permanently delete your account, all declarations, and all associated data. This action cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete Account",
+          style: "destructive",
+          onPress: () => {
+            Alert.alert(
+              "Are you sure?",
+              "This is your final confirmation. All your data will be permanently removed.",
+              [
+                { text: "Cancel", style: "cancel" },
+                {
+                  text: "Delete Forever",
+                  style: "destructive",
+                  onPress: async () => {
+                    setIsDeleting(true);
+                    try {
+                      await deleteAccount();
+                    } catch (e) {
+                      console.error("Delete account error:", e);
+                      Alert.alert("Error", "Failed to delete account. Please try again.");
+                    } finally {
+                      setIsDeleting(false);
+                    }
+                  },
+                },
+              ]
+            );
+          },
+        },
+      ]
+    );
   };
 
   const timeLabel =
@@ -302,6 +343,21 @@ export default function SettingsScreen() {
             </View>
             <Typography variant="body" style={[styles.rowLabel, { color: "#EF4444" }]}>
               Sign Out
+            </Typography>
+          </View>
+        </Pressable>
+
+        <Pressable
+          style={[styles.row, isDeleting && { opacity: 0.5 }]}
+          onPress={handleDeleteAccount}
+          disabled={isDeleting}
+        >
+          <View style={styles.rowLeft}>
+            <View style={[styles.iconCircle, { backgroundColor: "rgba(239,68,68,0.15)" }]}>
+              <Trash2 size={18} color="#EF4444" />
+            </View>
+            <Typography variant="body" style={[styles.rowLabel, { color: "#EF4444" }]}>
+              {isDeleting ? "Deleting Account..." : "Delete Account"}
             </Typography>
           </View>
         </Pressable>

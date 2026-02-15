@@ -1,4 +1,4 @@
-import { auth, db } from "./firebase";
+import { auth, db, functions } from "./firebase";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import * as AppleAuthentication from "expo-apple-authentication";
 import authModule, { FirebaseAuthTypes } from "@react-native-firebase/auth";
@@ -103,6 +103,15 @@ export async function signInAnonymously() {
  * Sign out the current user.
  */
 export async function signOut() {
+  await auth.signOut();
+}
+
+/**
+ * Delete the current user's account and all associated data.
+ */
+export async function deleteAccount() {
+  const fn = functions.httpsCallable("deleteAccount");
+  await fn();
   await auth.signOut();
 }
 
