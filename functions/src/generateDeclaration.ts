@@ -1,5 +1,11 @@
 import * as functions from "firebase-functions/v1";
 import { GoogleGenAI } from "@google/genai";
+import {
+  verifySubscription,
+  checkRateLimit,
+  checkAndIncrementUsage,
+} from "./utils/subscription";
+import { sanitizeText, sanitizeCategory } from "./utils/sanitize";
 
 const SYSTEM_INSTRUCTION = `
 You are a fiery, charismatic prayer warrior. Your goal is to generate PERSONALIZED, EXPLOSIVE faith declarations.
@@ -23,7 +29,30 @@ export const generateDeclaration = functions
       throw new functions.https.HttpsError("unauthenticated", "Must be signed in.");
     }
 
-    const { category, mood, customText } = data;
+    const uid = context.auth.uid;
+
+    // Subscription & usage checks
+    const tier = await verifySubscription(uid);
+
+    if (!checkRateLimit(uid)) {
+      throw new functions.https.HttpsError(
+        "resource-exhausted",
+        "Too many requests. Please slow down."
+      );
+    }
+
+    const usage = await checkAndIncrementUsage(uid, tier);
+    if (!usage.allowed) {
+      throw new functions.https.HttpsError(
+        "resource-exhausted",
+        "Daily limit reached. Upgrade to Pro for unlimited declarations."
+      );
+    }
+
+    // Sanitize inputs
+    const category = sanitizeCategory(data.category);
+    const mood = sanitizeText(data.mood);
+    const customText = sanitizeText(data.customText);
 
     const userSituation = customText || mood;
     if (!userSituation) {

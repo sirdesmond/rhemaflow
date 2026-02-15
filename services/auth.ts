@@ -100,6 +100,52 @@ export async function signInAnonymously() {
 }
 
 /**
+ * Link an anonymous account to a real provider (Google or Apple).
+ * Preserves the anonymous UID and all associated data.
+ */
+export async function linkAccount(
+  provider: "google" | "apple"
+): Promise<FirebaseAuthTypes.User> {
+  const currentUser = auth.currentUser;
+  if (!currentUser) throw new Error("No user signed in.");
+
+  if (provider === "google") {
+    await GoogleSignin.hasPlayServices();
+    const response = await GoogleSignin.signIn();
+    const idToken = response.data?.idToken ?? null;
+    const credential = authModule.GoogleAuthProvider.credential(idToken);
+    const result = await currentUser.linkWithCredential(credential);
+    const user = result.user;
+    await ensureUserDoc(
+      user.uid,
+      user.displayName ?? "",
+      user.email ?? "",
+      user.photoURL
+    );
+    return user;
+  } else {
+    const appleCredential = await AppleAuthentication.signInAsync({
+      requestedScopes: [
+        AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+        AppleAuthentication.AppleAuthenticationScope.EMAIL,
+      ],
+    });
+    const { identityToken, fullName } = appleCredential;
+    if (!identityToken) throw new Error("Apple sign-in failed: no identity token");
+
+    const oauthProvider = new authModule.OAuthProvider("apple.com");
+    const credential = oauthProvider.credential(identityToken);
+    const result = await currentUser.linkWithCredential(credential);
+    const user = result.user;
+    const name = fullName
+      ? `${fullName.givenName ?? ""} ${fullName.familyName ?? ""}`.trim()
+      : user.displayName ?? "";
+    await ensureUserDoc(user.uid, name, user.email ?? "", user.photoURL);
+    return user;
+  }
+}
+
+/**
  * Sign out the current user.
  */
 export async function signOut() {

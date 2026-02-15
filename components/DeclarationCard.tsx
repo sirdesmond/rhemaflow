@@ -11,6 +11,7 @@ import {
   BookOpen,
   Heart,
   Loader,
+  Lock,
 } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import { DeclarationCategory, AtmosphereType } from "../types";
@@ -34,6 +35,8 @@ interface DeclarationCardProps {
   onShare: () => void;
   onSave: () => void;
   isSaved: boolean;
+  isPro?: boolean;
+  onUpgrade?: () => void;
 }
 
 export function DeclarationCard({
@@ -52,6 +55,8 @@ export function DeclarationCard({
   onShare,
   onSave,
   isSaved,
+  isPro = true,
+  onUpgrade,
 }: DeclarationCardProps) {
   const [gradStart, gradEnd] = CATEGORY_GRADIENTS[category];
   const trackMeta = ATMOSPHERE_TRACKS.find((t) => t.id === atmosphere);
@@ -99,24 +104,26 @@ export function DeclarationCard({
             </Text>
           </Pressable>
 
-          {/* Regenerate image */}
-          <Pressable
-            onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              onRegenerateImage();
-            }}
-            disabled={isGeneratingImage}
-            style={styles.iconButton}
-          >
-            <RefreshCw
-              size={16}
-              color={
-                isGeneratingImage
-                  ? COLORS.divineGold
-                  : "rgba(255,255,255,0.8)"
-              }
-            />
-          </Pressable>
+          {/* Regenerate image (Pro only) */}
+          {isPro && (
+            <Pressable
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                onRegenerateImage();
+              }}
+              disabled={isGeneratingImage}
+              style={styles.iconButton}
+            >
+              <RefreshCw
+                size={16}
+                color={
+                  isGeneratingImage
+                    ? COLORS.divineGold
+                    : "rgba(255,255,255,0.8)"
+                }
+              />
+            </Pressable>
+          )}
         </View>
       </View>
 
@@ -153,39 +160,54 @@ export function DeclarationCard({
 
       {/* Bottom actions */}
       <View style={styles.bottomActions}>
-        {/* Speak Life / Pause */}
-        <Pressable
-          onPress={() => {
-            if (isAudioLoading) return;
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-            onPlayToggle();
-          }}
-          style={[
-            styles.playButton,
-            isAudioLoading
-              ? styles.playButtonLoading
-              : isPlaying
-                ? styles.playButtonActive
-                : styles.playButtonDefault,
-          ]}
-          disabled={isAudioLoading}
-        >
-          {isAudioLoading ? (
-            <Loader size={20} color={COLORS.slate400} />
-          ) : isPlaying ? (
-            <Pause size={20} color="white" fill="white" />
-          ) : (
-            <Play size={20} color={COLORS.voidBlack} fill={COLORS.voidBlack} />
-          )}
-          <Text
+        {/* Speak Life / Pause (Pro) or Unlock Audio (Free) */}
+        {isPro ? (
+          <Pressable
+            onPress={() => {
+              if (isAudioLoading) return;
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+              onPlayToggle();
+            }}
             style={[
-              styles.playButtonText,
-              { color: isAudioLoading ? COLORS.slate400 : isPlaying ? "white" : COLORS.voidBlack },
+              styles.playButton,
+              isAudioLoading
+                ? styles.playButtonLoading
+                : isPlaying
+                  ? styles.playButtonActive
+                  : styles.playButtonDefault,
             ]}
+            disabled={isAudioLoading}
           >
-            {isAudioLoading ? "Preparing..." : isPlaying ? "Speaking..." : "Speak Life"}
-          </Text>
-        </Pressable>
+            {isAudioLoading ? (
+              <Loader size={20} color={COLORS.slate400} />
+            ) : isPlaying ? (
+              <Pause size={20} color="white" fill="white" />
+            ) : (
+              <Play size={20} color={COLORS.voidBlack} fill={COLORS.voidBlack} />
+            )}
+            <Text
+              style={[
+                styles.playButtonText,
+                { color: isAudioLoading ? COLORS.slate400 : isPlaying ? "white" : COLORS.voidBlack },
+              ]}
+            >
+              {isAudioLoading ? "Preparing..." : isPlaying ? "Speaking..." : "Speak Life"}
+            </Text>
+          </Pressable>
+        ) : (
+          <Pressable
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              onUpgrade?.();
+            }}
+            style={[styles.playButton, styles.playButtonLoading]}
+          >
+            <Lock size={18} color={COLORS.divineGold} />
+            <Text style={[styles.playButtonText, { color: COLORS.divineGold }]}>
+              Unlock Audio
+            </Text>
+          </Pressable>
+        )}
 
         {/* Save */}
         <Pressable

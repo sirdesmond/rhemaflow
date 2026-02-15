@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import {
   View,
+  Text,
   Pressable,
   Switch,
   ScrollView,
@@ -18,14 +19,18 @@ import {
   Music,
   ChevronRight,
   User,
+  Crown,
+  Zap,
 } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import { Typography } from "../../components/ui/Typography";
 import { COLORS } from "../../constants/theme";
 import { ATMOSPHERE_TRACKS } from "../../constants/tracks";
 import { AtmosphereType } from "../../types";
+import { useRouter } from "expo-router";
 import { auth } from "../../services/firebase";
 import { signOut, deleteAccount } from "../../services/auth";
+import { useSubscription } from "../../hooks/useSubscription";
 import {
   scheduleDailyNotification,
   cancelNotifications,
@@ -52,6 +57,8 @@ const TIME_OPTIONS = [
 
 export default function SettingsScreen() {
   const user = auth.currentUser;
+  const router = useRouter();
+  const { isPro, usage } = useSubscription();
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [notificationTime, setNotificationTime] = useState("08:00");
   const [defaultAtmosphere, setDefaultAtmosphere] =
@@ -189,9 +196,39 @@ export default function SettingsScreen() {
           </View>
         </LinearGradient>
         <View style={styles.profileInfo}>
-          <Typography variant="heading" style={styles.profileName}>
-            {user?.displayName || "Warrior of Faith"}
-          </Typography>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <Typography variant="heading" style={styles.profileName}>
+              {user?.displayName || "Warrior of Faith"}
+            </Typography>
+            {isPro && (
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 4,
+                  backgroundColor: "rgba(251,191,36,0.15)",
+                  paddingHorizontal: 8,
+                  paddingVertical: 3,
+                  borderRadius: 10,
+                  borderWidth: 1,
+                  borderColor: "rgba(251,191,36,0.3)",
+                }}
+              >
+                <Crown size={10} color={COLORS.divineGold} />
+                <Text
+                  style={{
+                    fontFamily: "Lato-Bold",
+                    fontSize: 9,
+                    color: COLORS.divineGold,
+                    textTransform: "uppercase",
+                    letterSpacing: 1,
+                  }}
+                >
+                  Pro
+                </Text>
+              </View>
+            )}
+          </View>
           <Typography variant="caption" style={styles.profileEmail}>
             {user?.email || "Anonymous"}
           </Typography>
@@ -327,6 +364,81 @@ export default function SettingsScreen() {
               </Pressable>
             ))}
           </View>
+        )}
+      </View>
+
+      {/* Subscription section */}
+      <View style={styles.section}>
+        <Typography variant="caption" style={styles.sectionTitle}>
+          SUBSCRIPTION
+        </Typography>
+
+        {isPro ? (
+          <>
+            <View style={styles.row}>
+              <View style={styles.rowLeft}>
+                <View style={[styles.iconCircle, { backgroundColor: "rgba(251,191,36,0.15)" }]}>
+                  <Crown size={18} color={COLORS.divineGold} />
+                </View>
+                <View>
+                  <Typography variant="body" style={styles.rowLabel}>
+                    RhemaFlow Pro
+                  </Typography>
+                  <Typography variant="caption" style={{ color: COLORS.divineGold, marginTop: 2 }}>
+                    Active
+                  </Typography>
+                </View>
+              </View>
+            </View>
+            <Pressable
+              style={styles.row}
+              onPress={() => router.push("/(modals)/paywall" as any)}
+            >
+              <View style={styles.rowLeft}>
+                <View style={[styles.iconCircle, { backgroundColor: COLORS.electricPurple + "20" }]}>
+                  <Zap size={18} color={COLORS.electricPurple} />
+                </View>
+                <Typography variant="body" style={styles.rowLabel}>
+                  Manage Subscription
+                </Typography>
+              </View>
+              <ChevronRight size={16} color={COLORS.slate400} />
+            </Pressable>
+          </>
+        ) : (
+          <>
+            <View style={styles.row}>
+              <View style={styles.rowLeft}>
+                <View style={[styles.iconCircle, { backgroundColor: COLORS.slate700 + "40" }]}>
+                  <Crown size={18} color={COLORS.slate400} />
+                </View>
+                <View>
+                  <Typography variant="body" style={styles.rowLabel}>
+                    Free Plan
+                  </Typography>
+                  {usage && (
+                    <Typography variant="caption" style={{ color: COLORS.slate400, marginTop: 2 }}>
+                      {usage.declarationsToday}/{usage.dailyLimit} declarations used today
+                    </Typography>
+                  )}
+                </View>
+              </View>
+            </View>
+            <Pressable
+              style={[styles.row, { borderColor: COLORS.divineGold + "40" }]}
+              onPress={() => router.push("/(modals)/paywall" as any)}
+            >
+              <View style={styles.rowLeft}>
+                <View style={[styles.iconCircle, { backgroundColor: "rgba(251,191,36,0.15)" }]}>
+                  <Zap size={18} color={COLORS.divineGold} />
+                </View>
+                <Typography variant="body" style={[styles.rowLabel, { color: COLORS.divineGold }]}>
+                  Upgrade to Pro
+                </Typography>
+              </View>
+              <ChevronRight size={16} color={COLORS.divineGold} />
+            </Pressable>
+          </>
         )}
       </View>
 

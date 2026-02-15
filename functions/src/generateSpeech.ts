@@ -1,5 +1,7 @@
 import * as functions from "firebase-functions/v1";
 import { GoogleGenAI } from "@google/genai";
+import { verifySubscription } from "./utils/subscription";
+import { sanitizeText } from "./utils/sanitize";
 
 /**
  * Converts raw 16-bit PCM audio from Gemini TTS into a WAV file.
@@ -48,8 +50,17 @@ export const generateSpeech = functions
       throw new functions.https.HttpsError("unauthenticated", "Must be signed in.");
     }
 
-    const { text } = data;
-    if (!text || typeof text !== "string") {
+    // Pro-only feature
+    const tier = await verifySubscription(context.auth.uid);
+    if (tier === "free") {
+      throw new functions.https.HttpsError(
+        "permission-denied",
+        "TTS audio is a Pro feature. Upgrade to unlock."
+      );
+    }
+
+    const text = sanitizeText(data.text, 2000);
+    if (!text) {
       throw new functions.https.HttpsError("invalid-argument", "Text is required.");
     }
 

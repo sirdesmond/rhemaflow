@@ -1,0 +1,83 @@
+import { Platform } from "react-native";
+import Purchases, {
+  CustomerInfo,
+  PurchasesOfferings,
+  PurchasesPackage,
+} from "react-native-purchases";
+import { SubscriptionTier } from "../types";
+
+// Replace with your actual RevenueCat API keys
+const REVENUECAT_IOS_KEY = "test_cjWxzvxAPpWUPfWABiHPprZxItr";
+const REVENUECAT_ANDROID_KEY = "test_cjWxzvxAPpWUPfWABiHPprZxItr";
+
+/**
+ * Initialize RevenueCat SDK and identify user by Firebase UID.
+ */
+export async function initRevenueCat(firebaseUid: string): Promise<void> {
+  const apiKey =
+    Platform.OS === "ios" ? REVENUECAT_IOS_KEY : REVENUECAT_ANDROID_KEY;
+
+  Purchases.configure({ apiKey, appUserID: firebaseUid });
+}
+
+/**
+ * Extract subscription tier from CustomerInfo.
+ */
+function tierFromCustomerInfo(info: CustomerInfo): SubscriptionTier {
+  return info.entitlements.active["pro"] ? "pro" : "free";
+}
+
+/**
+ * Check current subscription tier from RevenueCat.
+ */
+export async function getSubscriptionTier(): Promise<SubscriptionTier> {
+  try {
+    const info = await Purchases.getCustomerInfo();
+    return tierFromCustomerInfo(info);
+  } catch {
+    return "free";
+  }
+}
+
+/**
+ * Fetch current offering for paywall display.
+ */
+export async function getOfferings(): Promise<PurchasesOfferings | null> {
+  try {
+    const offerings = await Purchases.getOfferings();
+    return offerings;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Execute a purchase and return the new tier.
+ */
+export async function purchasePackage(
+  pkg: PurchasesPackage
+): Promise<SubscriptionTier> {
+  const { customerInfo } = await Purchases.purchasePackage(pkg);
+  return tierFromCustomerInfo(customerInfo);
+}
+
+/**
+ * Restore previous purchases and return current tier.
+ */
+export async function restorePurchases(): Promise<SubscriptionTier> {
+  const info = await Purchases.restorePurchases();
+  return tierFromCustomerInfo(info);
+}
+
+/**
+ * Listen for real-time subscription changes.
+ */
+export function onSubscriptionChange(
+  callback: (tier: SubscriptionTier) => void
+): () => void {
+  const listener = (info: CustomerInfo) => {
+    callback(tierFromCustomerInfo(info));
+  };
+  Purchases.addCustomerInfoUpdateListener(listener);
+  return () => Purchases.removeCustomerInfoUpdateListener(listener);
+}

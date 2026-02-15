@@ -5,6 +5,12 @@ function friendlyMessage(error: unknown): string {
   const msg =
     error instanceof Error ? error.message.toLowerCase() : String(error);
 
+  if (msg.includes("resource-exhausted") || msg.includes("daily limit")) {
+    return "You've reached your daily limit. Upgrade to Pro for unlimited declarations.";
+  }
+  if (msg.includes("permission-denied") || msg.includes("pro feature")) {
+    return "This is a Pro feature. Upgrade to unlock.";
+  }
   if (
     msg.includes("network") ||
     msg.includes("fetch") ||

@@ -1,7 +1,7 @@
 import { View, Text, ScrollView, Pressable, Alert, KeyboardAvoidingView, Platform } from "react-native";
 import { useState, useRef, useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Flame, ChevronLeft, Sparkles, User } from "lucide-react-native";
+import { Flame, ChevronLeft, Sparkles, User, Crown } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import ViewShot from "react-native-view-shot";
@@ -11,6 +11,7 @@ import { DeclarationCard } from "../../components/DeclarationCard";
 import { ShareCard } from "../../components/ShareCard";
 import { LoadingOverlay } from "../../components/LoadingOverlay";
 import { useAudio } from "../../hooks/useAudio";
+import { useSubscription } from "../../hooks/useSubscription";
 import {
   generateDeclaration,
   generateImage,
@@ -36,6 +37,7 @@ export default function HomeScreen() {
   const [isSaved, setIsSaved] = useState(false);
 
   const router = useRouter();
+  const { isPro, usage, refreshUsage } = useSubscription();
   const { isPlaying, atmosphere, setAtmosphere, play, togglePlayback, cycleAtmosphere, stop } =
     useAudio();
   const viewShotRef = useRef<ViewShot>(null);
@@ -51,6 +53,12 @@ export default function HomeScreen() {
     prompt: string,
     category: DeclarationCategory
   ) => {
+    // Check usage before generating
+    if (!isPro && usage && !usage.canGenerate) {
+      router.push("/(modals)/paywall" as any);
+      return;
+    }
+
     setIsLoading(true);
     setContent(null);
     setCurrentCategory(category);
@@ -70,24 +78,30 @@ export default function HomeScreen() {
         audioBase64: null,
       });
       setIsLoading(false);
-      setIsAudioLoading(true);
 
-      // Step 2: Fire TTS + image in parallel in background
-      const [audioBase64, imageUrl] = await Promise.all([
-        generateSpeech(declaration.text).catch(() => null),
-        generateImage(category, declaration.text).catch(() => null),
-      ]);
+      // Refresh usage count after generation
+      refreshUsage();
 
-      setIsAudioLoading(false);
+      // Step 2: Pro users get TTS + image in parallel
+      if (isPro) {
+        setIsAudioLoading(true);
 
-      if (audioBase64) {
-        setContent((prev) => prev ? { ...prev, audioBase64 } : null);
-        play(audioBase64);
+        const [audioBase64, imageUrl] = await Promise.all([
+          generateSpeech(declaration.text).catch(() => null),
+          generateImage(category, declaration.text).catch(() => null),
+        ]);
+
+        setIsAudioLoading(false);
+
+        if (audioBase64) {
+          setContent((prev) => prev ? { ...prev, audioBase64 } : null);
+          play(audioBase64);
+        }
+
+        setContent((prev) =>
+          prev ? { ...prev, backgroundImageUrl: imageUrl } : null
+        );
       }
-
-      setContent((prev) =>
-        prev ? { ...prev, backgroundImageUrl: imageUrl } : null
-      );
     } catch (error: any) {
       console.error("Generation failed:", error);
       setIsLoading(false);
@@ -198,6 +212,34 @@ export default function HomeScreen() {
             Rhema
             <Text style={{ color: COLORS.divineGold }}>Flow</Text>
           </Text>
+          {isPro && (
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 4,
+                backgroundColor: "rgba(251,191,36,0.15)",
+                paddingHorizontal: 8,
+                paddingVertical: 3,
+                borderRadius: 10,
+                borderWidth: 1,
+                borderColor: "rgba(251,191,36,0.3)",
+              }}
+            >
+              <Crown size={10} color={COLORS.divineGold} />
+              <Text
+                style={{
+                  fontFamily: "Lato-Bold",
+                  fontSize: 9,
+                  color: COLORS.divineGold,
+                  textTransform: "uppercase",
+                  letterSpacing: 1,
+                }}
+              >
+                Pro
+              </Text>
+            </View>
+          )}
         </View>
         <Pressable
           onPress={() => router.push("/(tabs)/settings")}
@@ -263,6 +305,47 @@ export default function HomeScreen() {
             onCustomMood={handleCustomMood}
             isLoading={isLoading}
           />
+
+          {/* Usage counter for free users */}
+          {!isPro && usage && (
+            <Pressable
+              onPress={() => router.push("/(modals)/paywall" as any)}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+                paddingVertical: 12,
+                paddingHorizontal: 16,
+                borderRadius: 12,
+                backgroundColor: COLORS.glass,
+                borderWidth: 1,
+                borderColor: COLORS.glassBorder,
+              }}
+            >
+              <Text
+                style={{
+                  fontFamily: "Lato",
+                  fontSize: 14,
+                  color: usage.canGenerate ? COLORS.slate400 : COLORS.fireOrange,
+                }}
+              >
+                {usage.canGenerate
+                  ? `${usage.dailyLimit - usage.declarationsToday} of ${usage.dailyLimit} remaining today`
+                  : "Daily limit reached"}
+              </Text>
+              <Text
+                style={{
+                  fontFamily: "Lato-Bold",
+                  fontSize: 12,
+                  color: COLORS.divineGold,
+                  textTransform: "uppercase",
+                }}
+              >
+                Upgrade
+              </Text>
+            </Pressable>
+          )}
         </ScrollView>
         </KeyboardAvoidingView>
       ) : (
@@ -283,6 +366,8 @@ export default function HomeScreen() {
             onShare={handleShare}
             onSave={handleSave}
             isSaved={isSaved}
+            isPro={isPro}
+            onUpgrade={() => router.push("/(modals)/paywall" as any)}
           />
 
           {/* Hidden off-screen ShareCard for ViewShot capture */}

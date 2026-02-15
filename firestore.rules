@@ -10,6 +10,12 @@ service cloud.firestore {
       match /declarations/{declarationId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
+
+      // Usage tracking: clients can read but only Cloud Functions (admin SDK) can write
+      match /usage/{dateId} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        allow write: if false;
+      }
     }
 
     // Deny everything else by default

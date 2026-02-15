@@ -69,4 +69,14 @@ export interface UserProfile {
   photoURL: string | null;
   createdAt: number;
   settings: UserSettings;
+  subscriptionTier?: SubscriptionTier;
+}
+
+export type SubscriptionTier = "free" | "pro";
+
+export interface UsageStatus {
+  tier: SubscriptionTier;
+  declarationsToday: number;
+  dailyLimit: number;
+  canGenerate: boolean;
 }

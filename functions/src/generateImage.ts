@@ -2,6 +2,8 @@ import * as functions from "firebase-functions/v1";
 import * as admin from "firebase-admin";
 import { GoogleGenAI } from "@google/genai";
 import { v4 as uuidv4 } from "uuid";
+import { verifySubscription } from "./utils/subscription";
+import { sanitizeCategory } from "./utils/sanitize";
 
 const IMAGE_THEMES: Record<string, string> = {
   "Health & Healing":
@@ -27,7 +29,16 @@ export const generateImage = functions
       throw new functions.https.HttpsError("unauthenticated", "Must be signed in.");
     }
 
-    const { category } = data;
+    // Pro-only feature
+    const tier = await verifySubscription(context.auth.uid);
+    if (tier === "free") {
+      throw new functions.https.HttpsError(
+        "permission-denied",
+        "AI background images are a Pro feature. Upgrade to unlock."
+      );
+    }
+
+    const category = sanitizeCategory(data.category);
     const visualTheme = IMAGE_THEMES[category] || IMAGE_THEMES["General"];
 
     const prompt = `Epic, cinematic, high-contrast spiritual background. Theme: ${visualTheme}. Intense colors, 4k, digital art style, volumetric lighting. No text.`;
