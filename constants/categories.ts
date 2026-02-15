@@ -2,45 +2,74 @@ import { DeclarationCategory, MoodPreset } from "../types";
 
 export const MOOD_PRESETS: MoodPreset[] = [
   {
-    emoji: "\u{1F915}",
-    label: "Feeling Sick",
+    emoji: "\u{2764}\u{FE0F}\u{200D}\u{1F525}",
+    label: "Health & Healing",
     category: DeclarationCategory.HEALTH,
     prompt:
-      "I am fighting sickness. Give me a declaration of healing and divine health.",
+      "I am declaring divine health over my body. Give me a powerful declaration of healing and wholeness.",
   },
   {
-    emoji: "\u{1F4C9}",
-    label: "Financial Lack",
+    emoji: "\u{1F451}",
+    label: "Wealth & Prosperity",
     category: DeclarationCategory.WEALTH,
     prompt:
-      "I am facing financial lack. Give me a declaration of abundance and provision.",
+      "I am declaring abundance and financial overflow. Give me a declaration of wealth and provision.",
   },
   {
-    emoji: "\u{1F628}",
-    label: "Afraid",
-    category: DeclarationCategory.PROTECTION,
-    prompt:
-      "I feel afraid and anxious. Give me a declaration of safety and divine protection.",
-  },
-  {
-    emoji: "\u{1F614}",
-    label: "Depressed",
-    category: DeclarationCategory.IDENTITY,
-    prompt: "I feel low and worthless. Remind me of who I am in Christ.",
-  },
-  {
-    emoji: "\u{1F6D1}",
-    label: "Stuck/Failed",
+    emoji: "\u{1F3C6}",
+    label: "Success",
     category: DeclarationCategory.SUCCESS,
     prompt:
-      "I feel like a failure. Give me a declaration of victory and success.",
+      "I am declaring success in everything I put my hands to. Give me a declaration of breakthrough and achievement.",
   },
   {
-    emoji: "\u{1F914}",
-    label: "Confused",
+    emoji: "\u{1F981}",
+    label: "Fearless",
+    category: DeclarationCategory.PROTECTION,
+    prompt:
+      "I am bold and fearless. Give me a declaration of courage, protection, and divine covering.",
+  },
+  {
+    emoji: "\u{1F4A1}",
+    label: "Wisdom",
     category: DeclarationCategory.WISDOM,
     prompt:
-      "I need direction. Give me a declaration of wisdom and clarity.",
+      "I walk in divine wisdom and clarity. Give me a declaration of supernatural insight and direction.",
+  },
+  {
+    emoji: "\u{2694}\u{FE0F}",
+    label: "Victory",
+    category: DeclarationCategory.IDENTITY,
+    prompt:
+      "I am more than a conqueror. Give me a declaration of total victory and dominion in Christ.",
+  },
+  {
+    emoji: "\u{1F48D}",
+    label: "Marriage & Family",
+    category: DeclarationCategory.MARRIAGE,
+    prompt:
+      "I am declaring God's blessing over my marriage and family. Give me a declaration of love, unity, and divine covering over my home.",
+  },
+  {
+    emoji: "\u{1F6AA}",
+    label: "Favor & Open Doors",
+    category: DeclarationCategory.FAVOR,
+    prompt:
+      "I walk in supernatural favor. Give me a declaration of divine connections, open doors, and uncommon opportunities.",
+  },
+  {
+    emoji: "\u{1F54A}\u{FE0F}",
+    label: "Peace & Rest",
+    category: DeclarationCategory.PEACE,
+    prompt:
+      "I declare the peace of God that passes all understanding. Give me a declaration of rest, calm, and freedom from anxiety.",
+  },
+  {
+    emoji: "\u{1F476}",
+    label: "Children & Fruitfulness",
+    category: DeclarationCategory.CHILDREN,
+    prompt:
+      "I declare fruitfulness in every area of my life. Give me a declaration of children, multiplication, and generational blessing.",
   },
 ];
 
@@ -52,6 +81,10 @@ export const CATEGORY_GRADIENTS: Record<DeclarationCategory, [string, string]> =
     [DeclarationCategory.SUCCESS]: ["#DC2626", "#F59E0B"],
     [DeclarationCategory.PROTECTION]: ["#2563EB", "#7C3AED"],
     [DeclarationCategory.WISDOM]: ["#0891B2", "#06B6D4"],
+    [DeclarationCategory.MARRIAGE]: ["#E11D48", "#FB7185"],
+    [DeclarationCategory.FAVOR]: ["#7C3AED", "#FBBF24"],
+    [DeclarationCategory.PEACE]: ["#1D4ED8", "#93C5FD"],
+    [DeclarationCategory.CHILDREN]: ["#EA580C", "#FCD34D"],
     [DeclarationCategory.GENERAL]: ["#4C1D95", "#7C3AED"],
   };
 
@@ -68,6 +101,14 @@ export const CATEGORY_IMAGE_THEMES: Record<DeclarationCategory, string> = {
     "golden crown, royal scepter, intense spotlight, galaxy background",
   [DeclarationCategory.WISDOM]:
     "burning bush, ancient scroll glowing, neural network of light, starry cosmos",
+  [DeclarationCategory.MARRIAGE]:
+    "two golden rings intertwined, rose petals, warm candlelight, covenant flame, romantic sunset",
+  [DeclarationCategory.FAVOR]:
+    "massive ornate doors opening with golden light pouring through, red carpet, divine spotlight, keys",
+  [DeclarationCategory.PEACE]:
+    "still waters, white dove in flight, serene blue sky, olive branch, gentle morning mist",
+  [DeclarationCategory.CHILDREN]:
+    "blooming garden, fruit-laden tree of life, golden seeds sprouting, nurturing warm light, rainbow",
   [DeclarationCategory.GENERAL]:
     "epic divine light, exploding golden rays, dramatic cinematic lighting",
 };

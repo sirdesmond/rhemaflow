@@ -5,6 +5,10 @@ export enum DeclarationCategory {
   SUCCESS = "Success & Victory",
   PROTECTION = "Protection & Fearlessness",
   WISDOM = "Wisdom & Guidance",
+  MARRIAGE = "Marriage & Family",
+  FAVOR = "Favor & Open Doors",
+  PEACE = "Peace & Rest",
+  CHILDREN = "Children & Fruitfulness",
   GENERAL = "General",
 }
 

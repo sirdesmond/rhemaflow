@@ -3,38 +3,21 @@ import { useState } from "react";
 import { ArrowRight, Sparkles } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import { MOOD_PRESETS } from "../constants/categories";
-import { DeclarationCategory, MoodPreset } from "../types";
+import { MoodPreset } from "../types";
 import { COLORS } from "../constants/theme";
 
 interface MoodInputProps {
   onMoodSelect: (preset: MoodPreset) => void;
   onCustomMood: (text: string) => void;
   isLoading: boolean;
-  selectedCategory: DeclarationCategory;
 }
-
-const PLACEHOLDERS: Record<DeclarationCategory, string> = {
-  [DeclarationCategory.HEALTH]: "Describe your symptoms...",
-  [DeclarationCategory.WEALTH]: "Describe your financial situation...",
-  [DeclarationCategory.PROTECTION]: "What are you afraid of?",
-  [DeclarationCategory.IDENTITY]: "How are you feeling about yourself?",
-  [DeclarationCategory.SUCCESS]: "What obstacle are you facing?",
-  [DeclarationCategory.WISDOM]: "What decision do you need to make?",
-  [DeclarationCategory.GENERAL]: "Describe your situation...",
-};
 
 export function MoodInput({
   onMoodSelect,
   onCustomMood,
   isLoading,
-  selectedCategory,
 }: MoodInputProps) {
   const [customText, setCustomText] = useState("");
-
-  const filteredPresets =
-    selectedCategory === DeclarationCategory.GENERAL
-      ? MOOD_PRESETS
-      : MOOD_PRESETS.filter((p) => p.category === selectedCategory);
 
   const handleSubmit = () => {
     if (customText.trim()) {
@@ -46,53 +29,64 @@ export function MoodInput({
 
   return (
     <View style={{ width: "100%", gap: 24 }}>
+      {/* Section heading */}
+      <Text
+        style={{
+          fontFamily: "Lato-Bold",
+          fontSize: 11,
+          color: COLORS.warmGold,
+          textTransform: "uppercase",
+          letterSpacing: 2,
+        }}
+      >
+        What are you declaring today?
+      </Text>
+
       {/* Mood Presets Grid */}
-      {filteredPresets.length > 0 && (
-        <View
-          style={{
-            flexDirection: "row",
-            flexWrap: "wrap",
-            gap: 14,
-          }}
-        >
-          {filteredPresets.map((preset) => (
-            <Pressable
-              key={preset.label}
-              disabled={isLoading}
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                onMoodSelect(preset);
-              }}
+      <View
+        style={{
+          flexDirection: "row",
+          flexWrap: "wrap",
+          gap: 14,
+        }}
+      >
+        {MOOD_PRESETS.map((preset) => (
+          <Pressable
+            key={preset.label}
+            disabled={isLoading}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              onMoodSelect(preset);
+            }}
+            style={{
+              flexBasis: "47%",
+              alignItems: "center",
+              justifyContent: "center",
+              paddingVertical: 24,
+              paddingHorizontal: 12,
+              backgroundColor: COLORS.glass,
+              borderRadius: 20,
+              borderWidth: 1,
+              borderColor: COLORS.glassBorder,
+            }}
+          >
+            <Text style={{ fontSize: 34, marginBottom: 10 }}>
+              {preset.emoji}
+            </Text>
+            <Text
               style={{
-                flexBasis: "47%",
-                alignItems: "center",
-                justifyContent: "center",
-                paddingVertical: 24,
-                paddingHorizontal: 12,
-                backgroundColor: COLORS.glass,
-                borderRadius: 20,
-                borderWidth: 1,
-                borderColor: COLORS.glassBorder,
+                fontFamily: "Lato-Bold",
+                fontSize: 13,
+                color: COLORS.white,
+                textAlign: "center",
+                letterSpacing: 0.3,
               }}
             >
-              <Text style={{ fontSize: 34, marginBottom: 10 }}>
-                {preset.emoji}
-              </Text>
-              <Text
-                style={{
-                  fontFamily: "Lato-Bold",
-                  fontSize: 13,
-                  color: COLORS.white,
-                  textAlign: "center",
-                  letterSpacing: 0.3,
-                }}
-              >
-                {preset.label}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-      )}
+              {preset.label}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
 
       {/* Divider */}
       <View style={{ flexDirection: "row", alignItems: "center" }}>
@@ -109,7 +103,7 @@ export function MoodInput({
             letterSpacing: 2,
           }}
         >
-          Or speak your situation
+          Or describe your situation
         </Text>
         <View
           style={{ flex: 1, height: 1, backgroundColor: COLORS.glassBorder }}
@@ -131,7 +125,7 @@ export function MoodInput({
           <TextInput
             value={customText}
             onChangeText={setCustomText}
-            placeholder={PLACEHOLDERS[selectedCategory]}
+            placeholder="e.g. Believing God for a child, new job..."
             placeholderTextColor={COLORS.slate700}
             editable={!isLoading}
             onSubmitEditing={handleSubmit}

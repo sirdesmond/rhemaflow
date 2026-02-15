@@ -6,7 +6,6 @@ import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import ViewShot from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
-import { CategoryNav } from "../../components/CategoryNav";
 import { MoodInput } from "../../components/MoodInput";
 import { DeclarationCard } from "../../components/DeclarationCard";
 import { ShareCard } from "../../components/ShareCard";
@@ -246,26 +245,19 @@ export default function HomeScreen() {
                 lineHeight: 26,
               }}
             >
-              The atmosphere shifts when you speak.{"\n"}What do you need to
-              declare today?
+              The atmosphere shifts when you speak.
             </Text>
           </View>
-
-          <CategoryNav
-            selectedCategory={currentCategory}
-            onSelect={setCurrentCategory}
-          />
 
           <MoodInput
             onMoodSelect={handleMoodSelect}
             onCustomMood={handleCustomMood}
             isLoading={isLoading}
-            selectedCategory={currentCategory}
           />
         </ScrollView>
         </KeyboardAvoidingView>
       ) : (
-        <View style={{ flex: 1, padding: 16 }}>
+        <View style={{ flex: 1, padding: 16, paddingBottom: 100 }}>
           <DeclarationCard
             text={content.text}
             reference={content.reference}
