@@ -1,5 +1,5 @@
 import { functions } from "./firebase";
-import { DeclarationCategory, GeneratedContent } from "../types";
+import { DeclarationCategory } from "../types";
 
 function friendlyMessage(error: unknown): string {
   const msg =
@@ -20,18 +20,18 @@ function friendlyMessage(error: unknown): string {
 }
 
 /**
- * Calls the combined generateDeclaration Cloud Function.
- * Returns declaration text, scripture, AND TTS audio in one round-trip.
+ * Calls the generateDeclaration Cloud Function.
+ * Returns declaration text and scripture only (no audio).
  */
 export async function generateDeclaration(
   category: DeclarationCategory,
   mood: string,
   customText?: string
-): Promise<{ text: string; reference: string; scriptureText: string; audioBase64: string | null }> {
+): Promise<{ text: string; reference: string; scriptureText: string }> {
   try {
     const fn = functions.httpsCallable("generateDeclaration");
     const result = await fn({ category, mood, customText });
-    return result.data as { text: string; reference: string; scriptureText: string; audioBase64: string | null };
+    return result.data as { text: string; reference: string; scriptureText: string };
   } catch (error) {
     throw new Error(friendlyMessage(error));
   }
@@ -64,36 +64,6 @@ export async function generateImage(
     const result = await fn({ category, declarationText });
     return (result.data as { imageUrl: string | null }).imageUrl;
   } catch (error) {
-    throw new Error(friendlyMessage(error));
-  }
-}
-
-/**
- * Full generation pipeline: combined text+audio first, then image in parallel.
- */
-export async function generateAllContent(
-  category: DeclarationCategory,
-  mood: string,
-  customText?: string
-): Promise<GeneratedContent> {
-  try {
-    // Fire both in parallel — image only needs category, not declaration text
-    const [declaration, imageUrl] = await Promise.all([
-      generateDeclaration(category, mood, customText),
-      generateImage(category, ""),
-    ]);
-
-    return {
-      text: declaration.text,
-      reference: declaration.reference,
-      scriptureText: declaration.scriptureText,
-      backgroundImageUrl: imageUrl,
-      audioBase64: declaration.audioBase64,
-    };
-  } catch (error) {
-    if (error instanceof Error && error.message !== "Something went wrong. Please try again.") {
-      throw error;
-    }
     throw new Error(friendlyMessage(error));
   }
 }

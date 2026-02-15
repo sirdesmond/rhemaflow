@@ -14,6 +14,7 @@ import { useAudio } from "../../hooks/useAudio";
 import {
   generateDeclaration,
   generateImage,
+  generateSpeech,
 } from "../../services/declarations";
 import { saveDeclaration } from "../../services/favorites";
 import {
@@ -56,26 +57,30 @@ export default function HomeScreen() {
     await stop();
 
     try {
-      // Step 1: Combined call — gets text + audio in one round-trip
+      // Step 1: Get declaration text (fast — no TTS)
       const declaration = await generateDeclaration(category, prompt);
 
-      // Show card immediately with text + audio
+      // Show card immediately with text
       setContent({
         text: declaration.text,
         reference: declaration.reference,
         scriptureText: declaration.scriptureText,
         backgroundImageUrl: null,
-        audioBase64: declaration.audioBase64,
+        audioBase64: null,
       });
       setIsLoading(false);
 
-      // Auto-play the audio as soon as it's ready
-      if (declaration.audioBase64) {
-        play(declaration.audioBase64);
+      // Step 2: Fire TTS + image in parallel in background
+      const [audioBase64, imageUrl] = await Promise.all([
+        generateSpeech(declaration.text).catch(() => null),
+        generateImage(category, declaration.text).catch(() => null),
+      ]);
+
+      if (audioBase64) {
+        setContent((prev) => prev ? { ...prev, audioBase64 } : null);
+        play(audioBase64);
       }
 
-      // Load image in background (audio already arrived)
-      const imageUrl = await generateImage(category, declaration.text).catch(() => null);
       setContent((prev) =>
         prev ? { ...prev, backgroundImageUrl: imageUrl } : null
       );
