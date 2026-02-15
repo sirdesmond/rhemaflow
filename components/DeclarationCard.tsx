@@ -10,6 +10,7 @@ import {
   VolumeX,
   BookOpen,
   Heart,
+  Loader,
 } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import { DeclarationCategory, AtmosphereType } from "../types";
@@ -24,6 +25,7 @@ interface DeclarationCardProps {
   category: DeclarationCategory;
   backgroundImageUrl: string | null;
   isPlaying: boolean;
+  isAudioLoading: boolean;
   onPlayToggle: () => void;
   onRegenerateImage: () => void;
   isGeneratingImage: boolean;
@@ -41,6 +43,7 @@ export function DeclarationCard({
   category,
   backgroundImageUrl,
   isPlaying,
+  isAudioLoading,
   onPlayToggle,
   onRegenerateImage,
   isGeneratingImage,
@@ -153,15 +156,23 @@ export function DeclarationCard({
         {/* Speak Life / Pause */}
         <Pressable
           onPress={() => {
+            if (isAudioLoading) return;
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
             onPlayToggle();
           }}
           style={[
             styles.playButton,
-            isPlaying ? styles.playButtonActive : styles.playButtonDefault,
+            isAudioLoading
+              ? styles.playButtonLoading
+              : isPlaying
+                ? styles.playButtonActive
+                : styles.playButtonDefault,
           ]}
+          disabled={isAudioLoading}
         >
-          {isPlaying ? (
+          {isAudioLoading ? (
+            <Loader size={20} color={COLORS.slate400} />
+          ) : isPlaying ? (
             <Pause size={20} color="white" fill="white" />
           ) : (
             <Play size={20} color={COLORS.voidBlack} fill={COLORS.voidBlack} />
@@ -169,10 +180,10 @@ export function DeclarationCard({
           <Text
             style={[
               styles.playButtonText,
-              { color: isPlaying ? "white" : COLORS.voidBlack },
+              { color: isAudioLoading ? COLORS.slate400 : isPlaying ? "white" : COLORS.voidBlack },
             ]}
           >
-            {isPlaying ? "Speaking..." : "Speak Life"}
+            {isAudioLoading ? "Preparing..." : isPlaying ? "Speaking..." : "Speak Life"}
           </Text>
         </Pressable>
 
@@ -402,6 +413,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 12,
     elevation: 6,
+  },
+  playButtonLoading: {
+    backgroundColor: COLORS.glass,
+    borderWidth: 1,
+    borderColor: COLORS.glassBorder,
   },
   playButtonActive: {
     backgroundColor: COLORS.electricPurple,

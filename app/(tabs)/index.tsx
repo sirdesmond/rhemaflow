@@ -32,6 +32,7 @@ export default function HomeScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [content, setContent] = useState<GeneratedContent | null>(null);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [isAudioLoading, setIsAudioLoading] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
 
   const router = useRouter();
@@ -69,12 +70,15 @@ export default function HomeScreen() {
         audioBase64: null,
       });
       setIsLoading(false);
+      setIsAudioLoading(true);
 
       // Step 2: Fire TTS + image in parallel in background
       const [audioBase64, imageUrl] = await Promise.all([
         generateSpeech(declaration.text).catch(() => null),
         generateImage(category, declaration.text).catch(() => null),
       ]);
+
+      setIsAudioLoading(false);
 
       if (audioBase64) {
         setContent((prev) => prev ? { ...prev, audioBase64 } : null);
@@ -270,6 +274,7 @@ export default function HomeScreen() {
             category={currentCategory}
             backgroundImageUrl={content.backgroundImageUrl}
             isPlaying={isPlaying}
+            isAudioLoading={isAudioLoading}
             onPlayToggle={() => togglePlayback(content.audioBase64)}
             onRegenerateImage={handleRegenerateImage}
             isGeneratingImage={isGeneratingImage}

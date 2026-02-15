@@ -186,6 +186,7 @@ export default function SavedScreen() {
             category={selected.category}
             backgroundImageUrl={selected.imageUrl}
             isPlaying={isPlaying || isLoadingAudio}
+            isAudioLoading={isLoadingAudio}
             onPlayToggle={handlePlayToggle}
             onRegenerateImage={handleRegenerateImage}
             isGeneratingImage={isGeneratingImage}
