@@ -210,7 +210,9 @@ export default function HomeScreen() {
       </View>
 
       {/* Main Content */}
-      {!content ? (
+      {isLoading ? (
+        <LoadingOverlay />
+      ) : !content ? (
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -333,9 +335,6 @@ export default function HomeScreen() {
           </Pressable>
         </View>
       )}
-
-      {/* Loading Overlay */}
-      {isLoading && <LoadingOverlay />}
     </SafeAreaView>
   );
 }

@@ -1,6 +1,5 @@
 import { View, Text, StyleSheet } from "react-native";
 import { useEffect, useState } from "react";
-import { BlurView } from "expo-blur";
 import { Flame } from "lucide-react-native";
 import Animated, {
   useSharedValue,
@@ -61,23 +60,21 @@ export function LoadingOverlay() {
   }));
 
   return (
-    <BlurView intensity={50} tint="dark" style={StyleSheet.absoluteFill}>
-      <View style={styles.container}>
-        {/* Glow ring behind the flame */}
-        <View style={styles.iconWrapper}>
-          <Animated.View style={[styles.glowRing, animatedGlow]} />
-          <Animated.View style={[styles.iconContainer, animatedIcon]}>
-            <Flame size={56} color={COLORS.divineGold} fill={COLORS.fireOrange} />
-          </Animated.View>
-        </View>
-
-        <Text style={styles.title}>IGNITING THE WORD</Text>
-
-        <View style={styles.divider} />
-
-        <Text style={styles.subtitle}>{LOADING_MESSAGES[messageIndex]}</Text>
+    <View style={styles.container}>
+      {/* Glow ring behind the flame */}
+      <View style={styles.iconWrapper}>
+        <Animated.View style={[styles.glowRing, animatedGlow]} />
+        <Animated.View style={[styles.iconContainer, animatedIcon]}>
+          <Flame size={56} color={COLORS.divineGold} fill={COLORS.fireOrange} />
+        </Animated.View>
       </View>
-    </BlurView>
+
+      <Text style={styles.title}>IGNITING THE WORD</Text>
+
+      <View style={styles.divider} />
+
+      <Text style={styles.subtitle}>{LOADING_MESSAGES[messageIndex]}</Text>
+    </View>
   );
 }
 
