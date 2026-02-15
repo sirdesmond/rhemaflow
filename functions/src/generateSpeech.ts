@@ -69,7 +69,7 @@ export const generateSpeech = functions
           responseModalities: ["AUDIO" as any],
           speechConfig: {
             voiceConfig: {
-              prebuiltVoiceConfig: { voiceName: "Puck" },
+              prebuiltVoiceConfig: { voiceName: "Kore" },
             },
           },
         },
