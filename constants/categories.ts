@@ -1,3 +1,4 @@
+import { ImageSourcePropType } from "react-native";
 import { DeclarationCategory, MoodPreset } from "../types";
 
 export const MOOD_PRESETS: MoodPreset[] = [
@@ -111,6 +112,20 @@ export const CATEGORY_IMAGE_THEMES: Record<DeclarationCategory, string> = {
     "blooming garden, fruit-laden tree of life, golden seeds sprouting, nurturing warm light, rainbow",
   [DeclarationCategory.GENERAL]:
     "epic divine light, exploding golden rays, dramatic cinematic lighting",
+};
+
+export const CATEGORY_BACKGROUNDS: Record<DeclarationCategory, ImageSourcePropType> = {
+  [DeclarationCategory.HEALTH]: require("../assets/images/categories/health.jpg"),
+  [DeclarationCategory.WEALTH]: require("../assets/images/categories/wealth.jpg"),
+  [DeclarationCategory.IDENTITY]: require("../assets/images/categories/identity.jpg"),
+  [DeclarationCategory.SUCCESS]: require("../assets/images/categories/success.jpg"),
+  [DeclarationCategory.PROTECTION]: require("../assets/images/categories/protection.jpg"),
+  [DeclarationCategory.WISDOM]: require("../assets/images/categories/wisdom.jpg"),
+  [DeclarationCategory.MARRIAGE]: require("../assets/images/categories/marriage.jpg"),
+  [DeclarationCategory.FAVOR]: require("../assets/images/categories/favor.jpg"),
+  [DeclarationCategory.PEACE]: require("../assets/images/categories/peace.jpg"),
+  [DeclarationCategory.CHILDREN]: require("../assets/images/categories/children.jpg"),
+  [DeclarationCategory.GENERAL]: require("../assets/images/categories/general.jpg"),
 };
 
 export const STATIC_DECLARATIONS = [

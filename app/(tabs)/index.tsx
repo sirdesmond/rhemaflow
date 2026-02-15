@@ -14,7 +14,6 @@ import { useAudio } from "../../hooks/useAudio";
 import { useSubscription } from "../../hooks/useSubscription";
 import {
   generateDeclaration,
-  generateImage,
   generateSpeech,
 } from "../../services/declarations";
 import { saveDeclaration } from "../../services/favorites";
@@ -32,7 +31,6 @@ export default function HomeScreen() {
   );
   const [isLoading, setIsLoading] = useState(false);
   const [content, setContent] = useState<GeneratedContent | null>(null);
-  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [isAudioLoading, setIsAudioLoading] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
 
@@ -82,14 +80,11 @@ export default function HomeScreen() {
       // Refresh usage count after generation
       refreshUsage();
 
-      // Step 2: Pro users get TTS + image in parallel
+      // Step 2: Pro users get TTS audio
       if (isPro) {
         setIsAudioLoading(true);
 
-        const [audioBase64, imageUrl] = await Promise.all([
-          generateSpeech(declaration.text).catch(() => null),
-          generateImage(category, declaration.text).catch(() => null),
-        ]);
+        const audioBase64 = await generateSpeech(declaration.text).catch(() => null);
 
         setIsAudioLoading(false);
 
@@ -97,10 +92,6 @@ export default function HomeScreen() {
           setContent((prev) => prev ? { ...prev, audioBase64 } : null);
           play(audioBase64);
         }
-
-        setContent((prev) =>
-          prev ? { ...prev, backgroundImageUrl: imageUrl } : null
-        );
       }
     } catch (error: any) {
       console.error("Generation failed:", error);
@@ -120,20 +111,6 @@ export default function HomeScreen() {
     processGeneration(text, currentCategory);
   };
 
-  const handleRegenerateImage = async () => {
-    if (!content) return;
-    setIsGeneratingImage(true);
-    try {
-      const newImageUrl = await generateImage(currentCategory, content.text);
-      if (newImageUrl) {
-        setContent((prev) =>
-          prev ? { ...prev, backgroundImageUrl: newImageUrl } : null
-        );
-      }
-    } finally {
-      setIsGeneratingImage(false);
-    }
-  };
 
   const handleShare = async () => {
     if (!viewShotRef.current?.capture) return;
@@ -355,12 +332,9 @@ export default function HomeScreen() {
             reference={content.reference}
             scriptureText={content.scriptureText}
             category={currentCategory}
-            backgroundImageUrl={content.backgroundImageUrl}
             isPlaying={isPlaying}
             isAudioLoading={isAudioLoading}
             onPlayToggle={() => togglePlayback(content.audioBase64)}
-            onRegenerateImage={handleRegenerateImage}
-            isGeneratingImage={isGeneratingImage}
             atmosphere={atmosphere}
             onAtmosphereChange={cycleAtmosphere}
             onShare={handleShare}
@@ -381,7 +355,6 @@ export default function HomeScreen() {
               reference={content.reference}
               scriptureText={content.scriptureText}
               category={currentCategory}
-              backgroundImageUrl={content.backgroundImageUrl}
             />
           </ViewShot>
 

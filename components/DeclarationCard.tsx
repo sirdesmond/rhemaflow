@@ -5,7 +5,6 @@ import {
   Play,
   Pause,
   Share2,
-  RefreshCw,
   Music,
   VolumeX,
   BookOpen,
@@ -15,7 +14,7 @@ import {
 } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import { DeclarationCategory, AtmosphereType } from "../types";
-import { CATEGORY_GRADIENTS } from "../constants/categories";
+import { CATEGORY_GRADIENTS, CATEGORY_BACKGROUNDS } from "../constants/categories";
 import { ATMOSPHERE_TRACKS } from "../constants/tracks";
 import { COLORS } from "../constants/theme";
 
@@ -24,12 +23,9 @@ interface DeclarationCardProps {
   reference: string;
   scriptureText: string;
   category: DeclarationCategory;
-  backgroundImageUrl: string | null;
   isPlaying: boolean;
   isAudioLoading: boolean;
   onPlayToggle: () => void;
-  onRegenerateImage: () => void;
-  isGeneratingImage: boolean;
   atmosphere: AtmosphereType;
   onAtmosphereChange: () => void;
   onShare: () => void;
@@ -44,12 +40,9 @@ export function DeclarationCard({
   reference,
   scriptureText,
   category,
-  backgroundImageUrl,
   isPlaying,
   isAudioLoading,
   onPlayToggle,
-  onRegenerateImage,
-  isGeneratingImage,
   atmosphere,
   onAtmosphereChange,
   onShare,
@@ -59,6 +52,7 @@ export function DeclarationCard({
   onUpgrade,
 }: DeclarationCardProps) {
   const [gradStart, gradEnd] = CATEGORY_GRADIENTS[category];
+  const backgroundImage = CATEGORY_BACKGROUNDS[category];
   const trackMeta = ATMOSPHERE_TRACKS.find((t) => t.id === atmosphere);
 
   const cardContent = (
@@ -104,26 +98,6 @@ export function DeclarationCard({
             </Text>
           </Pressable>
 
-          {/* Regenerate image (Pro only) */}
-          {isPro && (
-            <Pressable
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                onRegenerateImage();
-              }}
-              disabled={isGeneratingImage}
-              style={styles.iconButton}
-            >
-              <RefreshCw
-                size={16}
-                color={
-                  isGeneratingImage
-                    ? COLORS.divineGold
-                    : "rgba(255,255,255,0.8)"
-                }
-              />
-            </Pressable>
-          )}
         </View>
       </View>
 
@@ -240,29 +214,21 @@ export function DeclarationCard({
     </View>
   );
 
-  // Render with background image or gradient fallback
-  if (backgroundImageUrl) {
-    return (
-      <View style={styles.cardWrapper}>
-        <ImageBackground
-          source={{ uri: backgroundImageUrl }}
-          style={styles.cardImage}
-          imageStyle={{ borderRadius: 24, opacity: 0.8 }}
-        >
-          {cardContent}
-        </ImageBackground>
-      </View>
-    );
-  }
-
+  // Render with bundled category background, gradient fallback
   return (
     <View style={styles.cardWrapper}>
-      <LinearGradient
-        colors={[gradStart, gradEnd]}
-        style={styles.cardGradient}
+      <ImageBackground
+        source={backgroundImage}
+        style={styles.cardImage}
+        imageStyle={{ borderRadius: 24, opacity: 0.8 }}
+        defaultSource={undefined}
       >
+        <LinearGradient
+          colors={[gradStart + "40", gradEnd + "40"]}
+          style={StyleSheet.absoluteFill}
+        />
         {cardContent}
-      </LinearGradient>
+      </ImageBackground>
     </View>
   );
 }

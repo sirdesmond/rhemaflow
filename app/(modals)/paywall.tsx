@@ -192,6 +192,20 @@ export default function PaywallScreen() {
               </Text>
             </Pressable>
           </View>
+        ) : packages.length === 0 ? (
+          // No offerings available (no API key or store not connected)
+          <View style={styles.anonSection}>
+            <Text style={styles.anonTitle}>Coming Soon</Text>
+            <Text style={styles.anonSubtitle}>
+              Pro subscriptions are not yet available. Check back soon for unlimited declarations, TTS audio, and more.
+            </Text>
+            <Pressable
+              style={[styles.signInButton, { backgroundColor: COLORS.glass, borderWidth: 1, borderColor: COLORS.glassBorder }]}
+              onPress={() => router.back()}
+            >
+              <Text style={styles.signInText}>Got it</Text>
+            </Pressable>
+          </View>
         ) : (
           // Signed-in: show packages
           <>

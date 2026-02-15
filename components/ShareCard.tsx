@@ -2,7 +2,7 @@ import { View, Text, ImageBackground, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { BookOpen, Flame, Download } from "lucide-react-native";
 import { DeclarationCategory } from "../types";
-import { CATEGORY_GRADIENTS } from "../constants/categories";
+import { CATEGORY_GRADIENTS, CATEGORY_BACKGROUNDS } from "../constants/categories";
 import { COLORS } from "../constants/theme";
 
 interface ShareCardProps {
@@ -10,7 +10,6 @@ interface ShareCardProps {
   reference: string;
   scriptureText: string;
   category: DeclarationCategory;
-  backgroundImageUrl: string | null;
 }
 
 /**
@@ -22,9 +21,9 @@ export function ShareCard({
   reference,
   scriptureText,
   category,
-  backgroundImageUrl,
 }: ShareCardProps) {
   const [gradStart, gradEnd] = CATEGORY_GRADIENTS[category];
+  const backgroundImage = CATEGORY_BACKGROUNDS[category];
 
   const content = (
     <View style={styles.inner}>
@@ -78,28 +77,15 @@ export function ShareCard({
     </View>
   );
 
-  if (backgroundImageUrl) {
-    return (
-      <View style={styles.wrapper}>
-        <ImageBackground
-          source={{ uri: backgroundImageUrl }}
-          style={styles.image}
-          imageStyle={{ borderRadius: 24, opacity: 0.8 }}
-        >
-          {content}
-        </ImageBackground>
-      </View>
-    );
-  }
-
   return (
     <View style={styles.wrapper}>
-      <LinearGradient
-        colors={[gradStart, gradEnd]}
-        style={styles.gradient}
+      <ImageBackground
+        source={backgroundImage}
+        style={styles.image}
+        imageStyle={{ borderRadius: 24, opacity: 0.8 }}
       >
         {content}
-      </LinearGradient>
+      </ImageBackground>
     </View>
   );
 }

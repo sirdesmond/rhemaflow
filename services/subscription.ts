@@ -6,17 +6,27 @@ import Purchases, {
 } from "react-native-purchases";
 import { SubscriptionTier } from "../types";
 
-// Replace with your actual RevenueCat API keys
-const REVENUECAT_IOS_KEY = "test_cjWxzvxAPpWUPfWABiHPprZxItr";
-const REVENUECAT_ANDROID_KEY = "test_cjWxzvxAPpWUPfWABiHPprZxItr";
+// Replace with real API keys once Play Store / App Store apps are connected in RevenueCat
+const REVENUECAT_IOS_KEY = "";
+const REVENUECAT_ANDROID_KEY = "";
+
+function isConfigured(): boolean {
+  const key =
+    Platform.OS === "ios" ? REVENUECAT_IOS_KEY : REVENUECAT_ANDROID_KEY;
+  return key.length > 0 && !key.startsWith("test_");
+}
 
 /**
  * Initialize RevenueCat SDK and identify user by Firebase UID.
+ * Skips init if no valid API key is set (prevents crash on real devices).
  */
 export async function initRevenueCat(firebaseUid: string): Promise<void> {
+  if (!isConfigured()) {
+    console.warn("RevenueCat: No production API key set, skipping init");
+    return;
+  }
   const apiKey =
     Platform.OS === "ios" ? REVENUECAT_IOS_KEY : REVENUECAT_ANDROID_KEY;
-
   Purchases.configure({ apiKey, appUserID: firebaseUid });
 }
 
@@ -31,6 +41,7 @@ function tierFromCustomerInfo(info: CustomerInfo): SubscriptionTier {
  * Check current subscription tier from RevenueCat.
  */
 export async function getSubscriptionTier(): Promise<SubscriptionTier> {
+  if (!isConfigured()) return "free";
   try {
     const info = await Purchases.getCustomerInfo();
     return tierFromCustomerInfo(info);
@@ -43,6 +54,7 @@ export async function getSubscriptionTier(): Promise<SubscriptionTier> {
  * Fetch current offering for paywall display.
  */
 export async function getOfferings(): Promise<PurchasesOfferings | null> {
+  if (!isConfigured()) return null;
   try {
     const offerings = await Purchases.getOfferings();
     return offerings;
@@ -65,6 +77,7 @@ export async function purchasePackage(
  * Restore previous purchases and return current tier.
  */
 export async function restorePurchases(): Promise<SubscriptionTier> {
+  if (!isConfigured()) return "free";
   const info = await Purchases.restorePurchases();
   return tierFromCustomerInfo(info);
 }
@@ -75,6 +88,7 @@ export async function restorePurchases(): Promise<SubscriptionTier> {
 export function onSubscriptionChange(
   callback: (tier: SubscriptionTier) => void
 ): () => void {
+  if (!isConfigured()) return () => {};
   const listener = (info: CustomerInfo) => {
     callback(tierFromCustomerInfo(info));
   };

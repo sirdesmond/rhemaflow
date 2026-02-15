@@ -23,7 +23,7 @@ import {
   deleteDeclaration,
   toggleFavorite,
 } from "../../services/favorites";
-import { generateSpeech, generateImage } from "../../services/declarations";
+import { generateSpeech } from "../../services/declarations";
 import { useAudio } from "../../hooks/useAudio";
 
 export default function SavedScreen() {
@@ -33,7 +33,6 @@ export default function SavedScreen() {
   const [selected, setSelected] = useState<Declaration | null>(null);
   const [audioBase64, setAudioBase64] = useState<string | null>(null);
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
-  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 
   const { isPlaying, atmosphere, play, togglePlayback, cycleAtmosphere, stop } =
     useAudio();
@@ -126,21 +125,6 @@ export default function SavedScreen() {
     }
   };
 
-  const handleRegenerateImage = async () => {
-    if (!selected) return;
-    setIsGeneratingImage(true);
-    try {
-      const newImageUrl = await generateImage(selected.category, selected.text);
-      if (newImageUrl) {
-        setSelected((prev) =>
-          prev ? { ...prev, imageUrl: newImageUrl } : null
-        );
-      }
-    } finally {
-      setIsGeneratingImage(false);
-    }
-  };
-
   const handleShare = async () => {
     if (!viewShotRef.current?.capture) return;
     try {
@@ -184,12 +168,9 @@ export default function SavedScreen() {
             reference={selected.reference}
             scriptureText={selected.scriptureText}
             category={selected.category}
-            backgroundImageUrl={selected.imageUrl}
             isPlaying={isPlaying || isLoadingAudio}
             isAudioLoading={isLoadingAudio}
             onPlayToggle={handlePlayToggle}
-            onRegenerateImage={handleRegenerateImage}
-            isGeneratingImage={isGeneratingImage}
             atmosphere={atmosphere}
             onAtmosphereChange={cycleAtmosphere}
             onShare={handleShare}
@@ -208,7 +189,6 @@ export default function SavedScreen() {
               reference={selected.reference}
               scriptureText={selected.scriptureText}
               category={selected.category}
-              backgroundImageUrl={selected.imageUrl}
             />
           </ViewShot>
         </View>
