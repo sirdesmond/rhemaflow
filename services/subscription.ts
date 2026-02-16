@@ -34,7 +34,7 @@ export async function initRevenueCat(firebaseUid: string): Promise<void> {
  * Extract subscription tier from CustomerInfo.
  */
 function tierFromCustomerInfo(info: CustomerInfo): SubscriptionTier {
-  return info.entitlements.active["pro"] ? "pro" : "free";
+  return info.entitlements.active["RhemaFlow Pro"] ? "pro" : "free";
 }
 
 /**

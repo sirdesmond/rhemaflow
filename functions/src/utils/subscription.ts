@@ -35,8 +35,9 @@ export async function verifySubscription(
 
     const data: any = await res.json();
     const entitlements = data?.subscriber?.entitlements;
-    if (entitlements?.pro) {
-      const expiry = entitlements.pro.expires_date;
+    const proEntitlement = entitlements?.["RhemaFlow Pro"] ?? entitlements?.pro;
+    if (proEntitlement) {
+      const expiry = proEntitlement.expires_date;
       // null expiry means lifetime, otherwise check if still active
       if (!expiry || new Date(expiry) > new Date()) {
         return "pro";

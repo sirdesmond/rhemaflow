@@ -77,6 +77,11 @@ export default function PaywallScreen() {
     } catch (error: any) {
       if (error.userCancelled) {
         // User cancelled — no alert needed
+      } else if (error.code === "PRODUCT_ALREADY_PURCHASED" || error.message?.includes("already")) {
+        // Already subscribed — treat as success
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        await refreshUsage();
+        router.back();
       } else if (error.message?.includes("simulator") || error.code === "STORE_PROBLEM") {
         Alert.alert(
           "Simulator Detected",
