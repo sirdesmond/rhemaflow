@@ -33,6 +33,9 @@ yarn-error.*
 # local env files
 .env*.local
 
+# Service account keys
+pc-api-key.json
+
 # Firebase
 GoogleService-Info.plist
 google-services.json
