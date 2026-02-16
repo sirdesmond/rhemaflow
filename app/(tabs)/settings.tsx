@@ -8,6 +8,7 @@ import {
   Alert,
   StyleSheet,
   Platform,
+  Linking,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -392,7 +393,7 @@ export default function SettingsScreen() {
             </View>
             <Pressable
               style={styles.row}
-              onPress={() => router.push("/(modals)/paywall" as any)}
+              onPress={() => Linking.openURL("https://play.google.com/store/account/subscriptions")}
             >
               <View style={styles.rowLeft}>
                 <View style={[styles.iconCircle, { backgroundColor: COLORS.electricPurple + "20" }]}>
