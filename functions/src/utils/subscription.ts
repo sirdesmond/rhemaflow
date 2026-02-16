@@ -51,12 +51,13 @@ export async function verifySubscription(
 
 /**
  * Check usage and increment declaration count for today.
- * Uses a Firestore transaction on /users/{uid}/usage/{YYYY-MM-DD}.
+ * Tracks by both user ID and device ID to prevent multi-account abuse.
  * Pro users are always allowed.
  */
 export async function checkAndIncrementUsage(
   uid: string,
-  tier: "pro" | "free"
+  tier: "pro" | "free",
+  deviceId?: string
 ): Promise<{ allowed: boolean; count: number; limit: number }> {
   if (tier === "pro") {
     return { allowed: true, count: 0, limit: Infinity };
@@ -64,20 +65,43 @@ export async function checkAndIncrementUsage(
 
   const db = admin.firestore();
   const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  const hasDeviceId = deviceId && deviceId !== "unknown-ios" && deviceId !== "unknown-android";
+
   const usageRef = db.doc(`users/${uid}/usage/${today}`);
+  const deviceUsageRef = hasDeviceId
+    ? db.doc(`deviceUsage/${deviceId}/daily/${today}`)
+    : null;
 
   return db.runTransaction(async (tx) => {
-    const doc = await tx.get(usageRef);
-    const current = doc.exists ? (doc.data()?.declarationCount ?? 0) : 0;
+    // Read all docs inside transaction for consistency
+    const userDoc = await tx.get(usageRef);
+    const userCount = userDoc.exists ? (userDoc.data()?.declarationCount ?? 0) : 0;
 
-    if (current >= FREE_DAILY_LIMIT) {
-      return { allowed: false, count: current, limit: FREE_DAILY_LIMIT };
+    let deviceCount = 0;
+    if (deviceUsageRef) {
+      const deviceDoc = await tx.get(deviceUsageRef);
+      deviceCount = deviceDoc.exists ? (deviceDoc.data()?.declarationCount ?? 0) : 0;
     }
 
-    tx.set(usageRef, { declarationCount: current + 1 }, { merge: true });
+    // Check device limit (prevents multi-account abuse)
+    if (deviceUsageRef && deviceCount >= FREE_DAILY_LIMIT) {
+      return { allowed: false, count: deviceCount, limit: FREE_DAILY_LIMIT };
+    }
+
+    // Check user limit
+    if (userCount >= FREE_DAILY_LIMIT) {
+      return { allowed: false, count: userCount, limit: FREE_DAILY_LIMIT };
+    }
+
+    // Increment both counters
+    tx.set(usageRef, { declarationCount: userCount + 1 }, { merge: true });
+    if (deviceUsageRef) {
+      tx.set(deviceUsageRef, { declarationCount: deviceCount + 1 }, { merge: true });
+    }
+
     return {
       allowed: true,
-      count: current + 1,
+      count: userCount + 1,
       limit: FREE_DAILY_LIMIT,
     };
   });

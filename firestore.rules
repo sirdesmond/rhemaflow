@@ -18,6 +18,11 @@ service cloud.firestore {
       }
     }
 
+    // Device usage tracking: only Cloud Functions (admin SDK) can read/write
+    match /deviceUsage/{deviceId}/daily/{dateId} {
+      allow read, write: if false;
+    }
+
     // Deny everything else by default
     match /{document=**} {
       allow read, write: if false;

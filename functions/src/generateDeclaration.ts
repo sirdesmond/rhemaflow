@@ -41,7 +41,8 @@ export const generateDeclaration = functions
       );
     }
 
-    const usage = await checkAndIncrementUsage(uid, tier);
+    const deviceId = data.deviceId as string | undefined;
+    const usage = await checkAndIncrementUsage(uid, tier, deviceId);
     if (!usage.allowed) {
       throw new functions.https.HttpsError(
         "resource-exhausted",

@@ -1,5 +1,6 @@
 import { functions } from "./firebase";
 import { DeclarationCategory } from "../types";
+import { getDeviceId } from "./device";
 
 function friendlyMessage(error: unknown): string {
   const msg =
@@ -35,8 +36,9 @@ export async function generateDeclaration(
   customText?: string
 ): Promise<{ text: string; reference: string; scriptureText: string }> {
   try {
+    const deviceId = await getDeviceId();
     const fn = functions.httpsCallable("generateDeclaration");
-    const result = await fn({ category, mood, customText });
+    const result = await fn({ category, mood, customText, deviceId });
     return result.data as { text: string; reference: string; scriptureText: string };
   } catch (error) {
     throw new Error(friendlyMessage(error));
