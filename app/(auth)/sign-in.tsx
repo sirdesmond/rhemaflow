@@ -23,7 +23,7 @@ export default function SignInScreen() {
         message =
           "Google Sign-In configuration error. Please check SHA-1 fingerprint and OAuth setup in Firebase Console.";
       }
-      Alert.alert("Sign in failed", message);
+      Alert.alert("Sign in failed", message || `Unknown error (code: ${code})`);
     }
   };
 
@@ -31,7 +31,14 @@ export default function SignInScreen() {
     try {
       await signInWithApple();
     } catch (error: any) {
-      Alert.alert("Sign in failed", error.message);
+      const code = error?.code;
+      // User cancelled — don't show error
+      if (code === "ERR_REQUEST_CANCELED") return;
+      console.error("Apple sign-in error:", JSON.stringify(error, null, 2));
+      Alert.alert(
+        "Sign in failed",
+        error.message || `Unknown error (code: ${code})`
+      );
     }
   };
 

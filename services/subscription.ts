@@ -7,7 +7,7 @@ import Purchases, {
 import { SubscriptionTier } from "../types";
 
 // Replace with real API keys once Play Store / App Store apps are connected in RevenueCat
-const REVENUECAT_IOS_KEY = "";
+const REVENUECAT_IOS_KEY = "appl_XMJPDPaXabvZZdtFvTGvyFvbKZR";
 const REVENUECAT_ANDROID_KEY = "goog_nTaxPIFFMmqsRjcdlqTRMiBaiWW";
 
 function isConfigured(): boolean {

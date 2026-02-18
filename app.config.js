@@ -25,6 +25,9 @@ export default {
       googleServicesFile:
         process.env.GOOGLE_SERVICE_INFO_PLIST || "./GoogleService-Info.plist",
       usesAppleSignIn: true,
+      infoPlist: {
+        ITSAppUsesNonExemptEncryption: false,
+      },
     },
     android: {
       package: "com.rhemaflow.app",
@@ -43,6 +46,21 @@ export default {
       favicon: "./assets/images/favicon.png",
     },
     plugins: [
+      [
+        "expo-build-properties",
+        {
+          ios: {
+            useFrameworks: "static",
+            forceStaticLinking: [
+              "RNFBApp",
+              "RNFBAuth",
+              "RNFBFirestore",
+              "RNFBFunctions",
+              "RNFBStorage",
+            ],
+          },
+        },
+      ],
       "expo-router",
       "expo-font",
       "@react-native-firebase/app",

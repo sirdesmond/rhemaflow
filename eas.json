@@ -1,7 +1,8 @@
 {
   "cli": {
     "version": ">= 3.0.0",
-    "appVersionSource": "remote"
+    "appVersionSource": "remote",
+    "promptToConfigurePushNotifications": false
   },
   "build": {
     "development": {
@@ -13,7 +14,10 @@
     },
     "production": {
       "autoIncrement": true,
-      "channel": "production"
+      "channel": "production",
+      "ios": {
+        "resourceClass": "m-medium"
+      }
     }
   },
   "submit": {
@@ -21,6 +25,10 @@
       "android": {
         "serviceAccountKeyPath": "./pc-api-key.json",
         "track": "internal"
+      },
+      "ios": {
+        "appleId": "desmond.appiah@gmail.com",
+        "appleTeamId": "DUV98RK3FM"
       }
     }
   }
