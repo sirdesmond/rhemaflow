@@ -22,12 +22,13 @@ import {
   User,
   Crown,
   Zap,
+  Volume2,
 } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import { Typography } from "../../components/ui/Typography";
 import { COLORS } from "../../constants/theme";
 import { ATMOSPHERE_TRACKS } from "../../constants/tracks";
-import { AtmosphereType } from "../../types";
+import { AtmosphereType, UserSettings } from "../../types";
 import { useRouter } from "expo-router";
 import { auth } from "../../services/firebase";
 import { signOut, deleteAccount } from "../../services/auth";
@@ -72,6 +73,9 @@ export default function SettingsScreen() {
     useState<AtmosphereType>("glory");
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [showAtmospherePicker, setShowAtmospherePicker] = useState(false);
+  const [showGenderPicker, setShowGenderPicker] = useState(false);
+  const [gender, setGender] = useState<UserSettings["gender"]>(null);
+  const [voiceGender, setVoiceGender] = useState<UserSettings["voiceGender"]>("female");
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Load saved settings from Firestore on mount
@@ -80,6 +84,8 @@ export default function SettingsScreen() {
       setNotificationsEnabled(settings.notificationsEnabled);
       setNotificationTime(settings.notificationTime);
       setDefaultAtmosphere(settings.defaultAtmosphere);
+      setGender(settings.gender);
+      setVoiceGender(settings.voiceGender);
     });
   }, []);
 
@@ -119,6 +125,25 @@ export default function SettingsScreen() {
     setShowAtmospherePicker(false);
     trackDefaultAtmosphereChanged(atm);
     updateUserSettings({ defaultAtmosphere: atm });
+  };
+
+  const handleGenderChange = (g: "male" | "female" | null) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setGender(g);
+    setShowGenderPicker(false);
+    // Auto-match voice gender when gender changes
+    if (g) {
+      setVoiceGender(g);
+      updateUserSettings({ gender: g, voiceGender: g });
+    } else {
+      updateUserSettings({ gender: g });
+    }
+  };
+
+  const handleVoiceGenderChange = (v: "male" | "female") => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setVoiceGender(v);
+    updateUserSettings({ voiceGender: v });
   };
 
   const handleSignOut = () => {
@@ -375,6 +400,77 @@ export default function SettingsScreen() {
             ))}
           </View>
         )}
+
+        {/* Gender row */}
+        <Pressable
+          style={styles.row}
+          onPress={() => setShowGenderPicker(!showGenderPicker)}
+        >
+          <View style={styles.rowLeft}>
+            <View style={[styles.iconCircle, { backgroundColor: COLORS.electricPurple + "20" }]}>
+              <User size={18} color={COLORS.electricPurple} />
+            </View>
+            <Typography variant="body" style={styles.rowLabel}>
+              Gender
+            </Typography>
+          </View>
+          <View style={styles.rowRight}>
+            <Typography variant="caption" style={styles.rowValue}>
+              {gender ? gender.charAt(0).toUpperCase() + gender.slice(1) : "Not Set"}
+            </Typography>
+            <ChevronRight size={16} color={COLORS.slate400} />
+          </View>
+        </Pressable>
+
+        {showGenderPicker && (
+          <View style={styles.pickerContainer}>
+            {([
+              { id: "male" as const, label: "Male" },
+              { id: "female" as const, label: "Female" },
+              { id: null, label: "Not Set" },
+            ]).map((opt) => (
+              <Pressable
+                key={opt.label}
+                style={[
+                  styles.pickerOption,
+                  gender === opt.id && styles.pickerOptionActive,
+                ]}
+                onPress={() => handleGenderChange(opt.id)}
+              >
+                <Typography
+                  variant="body"
+                  style={[
+                    styles.pickerText,
+                    gender === opt.id && styles.pickerTextActive,
+                  ]}
+                >
+                  {opt.label}
+                </Typography>
+              </Pressable>
+            ))}
+          </View>
+        )}
+
+        {/* Voice row */}
+        <Pressable
+          style={styles.row}
+          onPress={() => handleVoiceGenderChange(voiceGender === "male" ? "female" : "male")}
+        >
+          <View style={styles.rowLeft}>
+            <View style={[styles.iconCircle, { backgroundColor: COLORS.fireOrange + "20" }]}>
+              <Volume2 size={18} color={COLORS.fireOrange} />
+            </View>
+            <Typography variant="body" style={styles.rowLabel}>
+              Voice
+            </Typography>
+          </View>
+          <View style={styles.rowRight}>
+            <Typography variant="caption" style={styles.rowValue}>
+              {voiceGender === "male" ? "Male" : "Female"}
+            </Typography>
+            <ChevronRight size={16} color={COLORS.slate400} />
+          </View>
+        </Pressable>
       </View>
 
       {/* Subscription section */}

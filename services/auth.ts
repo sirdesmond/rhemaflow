@@ -17,6 +17,9 @@ const DEFAULT_SETTINGS: UserSettings = {
   notificationTime: "08:00",
   defaultAtmosphere: "glory",
   defaultCategory: DeclarationCategory.GENERAL,
+  gender: null,
+  voiceGender: "female",
+  onboardingComplete: false,
 };
 
 /**
@@ -80,8 +83,7 @@ export async function signInWithApple() {
     throw new Error("Apple sign-in failed: no identity token");
   }
 
-  const provider = new authModule.OAuthProvider("apple.com");
-  const credential = provider.credential(identityToken);
+  const credential = authModule.AppleAuthProvider.credential(identityToken);
 
   const result = await auth.signInWithCredential(credential);
   const user = result.user;
@@ -140,8 +142,7 @@ export async function linkAccount(
     const { identityToken, fullName } = appleCredential;
     if (!identityToken) throw new Error("Apple sign-in failed: no identity token");
 
-    const oauthProvider = new authModule.OAuthProvider("apple.com");
-    const credential = oauthProvider.credential(identityToken);
+    const credential = authModule.AppleAuthProvider.credential(identityToken);
     const result = await currentUser.linkWithCredential(credential);
     const user = result.user;
     const name = fullName

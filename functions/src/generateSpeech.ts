@@ -1,7 +1,7 @@
 import * as functions from "firebase-functions/v1";
 import { GoogleGenAI } from "@google/genai";
 import { verifySubscription } from "./utils/subscription";
-import { sanitizeText } from "./utils/sanitize";
+import { sanitizeText, sanitizeVoiceGender } from "./utils/sanitize";
 
 /**
  * Converts raw 16-bit PCM audio from Gemini TTS into a WAV file.
@@ -64,6 +64,13 @@ export const generateSpeech = functions
       throw new functions.https.HttpsError("invalid-argument", "Text is required.");
     }
 
+    const voiceGender = sanitizeVoiceGender(data.voiceGender);
+
+    const MALE_VOICES = ["Puck", "Charon", "Enceladus"];
+    const FEMALE_VOICES = ["Kore", "Aoede", "Leda"];
+    const voicePool = voiceGender === "male" ? MALE_VOICES : FEMALE_VOICES;
+    const voiceName = voicePool[Math.floor(Math.random() * voicePool.length)];
+
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       console.error("GEMINI_API_KEY not set");
@@ -80,7 +87,7 @@ export const generateSpeech = functions
           responseModalities: ["AUDIO" as any],
           speechConfig: {
             voiceConfig: {
-              prebuiltVoiceConfig: { voiceName: "Kore" },
+              prebuiltVoiceConfig: { voiceName },
             },
           },
         },

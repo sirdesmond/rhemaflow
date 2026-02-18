@@ -21,6 +21,7 @@ import {
   DeclarationCategory,
   MoodPreset,
   GeneratedContent,
+  UserSettings,
 } from "../../types";
 import { COLORS } from "../../constants/theme";
 import { getUserSettings } from "../../services/settings";
@@ -41,6 +42,8 @@ export default function HomeScreen() {
   const [content, setContent] = useState<GeneratedContent | null>(null);
   const [isAudioLoading, setIsAudioLoading] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [gender, setGender] = useState<UserSettings["gender"]>(null);
+  const [voiceGender, setVoiceGender] = useState<UserSettings["voiceGender"]>("female");
 
   const router = useRouter();
   const { isPro, usage, refreshUsage } = useSubscription();
@@ -48,10 +51,12 @@ export default function HomeScreen() {
     useAudio();
   const viewShotRef = useRef<ViewShot>(null);
 
-  // Load user's default atmosphere preference on mount
+  // Load user's default preferences on mount
   useEffect(() => {
     getUserSettings().then((settings) => {
       setAtmosphere(settings.defaultAtmosphere);
+      setGender(settings.gender);
+      setVoiceGender(settings.voiceGender);
     });
   }, []);
 
@@ -74,7 +79,7 @@ export default function HomeScreen() {
 
     try {
       // Step 1: Get declaration text (fast — no TTS)
-      const declaration = await generateDeclaration(category, prompt);
+      const declaration = await generateDeclaration(category, prompt, undefined, gender);
 
       // Show card immediately with text
       setContent({
@@ -94,7 +99,7 @@ export default function HomeScreen() {
       if (isPro) {
         setIsAudioLoading(true);
 
-        const audioBase64 = await generateSpeech(declaration.text).catch(() => null);
+        const audioBase64 = await generateSpeech(declaration.text, voiceGender).catch(() => null);
 
         setIsAudioLoading(false);
 

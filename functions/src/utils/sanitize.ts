@@ -31,3 +31,19 @@ export function sanitizeCategory(input: unknown): string {
   if (typeof input !== "string") return "General";
   return VALID_CATEGORIES.includes(input) ? input : "General";
 }
+
+/**
+ * Validate gender input. Returns "male", "female", or null.
+ */
+export function sanitizeGender(input: unknown): "male" | "female" | null {
+  if (input === "male" || input === "female") return input;
+  return null;
+}
+
+/**
+ * Validate voice gender input. Returns "male" or "female", defaults to "female".
+ */
+export function sanitizeVoiceGender(input: unknown): "male" | "female" {
+  if (input === "male" || input === "female") return input;
+  return "female";
+}

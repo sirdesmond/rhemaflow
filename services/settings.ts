@@ -6,6 +6,9 @@ const DEFAULT_SETTINGS: UserSettings = {
   notificationTime: "08:00",
   defaultAtmosphere: "glory",
   defaultCategory: DeclarationCategory.GENERAL,
+  gender: null,
+  voiceGender: "female",
+  onboardingComplete: false,
 };
 
 /**

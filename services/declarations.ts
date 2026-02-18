@@ -33,12 +33,13 @@ function friendlyMessage(error: unknown): string {
 export async function generateDeclaration(
   category: DeclarationCategory,
   mood: string,
-  customText?: string
+  customText?: string,
+  gender?: "male" | "female" | null
 ): Promise<{ text: string; reference: string; scriptureText: string }> {
   try {
     const deviceId = await getDeviceId();
     const fn = functions.httpsCallable("generateDeclaration");
-    const result = await fn({ category, mood, customText, deviceId });
+    const result = await fn({ category, mood, customText, deviceId, gender });
     return result.data as { text: string; reference: string; scriptureText: string };
   } catch (error) {
     throw new Error(friendlyMessage(error));
@@ -49,10 +50,13 @@ export async function generateDeclaration(
  * Calls the standalone generateSpeech Cloud Function.
  * Used for replaying saved declarations that don't have cached audio.
  */
-export async function generateSpeech(text: string): Promise<string | null> {
+export async function generateSpeech(
+  text: string,
+  voiceGender?: "male" | "female"
+): Promise<string | null> {
   try {
     const fn = functions.httpsCallable("generateSpeech");
-    const result = await fn({ text });
+    const result = await fn({ text, voiceGender });
     return (result.data as { audioBase64: string | null }).audioBase64;
   } catch (error) {
     throw new Error(friendlyMessage(error));

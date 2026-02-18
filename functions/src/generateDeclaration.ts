@@ -5,7 +5,7 @@ import {
   checkRateLimit,
   checkAndIncrementUsage,
 } from "./utils/subscription";
-import { sanitizeText, sanitizeCategory } from "./utils/sanitize";
+import { sanitizeText, sanitizeCategory, sanitizeGender } from "./utils/sanitize";
 
 const SYSTEM_INSTRUCTION = `
 You are a fiery, charismatic prayer warrior. Your goal is to generate PERSONALIZED, EXPLOSIVE faith declarations.
@@ -54,6 +54,7 @@ export const generateDeclaration = functions
     const category = sanitizeCategory(data.category);
     const mood = sanitizeText(data.mood);
     const customText = sanitizeText(data.customText);
+    const gender = sanitizeGender(data.gender);
 
     const userSituation = customText || mood;
     if (!userSituation) {
@@ -68,7 +69,11 @@ export const generateDeclaration = functions
 
     const ai = new GoogleGenAI({ apiKey });
 
-    const prompt = `Category: ${category}. User Situation: "${userSituation}". Write a personal declaration, cite the scripture, and write out the scripture text.`;
+    const genderContext = gender
+      ? `\nGender context: The user is ${gender}. Use gender-appropriate language (e.g. "${gender === "male" ? "man of God" : "woman of God"}", "${gender === "male" ? "son" : "daughter"}", "${gender === "male" ? "king" : "queen"}", "${gender === "male" ? "his" : "her"}").`
+      : "";
+
+    const prompt = `Category: ${category}. User Situation: "${userSituation}".${genderContext} Write a personal declaration, cite the scripture, and write out the scripture text.`;
 
     try {
       const response = await ai.models.generateContent({

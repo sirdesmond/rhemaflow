@@ -60,6 +60,9 @@ export interface UserSettings {
   notificationTime: string;
   defaultAtmosphere: AtmosphereType;
   defaultCategory: DeclarationCategory;
+  gender: "male" | "female" | null;
+  voiceGender: "male" | "female";
+  onboardingComplete: boolean;
 }
 
 export interface UserProfile {
