@@ -3,6 +3,7 @@ import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import * as AppleAuthentication from "expo-apple-authentication";
 import authModule, { FirebaseAuthTypes } from "@react-native-firebase/auth";
 import { UserProfile, UserSettings, DeclarationCategory } from "../types";
+import { trackSignIn, trackSignUp, trackAccountLinked, trackSignOut, trackDeleteAccount } from "./analytics";
 
 // Configure Google Sign-In.
 // The webClientId comes from your Firebase Console → Authentication → Sign-in method → Google.
@@ -52,12 +53,14 @@ export async function signInWithGoogle() {
   const credential = authModule.GoogleAuthProvider.credential(idToken);
   const result = await auth.signInWithCredential(credential);
   const user = result.user;
+  const isNew = result.additionalUserInfo?.isNewUser;
   await ensureUserDoc(
     user.uid,
     user.displayName ?? "",
     user.email ?? "",
     user.photoURL
   );
+  isNew ? trackSignUp("google") : trackSignIn("google");
   return user;
 }
 
@@ -82,11 +85,13 @@ export async function signInWithApple() {
 
   const result = await auth.signInWithCredential(credential);
   const user = result.user;
+  const isNew = result.additionalUserInfo?.isNewUser;
   const name = fullName
     ? `${fullName.givenName ?? ""} ${fullName.familyName ?? ""}`.trim()
     : user.displayName ?? "";
 
   await ensureUserDoc(user.uid, name, user.email ?? "", user.photoURL);
+  isNew ? trackSignUp("apple") : trackSignIn("apple");
   return user;
 }
 
@@ -96,6 +101,7 @@ export async function signInWithApple() {
 export async function signInAnonymously() {
   const result = await auth.signInAnonymously();
   await ensureUserDoc(result.user.uid, "Guest", "", null);
+  trackSignIn("anonymous");
   return result.user;
 }
 
@@ -122,6 +128,7 @@ export async function linkAccount(
       user.email ?? "",
       user.photoURL
     );
+    trackAccountLinked("google");
     return user;
   } else {
     const appleCredential = await AppleAuthentication.signInAsync({
@@ -141,6 +148,7 @@ export async function linkAccount(
       ? `${fullName.givenName ?? ""} ${fullName.familyName ?? ""}`.trim()
       : user.displayName ?? "";
     await ensureUserDoc(user.uid, name, user.email ?? "", user.photoURL);
+    trackAccountLinked("apple");
     return user;
   }
 }
@@ -149,6 +157,7 @@ export async function linkAccount(
  * Sign out the current user.
  */
 export async function signOut() {
+  trackSignOut();
   await auth.signOut();
 }
 
@@ -156,6 +165,7 @@ export async function signOut() {
  * Delete the current user's account and all associated data.
  */
 export async function deleteAccount() {
+  trackDeleteAccount();
   const fn = functions.httpsCallable("deleteAccount");
   await fn();
   await auth.signOut();

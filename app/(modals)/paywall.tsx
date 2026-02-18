@@ -15,6 +15,13 @@ import {
   restorePurchases,
 } from "../../services/subscription";
 import { signInWithGoogle, signInWithApple } from "../../services/auth";
+import {
+  trackPaywallDismissed,
+  trackPurchaseStarted,
+  trackPurchaseCompleted,
+  trackPurchaseFailed,
+  trackRestorePurchases,
+} from "../../services/analytics";
 
 const FEATURES = [
   { icon: Infinity, label: "Unlimited declarations" },
@@ -66,10 +73,13 @@ export default function PaywallScreen() {
 
   const handlePurchase = async () => {
     if (!packages[selectedIndex]) return;
+    const productId = packages[selectedIndex].identifier;
     setPurchasing(true);
+    trackPurchaseStarted(productId);
     try {
       const newTier = await purchasePackage(packages[selectedIndex]);
       if (newTier === "pro") {
+        trackPurchaseCompleted(productId);
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         await refreshUsage();
         router.back();
@@ -88,6 +98,7 @@ export default function PaywallScreen() {
           "In-app purchases don't work in the simulator. Use a real device with a sandbox account to test purchases."
         );
       } else {
+        trackPurchaseFailed(productId, error.message || "unknown");
         Alert.alert("Purchase Failed", error.message || "Please try again.");
       }
     } finally {
@@ -100,14 +111,17 @@ export default function PaywallScreen() {
     try {
       const tier = await restorePurchases();
       if (tier === "pro") {
+        trackRestorePurchases(true);
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         await refreshUsage();
         Alert.alert("Restored!", "Your Pro subscription has been restored.");
         router.back();
       } else {
+        trackRestorePurchases(false);
         Alert.alert("No Purchases Found", "We couldn't find any active subscriptions.");
       }
     } catch {
+      trackRestorePurchases(false);
       Alert.alert("Restore Failed", "Please try again.");
     } finally {
       setPurchasing(false);
@@ -140,7 +154,10 @@ export default function PaywallScreen() {
       {/* Close button */}
       <Pressable
         style={styles.closeButton}
-        onPress={() => router.back()}
+        onPress={() => {
+          trackPaywallDismissed();
+          router.back();
+        }}
       >
         <X size={20} color="white" />
       </Pressable>

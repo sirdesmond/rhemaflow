@@ -13,6 +13,7 @@ import {
 } from "../services/subscription";
 import { functions } from "../services/firebase";
 import { SubscriptionTier, UsageStatus } from "../types";
+import { setUserTier } from "../services/analytics";
 
 interface SubscriptionContextValue {
   tier: SubscriptionTier;
@@ -68,9 +69,11 @@ export function SubscriptionProvider({
           await initRevenueCat(user.uid);
           const currentTier = await getSubscriptionTier();
           setTier(currentTier);
+          setUserTier(currentTier);
 
           unsubscribe = onSubscriptionChange((newTier) => {
             setTier(newTier);
+            setUserTier(newTier);
           });
         }
 

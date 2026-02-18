@@ -24,6 +24,14 @@ import {
 } from "../../types";
 import { COLORS } from "../../constants/theme";
 import { getUserSettings } from "../../services/settings";
+import {
+  trackDeclarationGenerated,
+  trackDeclarationSaved,
+  trackDeclarationShared,
+  trackAudioPlayed,
+  trackFreshFire,
+  trackPaywallViewed,
+} from "../../services/analytics";
 
 export default function HomeScreen() {
   const [currentCategory, setCurrentCategory] = useState<DeclarationCategory>(
@@ -53,6 +61,7 @@ export default function HomeScreen() {
   ) => {
     // Check usage before generating
     if (!isPro && usage && !usage.canGenerate) {
+      trackPaywallViewed("daily_limit");
       router.push("/(modals)/paywall" as any);
       return;
     }
@@ -76,6 +85,7 @@ export default function HomeScreen() {
         audioBase64: null,
       });
       setIsLoading(false);
+      trackDeclarationGenerated(category, isPro);
 
       // Refresh usage count after generation
       refreshUsage();
@@ -91,6 +101,7 @@ export default function HomeScreen() {
         if (audioBase64) {
           setContent((prev) => prev ? { ...prev, audioBase64 } : null);
           play(audioBase64);
+          trackAudioPlayed();
         }
       }
     } catch (error: any) {
@@ -117,6 +128,7 @@ export default function HomeScreen() {
     try {
       const uri = await viewShotRef.current.capture();
       await Sharing.shareAsync(uri, { mimeType: "image/png" });
+      trackDeclarationShared(currentCategory);
     } catch (error) {
       console.error("Share failed:", error);
     }
@@ -126,6 +138,7 @@ export default function HomeScreen() {
     if (!content || isSaved) return;
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setIsSaved(true);
+    trackDeclarationSaved(currentCategory);
     try {
       await saveDeclaration({
         text: content.text,
@@ -286,7 +299,10 @@ export default function HomeScreen() {
           {/* Usage counter for free users */}
           {!isPro && usage && (
             <Pressable
-              onPress={() => router.push("/(modals)/paywall" as any)}
+              onPress={() => {
+                trackPaywallViewed("usage_counter");
+                router.push("/(modals)/paywall" as any);
+              }}
               style={{
                 flexDirection: "row",
                 alignItems: "center",
@@ -362,6 +378,7 @@ export default function HomeScreen() {
           <Pressable
             onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              trackFreshFire(currentCategory);
               processGeneration(
                 `Generate another declaration about ${currentCategory}`,
                 currentCategory

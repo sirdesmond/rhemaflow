@@ -40,6 +40,12 @@ import {
   getUserSettings,
   updateUserSettings,
 } from "../../services/settings";
+import {
+  trackNotificationToggled,
+  trackNotificationTimeChanged,
+  trackDefaultAtmosphereChanged,
+  trackPaywallViewed,
+} from "../../services/analytics";
 
 const ATMOSPHERE_OPTIONS: { id: AtmosphereType; label: string }[] =
   ATMOSPHERE_TRACKS.filter((t) => t.id !== "none").map((t) => ({
@@ -80,6 +86,7 @@ export default function SettingsScreen() {
   const handleToggleNotifications = async (enabled: boolean) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setNotificationsEnabled(enabled);
+    trackNotificationToggled(enabled);
     if (enabled) {
       const success = await scheduleDailyNotification(notificationTime);
       if (!success) {
@@ -99,6 +106,7 @@ export default function SettingsScreen() {
   const handleTimeChange = async (time: string) => {
     setNotificationTime(time);
     setShowTimePicker(false);
+    trackNotificationTimeChanged(time);
     if (notificationsEnabled) {
       await scheduleDailyNotification(time);
     }
@@ -109,6 +117,7 @@ export default function SettingsScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setDefaultAtmosphere(atm);
     setShowAtmospherePicker(false);
+    trackDefaultAtmosphereChanged(atm);
     updateUserSettings({ defaultAtmosphere: atm });
   };
 
@@ -393,7 +402,11 @@ export default function SettingsScreen() {
             </View>
             <Pressable
               style={styles.row}
-              onPress={() => Linking.openURL("https://play.google.com/store/account/subscriptions")}
+              onPress={() => Linking.openURL(
+                Platform.OS === "ios"
+                  ? "https://apps.apple.com/account/subscriptions"
+                  : "https://play.google.com/store/account/subscriptions"
+              )}
             >
               <View style={styles.rowLeft}>
                 <View style={[styles.iconCircle, { backgroundColor: COLORS.electricPurple + "20" }]}>
@@ -427,7 +440,10 @@ export default function SettingsScreen() {
             </View>
             <Pressable
               style={[styles.row, { borderColor: COLORS.divineGold + "40" }]}
-              onPress={() => router.push("/(modals)/paywall" as any)}
+              onPress={() => {
+                trackPaywallViewed("settings");
+                router.push("/(modals)/paywall" as any);
+              }}
             >
               <View style={styles.rowLeft}>
                 <View style={[styles.iconCircle, { backgroundColor: "rgba(251,191,36,0.15)" }]}>
