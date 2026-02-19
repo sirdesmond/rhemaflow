@@ -45,7 +45,6 @@ function pcmToWavBase64(
   return wav.toString("base64");
 }
 
-const VOICEBOX_TIMEOUT_MS = 15_000;
 const TTS_CACHE_PREFIX = "tts-cache";
 
 function ttsHash(text: string, voiceGender: string): string {
@@ -106,62 +105,7 @@ async function cacheAudio(
 }
 
 /**
- * Try generating speech via Voicebox (Qwen3-TTS).
- * Returns WAV base64 on success, or null if unavailable/failed.
- */
-async function tryVoicebox(
-  text: string,
-  voiceGender: string
-): Promise<string | null> {
-  const apiUrl = process.env.VOICEBOX_API_URL;
-  if (!apiUrl) return null;
-
-  const profileId =
-    voiceGender === "male"
-      ? process.env.VOICEBOX_MALE_PROFILE_ID
-      : process.env.VOICEBOX_FEMALE_PROFILE_ID;
-
-  if (!profileId) {
-    console.warn(`[Voicebox] No profile ID configured for gender: ${voiceGender}`);
-    return null;
-  }
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), VOICEBOX_TIMEOUT_MS);
-
-  try {
-    const res = await fetch(`${apiUrl}/generate`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text, profile_id: profileId }),
-      signal: controller.signal,
-    });
-
-    if (!res.ok) {
-      console.warn(`[Voicebox] HTTP ${res.status}: ${await res.text()}`);
-      return null;
-    }
-
-    // Voicebox returns WAV audio as binary
-    const arrayBuffer = await res.arrayBuffer();
-    const wavBase64 = Buffer.from(arrayBuffer).toString("base64");
-
-    console.log(`[Voicebox] Generated ${arrayBuffer.byteLength} bytes of WAV audio`);
-    return wavBase64;
-  } catch (err: any) {
-    if (err.name === "AbortError") {
-      console.warn("[Voicebox] Request timed out");
-    } else {
-      console.warn("[Voicebox] Request failed:", err.message);
-    }
-    return null;
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
-/**
- * Generate speech via Gemini TTS (fallback).
+ * Generate speech via Gemini TTS.
  * Returns WAV base64 on success, or null on failure.
  */
 async function generateWithGemini(
@@ -240,18 +184,8 @@ export const generateSpeech = functions
         return { audioBase64: cached.audioBase64, audioUrl: cached.audioUrl };
       }
 
-      // 2. Generate fresh audio
-      let wavBase64: string | null = null;
-
-      // Try Voicebox first (self-hosted Qwen3-TTS)
-      wavBase64 = await tryVoicebox(text, voiceGender);
-      if (wavBase64) {
-        console.log("[generateSpeech] Using Voicebox audio");
-      } else {
-        // Fall back to Gemini TTS
-        console.log("[generateSpeech] Voicebox unavailable, falling back to Gemini TTS");
-        wavBase64 = await generateWithGemini(text, voiceGender);
-      }
+      // 2. Generate fresh audio via Gemini TTS
+      const wavBase64 = await generateWithGemini(text, voiceGender);
 
       if (!wavBase64) {
         return { audioBase64: null, audioUrl: null };
