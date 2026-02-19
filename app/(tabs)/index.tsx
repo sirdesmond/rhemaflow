@@ -48,7 +48,7 @@ export default function HomeScreen() {
 
   const router = useRouter();
   const { isPro, usage, refreshUsage } = useSubscription();
-  const { isPlaying, atmosphere, setAtmosphere, play, togglePlayback, cycleAtmosphere, stop } =
+  const { isPlaying, atmosphere, setAtmosphere, play, togglePlayback, cycleAtmosphere, stop, progress } =
     useAudio();
   const viewShotRef = useRef<ViewShot>(null);
 
@@ -370,6 +370,7 @@ export default function HomeScreen() {
             isSaved={isSaved}
             isPro={isPro}
             onUpgrade={() => router.push("/(modals)/paywall" as any)}
+            progress={progress}
           />
 
           {/* Hidden off-screen ShareCard for ViewShot capture */}

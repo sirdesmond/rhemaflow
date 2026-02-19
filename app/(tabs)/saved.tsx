@@ -34,7 +34,7 @@ export default function SavedScreen() {
   const [audioBase64, setAudioBase64] = useState<string | null>(null);
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
 
-  const { isPlaying, atmosphere, play, togglePlayback, cycleAtmosphere, stop } =
+  const { isPlaying, atmosphere, play, togglePlayback, cycleAtmosphere, stop, progress } =
     useAudio();
   const viewShotRef = useRef<ViewShot>(null);
 
@@ -201,6 +201,7 @@ export default function SavedScreen() {
             onShare={handleShare}
             onSave={handleSaveToggle}
             isSaved={selected.isFavorite}
+            progress={progress}
           />
 
           {/* Hidden off-screen ShareCard for ViewShot capture */}

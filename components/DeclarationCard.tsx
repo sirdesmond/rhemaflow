@@ -17,6 +17,8 @@ import { DeclarationCategory, AtmosphereType } from "../types";
 import { CATEGORY_GRADIENTS, CATEGORY_BACKGROUNDS } from "../constants/categories";
 import { ATMOSPHERE_TRACKS } from "../constants/tracks";
 import { COLORS } from "../constants/theme";
+import { HighlightedText } from "./HighlightedText";
+import { AudioProgress } from "../hooks/useAudio";
 
 interface DeclarationCardProps {
   text: string;
@@ -33,6 +35,7 @@ interface DeclarationCardProps {
   isSaved: boolean;
   isPro?: boolean;
   onUpgrade?: () => void;
+  progress?: AudioProgress | null;
 }
 
 export function DeclarationCard({
@@ -50,6 +53,7 @@ export function DeclarationCard({
   isSaved,
   isPro = true,
   onUpgrade,
+  progress,
 }: DeclarationCardProps) {
   const [gradStart, gradEnd] = CATEGORY_GRADIENTS[category];
   const backgroundImage = CATEGORY_BACKGROUNDS[category];
@@ -109,9 +113,7 @@ export function DeclarationCard({
       >
         {/* Declaration text */}
         <View style={styles.declarationContainer}>
-          <Text style={styles.declarationText}>
-            &ldquo;{text}&rdquo;
-          </Text>
+          <HighlightedText text={text} progress={progress ?? null} />
         </View>
 
         {/* Scripture card */}

@@ -16,6 +16,8 @@ class AudioEngine {
   private musicSound: Audio.Sound | null = null;
   private fadeInterval: ReturnType<typeof setInterval> | null = null;
   private isActive = false;
+  private isPaused = false;
+  private onProgress: ((position: number, duration: number) => void) | null = null;
 
   /**
    * Configure the audio session for background playback in silent mode.
@@ -40,10 +42,12 @@ class AudioEngine {
   async playSession(
     audioBase64: string,
     atmosphere: AtmosphereType,
-    onComplete: () => void
+    onComplete: () => void,
+    onProgress?: (position: number, duration: number) => void
   ) {
-    this.isActive = true;
     await this.stopAll();
+    this.isActive = true;
+    this.onProgress = onProgress ?? null;
     await this.init();
 
     try {
@@ -80,10 +84,13 @@ class AudioEngine {
         this.fadeVolume(this.musicSound, 0, MUSIC_VOL_DURING_SPEECH, FADE_IN_MS);
       }
 
-      // 6. Listen for speech completion
+      // 6. Listen for speech completion and report progress
       this.speechSound.setOnPlaybackStatusUpdate(
         (status: AVPlaybackStatus) => {
           if (!status.isLoaded) return;
+          if (this.onProgress && status.durationMillis) {
+            this.onProgress(status.positionMillis, status.durationMillis);
+          }
           if (status.didJustFinish && this.isActive) {
             this.handleSpeechEnd(onComplete);
           }
@@ -192,10 +199,49 @@ class AudioEngine {
   }
 
   /**
+   * Pause speech and music without unloading.
+   */
+  async pause() {
+    if (!this.isActive || this.isPaused) return;
+    this.isPaused = true;
+
+    if (this.speechSound) {
+      try { await this.speechSound.pauseAsync(); } catch {}
+    }
+    if (this.musicSound) {
+      try { await this.musicSound.pauseAsync(); } catch {}
+    }
+  }
+
+  /**
+   * Resume paused speech and music.
+   */
+  async resume() {
+    if (!this.isActive || !this.isPaused) return;
+    this.isPaused = false;
+
+    if (this.speechSound) {
+      try { await this.speechSound.playAsync(); } catch {}
+    }
+    if (this.musicSound) {
+      try { await this.musicSound.playAsync(); } catch {}
+    }
+  }
+
+  /**
+   * Whether a session is loaded (playing or paused).
+   */
+  get hasActiveSession(): boolean {
+    return this.isActive && this.speechSound !== null;
+  }
+
+  /**
    * Stops all audio, unloads sounds, and cleans up.
    */
   async stopAll() {
     this.isActive = false;
+    this.isPaused = false;
+    this.onProgress = null;
 
     if (this.fadeInterval) {
       clearInterval(this.fadeInterval);
