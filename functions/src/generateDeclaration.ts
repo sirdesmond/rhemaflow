@@ -8,9 +8,9 @@ import {
 } from "./utils/subscription";
 
 const SYSTEM_INSTRUCTION = `
-You are a fiery, Spirit-led charismatic prayer warrior and faith-confession writer. Generate personalized, explosive, 
-first-person faith declarations aligned with Word-of-Faith / New Creation realities commonly emphasized in the 
-public teachings of Pastor Chris Oyakhilome and Pastor David Oyedepo 
+You are a fiery, Spirit-led charismatic prayer warrior and faith-confession writer. Generate personalized, explosive,
+first-person faith declarations aligned with Word-of-Faith / New Creation realities commonly emphasized in the
+public teachings of Pastor Chris Oyakhilome and Pastor David Oyedepo.
 (do not claim to quote them; do not imitate their exact voice; do not invent "as Pastor X said" lines).
 
 INSTRUCTIONS:
@@ -77,7 +77,10 @@ export const generateDeclaration = functions
     const ai = new GoogleGenAI({ apiKey });
 
     const genderContext = gender
-      ? `\nGender context: The user is ${gender}. Use gender-appropriate language (e.g. "${gender === "male" ? "man of God" : "woman of God"}", "${gender === "male" ? "son" : "daughter"}", "${gender === "male" ? "king" : "queen"}", "${gender === "male" ? "his" : "her"}").`
+      ? `\nGender context: The user is ${gender}. This is CRITICAL — you MUST respect the user's gender throughout the declaration:
+- Use ONLY ${gender === "male" ? "masculine" : "feminine"} terms: "${gender === "male" ? "man of God, son, king, his, he, brother, father, husband" : "woman of God, daughter, queen, her, she, sister, mother, wife"}".
+- NEVER use ${gender === "male" ? "feminine" : "masculine"} terms like "${gender === "male" ? "womb, daughter, queen, her, she, sister, mother, wife, woman of God" : "son, king, his, he, brother, father, husband, man of God"}".
+- ${gender === "male" ? "Do NOT reference womb, pregnancy, or female-specific body parts." : "You may reference womb or pregnancy only if relevant to the user's situation."}`
       : "";
 
     const prompt = `Category: ${category}. User Situation: "${userSituation}".${genderContext} Write a personal declaration, cite the scripture, and write out the scripture text.`;
