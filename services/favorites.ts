@@ -21,6 +21,7 @@ export async function saveDeclaration(params: {
   category: DeclarationCategory;
   atmosphere: AtmosphereType;
   imageUrl: string | null;
+  audioUrl: string | null;
 }): Promise<string> {
   const ref = declarationsRef().doc();
   const declaration: Declaration = {
@@ -32,6 +33,7 @@ export async function saveDeclaration(params: {
     category: params.category,
     atmosphere: params.atmosphere,
     imageUrl: params.imageUrl,
+    audioUrl: params.audioUrl,
     createdAt: Date.now(),
     isFavorite: true,
   };

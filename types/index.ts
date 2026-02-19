@@ -28,6 +28,7 @@ export interface Declaration {
   scriptureText: string;
   atmosphere: AtmosphereType;
   imageUrl: string | null;
+  audioUrl: string | null;
   createdAt: number;
   isFavorite: boolean;
   userId: string;
@@ -39,6 +40,7 @@ export interface GeneratedContent {
   scriptureText: string;
   backgroundImageUrl: string | null;
   audioBase64: string | null;
+  audioUrl: string | null;
 }
 
 export interface MoodPreset {

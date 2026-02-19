@@ -93,6 +93,7 @@ export default function HomeScreen() {
         scriptureText: declaration.scriptureText,
         backgroundImageUrl: null,
         audioBase64: null,
+        audioUrl: null,
       });
       setIsLoading(false);
       trackDeclarationGenerated(category, isPro);
@@ -104,13 +105,13 @@ export default function HomeScreen() {
       if (isPro) {
         setIsAudioLoading(true);
 
-        const audioBase64 = await generateSpeech(declaration.text, voiceGender).catch(() => null);
+        const speech = await generateSpeech(declaration.text, voiceGender).catch(() => null);
 
         setIsAudioLoading(false);
 
-        if (audioBase64) {
-          setContent((prev) => prev ? { ...prev, audioBase64 } : null);
-          play(audioBase64);
+        if (speech?.audioBase64) {
+          setContent((prev) => prev ? { ...prev, audioBase64: speech.audioBase64, audioUrl: speech.audioUrl } : null);
+          play(speech.audioBase64);
           trackAudioPlayed();
         }
       }
@@ -157,6 +158,7 @@ export default function HomeScreen() {
         category: currentCategory,
         atmosphere,
         imageUrl: content.backgroundImageUrl,
+        audioUrl: content.audioUrl,
       });
     } catch (error) {
       console.error("Save failed:", error);

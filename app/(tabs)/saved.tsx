@@ -103,20 +103,45 @@ export default function SavedScreen() {
       return;
     }
 
-    // If we already have audio cached, play it
+    // If we already have audio cached in memory, play it
     if (audioBase64) {
       await play(audioBase64);
       return;
     }
 
-    // Generate speech on demand
     if (!selected) return;
     setIsLoadingAudio(true);
     try {
-      const audio = await generateSpeech(selected.text);
-      if (audio) {
-        setAudioBase64(audio);
-        await play(audio);
+      // If the declaration has a cached audioUrl, download from Storage
+      if (selected.audioUrl) {
+        const res = await fetch(selected.audioUrl);
+        if (res.ok) {
+          const blob = await res.blob();
+          const reader = new FileReader();
+          const base64 = await new Promise<string | null>((resolve) => {
+            reader.onloadend = () => {
+              const dataUrl = reader.result as string;
+              // Strip "data:audio/wav;base64," prefix
+              resolve(dataUrl?.split(",")[1] ?? null);
+            };
+            reader.onerror = () => resolve(null);
+            reader.readAsDataURL(blob);
+          });
+          if (base64) {
+            setAudioBase64(base64);
+            await play(base64);
+            return;
+          }
+        }
+        // If download failed, fall through to regeneration
+        console.warn("Cached audio download failed, regenerating");
+      }
+
+      // Fall back: generate speech on demand
+      const speech = await generateSpeech(selected.text);
+      if (speech.audioBase64) {
+        setAudioBase64(speech.audioBase64);
+        await play(speech.audioBase64);
       }
     } catch (e) {
       console.error("Speech generation error:", e);

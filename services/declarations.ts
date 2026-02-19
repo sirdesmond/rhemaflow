@@ -54,11 +54,12 @@ export async function generateDeclaration(
 export async function generateSpeech(
   text: string,
   voiceGender?: "male" | "female"
-): Promise<string | null> {
+): Promise<{ audioBase64: string | null; audioUrl: string | null }> {
   try {
     const fn = functions.httpsCallable("generateSpeech");
     const result = await fn({ text, voiceGender });
-    return (result.data as { audioBase64: string | null }).audioBase64;
+    const data = result.data as { audioBase64: string | null; audioUrl: string | null };
+    return { audioBase64: data.audioBase64, audioUrl: data.audioUrl ?? null };
   } catch (error) {
     throw new Error(friendlyMessage(error));
   }
