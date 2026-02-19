@@ -1,8 +1,8 @@
 import { View, Text, ScrollView, Pressable, Alert, KeyboardAvoidingView, Platform } from "react-native";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Flame, ChevronLeft, Sparkles, User, Crown } from "lucide-react-native";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import * as Haptics from "expo-haptics";
 import ViewShot from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
@@ -51,14 +51,17 @@ export default function HomeScreen() {
     useAudio();
   const viewShotRef = useRef<ViewShot>(null);
 
-  // Load user's default preferences on mount
-  useEffect(() => {
-    getUserSettings().then((settings) => {
-      setAtmosphere(settings.defaultAtmosphere);
-      setGender(settings.gender);
-      setVoiceGender(settings.voiceGender);
-    });
-  }, []);
+  // Reload user preferences every time the tab gains focus
+  // (picks up changes made in Settings or Onboarding)
+  useFocusEffect(
+    useCallback(() => {
+      getUserSettings().then((settings) => {
+        setAtmosphere(settings.defaultAtmosphere);
+        setGender(settings.gender);
+        setVoiceGender(settings.voiceGender);
+      });
+    }, [])
+  );
 
   const processGeneration = async (
     prompt: string,

@@ -1,14 +1,17 @@
-import * as functions from "firebase-functions/v1";
 import { GoogleGenAI } from "@google/genai";
+import * as functions from "firebase-functions/v1";
+import { sanitizeCategory, sanitizeGender, sanitizeText } from "./utils/sanitize";
 import {
-  verifySubscription,
-  checkRateLimit,
   checkAndIncrementUsage,
+  checkRateLimit,
+  verifySubscription,
 } from "./utils/subscription";
-import { sanitizeText, sanitizeCategory, sanitizeGender } from "./utils/sanitize";
 
 const SYSTEM_INSTRUCTION = `
-You are a fiery, charismatic prayer warrior. Your goal is to generate PERSONALIZED, EXPLOSIVE faith declarations.
+You are a fiery, Spirit-led charismatic prayer warrior and faith-confession writer. Generate personalized, explosive, 
+first-person faith declarations aligned with Word-of-Faith / New Creation realities commonly emphasized in the 
+public teachings of Pastor Chris Oyakhilome and Pastor David Oyedepo 
+(do not claim to quote them; do not imitate their exact voice; do not invent "as Pastor X said" lines).
 
 INSTRUCTIONS:
 1. Declaration: Must be in the FIRST PERSON ("I", "My"). It must be an authoritative decree based on the situation.
@@ -16,10 +19,13 @@ INSTRUCTIONS:
 3. Scripture Text: Provide the ACTUAL TEXT of that bible verse.
 4. It must be according to teachings or confessions/declarations from Pastor Chris Oyakhilome or Pastor David Oyedepo only.
 5. It must always end with "In the mighty name of Jesus. AMEN!"
+6. Do not use vague filler. Be specific to my situation.
+7. Do not contradict scripture. Keep it biblical and faith-forward.
+8. Keep it intense, confident, and triumphant.
 
 TONE:
-- Use "I COMMAND", "I DECREE", "I AM".
-- Reject sickness, lack, and fear.
+- Use "I COMMAND", "I DECREE", "I AM", "I DECLARE".
+- Reject sickness, lack, fear, confusion, delay when relevant.
 `;
 
 export const generateDeclaration = functions
@@ -55,6 +61,7 @@ export const generateDeclaration = functions
     const mood = sanitizeText(data.mood);
     const customText = sanitizeText(data.customText);
     const gender = sanitizeGender(data.gender);
+    console.log(`[generateDeclaration] uid=${uid}, category=${category}, gender=${gender}`);
 
     const userSituation = customText || mood;
     if (!userSituation) {

@@ -14,7 +14,7 @@ import {
   purchasePackage,
   restorePurchases,
 } from "../../services/subscription";
-import { signInWithGoogle, signInWithApple } from "../../services/auth";
+import { linkAccount } from "../../services/auth";
 import {
   trackPaywallDismissed,
   trackPurchaseStarted,
@@ -130,10 +130,17 @@ export default function PaywallScreen() {
 
   const handleSignIn = async (provider: "google" | "apple") => {
     try {
-      if (provider === "google") await signInWithGoogle();
-      else await signInWithApple();
-      // After sign-in, useAuth will update, component re-renders, offerings load
+      await linkAccount(provider);
+      // After linking, useAuth will update, component re-renders, offerings load
     } catch (error: any) {
+      const code = error?.code;
+      // User cancelled — don't show error
+      if (
+        code === "ERR_REQUEST_CANCELED" ||
+        code === "SIGN_IN_CANCELLED" ||
+        error?.userCancelled
+      ) return;
+      console.error("Paywall sign-in error:", JSON.stringify(error, null, 2));
       Alert.alert("Sign In Failed", error.message || "Please try again.");
     }
   };

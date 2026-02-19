@@ -65,6 +65,7 @@ export const generateSpeech = functions
     }
 
     const voiceGender = sanitizeVoiceGender(data.voiceGender);
+    console.log(`[generateSpeech] uid=${context.auth.uid}, voiceGender=${voiceGender}`);
 
     const MALE_VOICES = ["Puck", "Charon", "Enceladus"];
     const FEMALE_VOICES = ["Kore", "Aoede", "Leda"];

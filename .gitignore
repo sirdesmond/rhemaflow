@@ -49,3 +49,8 @@ functions/.env*
 # generated native folders
 /ios
 /android
+
+# EAS build artifacts
+build-*.aab
+build-*.ipa
+.easignore
