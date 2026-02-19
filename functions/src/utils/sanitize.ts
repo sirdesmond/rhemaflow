@@ -41,6 +41,14 @@ export function sanitizeGender(input: unknown): "male" | "female" | null {
 }
 
 /**
+ * Validate marital status input.
+ */
+export function sanitizeMaritalStatus(input: unknown): "single" | "married" | null {
+  if (input === "single" || input === "married") return input;
+  return null;
+}
+
+/**
  * Validate voice gender input. Returns "male" or "female", defaults to "female".
  */
 export function sanitizeVoiceGender(input: unknown): "male" | "female" {

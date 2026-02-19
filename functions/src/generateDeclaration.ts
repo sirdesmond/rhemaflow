@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import * as functions from "firebase-functions/v1";
-import { sanitizeCategory, sanitizeGender, sanitizeText } from "./utils/sanitize";
+import { sanitizeCategory, sanitizeGender, sanitizeMaritalStatus, sanitizeText } from "./utils/sanitize";
 import {
   checkAndIncrementUsage,
   checkRateLimit,
@@ -61,7 +61,8 @@ export const generateDeclaration = functions
     const mood = sanitizeText(data.mood);
     const customText = sanitizeText(data.customText);
     const gender = sanitizeGender(data.gender);
-    console.log(`[generateDeclaration] uid=${uid}, category=${category}, gender=${gender}`);
+    const maritalStatus = sanitizeMaritalStatus(data.maritalStatus);
+    console.log(`[generateDeclaration] uid=${uid}, category=${category}, gender=${gender}, maritalStatus=${maritalStatus}`);
 
     const userSituation = customText || mood;
     if (!userSituation) {
@@ -83,7 +84,12 @@ export const generateDeclaration = functions
 - ${gender === "male" ? "Do NOT reference womb, pregnancy, or female-specific body parts." : "You may reference womb or pregnancy only if relevant to the user's situation."}`
       : "";
 
-    const prompt = `Category: ${category}. User Situation: "${userSituation}".${genderContext} Write a personal declaration, cite the scripture, and write out the scripture text.`;
+    const maritalContext = maritalStatus
+      ? `\nMarital status: The user is ${maritalStatus}. This is CRITICAL — do NOT assume a different status:
+- ${maritalStatus === "single" ? "The user is NOT married. Do NOT reference spouse, husband, wife, or marriage as current reality. Do NOT call them a husband/wife/father/mother. Declarations about marriage should be future-focused (e.g. \"God is preparing my spouse\")." : "The user IS married. You may reference spouse and marriage as current reality."}`
+      : "";
+
+    const prompt = `Category: ${category}. User Situation: "${userSituation}".${genderContext}${maritalContext} Write a personal declaration, cite the scripture, and write out the scripture text.`;
 
     try {
       const response = await ai.models.generateContent({

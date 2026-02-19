@@ -61,6 +61,7 @@ export interface UserSettings {
   defaultAtmosphere: AtmosphereType;
   defaultCategory: DeclarationCategory;
   gender: "male" | "female" | null;
+  maritalStatus: "single" | "married" | null;
   voiceGender: "male" | "female";
   onboardingComplete: boolean;
 }

@@ -74,7 +74,9 @@ export default function SettingsScreen() {
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [showAtmospherePicker, setShowAtmospherePicker] = useState(false);
   const [showGenderPicker, setShowGenderPicker] = useState(false);
+  const [showMaritalPicker, setShowMaritalPicker] = useState(false);
   const [gender, setGender] = useState<UserSettings["gender"]>(null);
+  const [maritalStatus, setMaritalStatus] = useState<UserSettings["maritalStatus"]>(null);
   const [voiceGender, setVoiceGender] = useState<UserSettings["voiceGender"]>("female");
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -85,6 +87,7 @@ export default function SettingsScreen() {
       setNotificationTime(settings.notificationTime);
       setDefaultAtmosphere(settings.defaultAtmosphere);
       setGender(settings.gender);
+      setMaritalStatus(settings.maritalStatus);
       setVoiceGender(settings.voiceGender);
     });
   }, []);
@@ -138,6 +141,13 @@ export default function SettingsScreen() {
     } else {
       updateUserSettings({ gender: g });
     }
+  };
+
+  const handleMaritalStatusChange = (m: "single" | "married" | null) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setMaritalStatus(m);
+    setShowMaritalPicker(false);
+    updateUserSettings({ maritalStatus: m });
   };
 
   const handleVoiceGenderChange = (v: "male" | "female") => {
@@ -442,6 +452,56 @@ export default function SettingsScreen() {
                   style={[
                     styles.pickerText,
                     gender === opt.id && styles.pickerTextActive,
+                  ]}
+                >
+                  {opt.label}
+                </Typography>
+              </Pressable>
+            ))}
+          </View>
+        )}
+
+        {/* Marital Status row */}
+        <Pressable
+          style={styles.row}
+          onPress={() => setShowMaritalPicker(!showMaritalPicker)}
+        >
+          <View style={styles.rowLeft}>
+            <View style={[styles.iconCircle, { backgroundColor: COLORS.divineGold + "20" }]}>
+              <User size={18} color={COLORS.divineGold} />
+            </View>
+            <Typography variant="body" style={styles.rowLabel}>
+              Marital Status
+            </Typography>
+          </View>
+          <View style={styles.rowRight}>
+            <Typography variant="caption" style={styles.rowValue}>
+              {maritalStatus ? maritalStatus.charAt(0).toUpperCase() + maritalStatus.slice(1) : "Not Set"}
+            </Typography>
+            <ChevronRight size={16} color={COLORS.slate400} />
+          </View>
+        </Pressable>
+
+        {showMaritalPicker && (
+          <View style={styles.pickerContainer}>
+            {([
+              { id: "single" as const, label: "Single" },
+              { id: "married" as const, label: "Married" },
+              { id: null, label: "Not Set" },
+            ]).map((opt) => (
+              <Pressable
+                key={opt.label}
+                style={[
+                  styles.pickerOption,
+                  maritalStatus === opt.id && styles.pickerOptionActive,
+                ]}
+                onPress={() => handleMaritalStatusChange(opt.id)}
+              >
+                <Typography
+                  variant="body"
+                  style={[
+                    styles.pickerText,
+                    maritalStatus === opt.id && styles.pickerTextActive,
                   ]}
                 >
                   {opt.label}

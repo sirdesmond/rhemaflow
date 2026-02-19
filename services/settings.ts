@@ -7,6 +7,7 @@ const DEFAULT_SETTINGS: UserSettings = {
   defaultAtmosphere: "glory",
   defaultCategory: DeclarationCategory.GENERAL,
   gender: null,
+  maritalStatus: null,
   voiceGender: "female",
   onboardingComplete: false,
 };
@@ -42,11 +43,10 @@ export async function updateUserSettings(
   if (!uid) return;
 
   try {
-    const settingsUpdate: Record<string, any> = {};
-    for (const [key, value] of Object.entries(partial)) {
-      settingsUpdate[`settings.${key}`] = value;
-    }
-    await db.collection("users").doc(uid).update(settingsUpdate);
+    await db.collection("users").doc(uid).set(
+      { settings: partial },
+      { merge: true }
+    );
   } catch (e) {
     console.error("updateUserSettings error:", e);
   }

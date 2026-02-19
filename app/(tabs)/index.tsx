@@ -43,6 +43,7 @@ export default function HomeScreen() {
   const [isAudioLoading, setIsAudioLoading] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [gender, setGender] = useState<UserSettings["gender"]>(null);
+  const [maritalStatus, setMaritalStatus] = useState<UserSettings["maritalStatus"]>(null);
   const [voiceGender, setVoiceGender] = useState<UserSettings["voiceGender"]>("female");
 
   const router = useRouter();
@@ -58,6 +59,7 @@ export default function HomeScreen() {
       getUserSettings().then((settings) => {
         setAtmosphere(settings.defaultAtmosphere);
         setGender(settings.gender);
+        setMaritalStatus(settings.maritalStatus);
         setVoiceGender(settings.voiceGender);
       });
     }, [])
@@ -82,7 +84,7 @@ export default function HomeScreen() {
 
     try {
       // Step 1: Get declaration text (fast — no TTS)
-      const declaration = await generateDeclaration(category, prompt, undefined, gender);
+      const declaration = await generateDeclaration(category, prompt, undefined, gender, maritalStatus);
 
       // Show card immediately with text
       setContent({

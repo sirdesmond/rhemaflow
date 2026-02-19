@@ -18,6 +18,7 @@ const DEFAULT_SETTINGS: UserSettings = {
   defaultAtmosphere: "glory",
   defaultCategory: DeclarationCategory.GENERAL,
   gender: null,
+  maritalStatus: null,
   voiceGender: "female",
   onboardingComplete: false,
 };
