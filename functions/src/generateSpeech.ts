@@ -1,6 +1,7 @@
 import * as functions from "firebase-functions/v1";
 import * as admin from "firebase-admin";
 import * as crypto from "crypto";
+import { v4 as uuidv4 } from "uuid";
 import { GoogleGenAI } from "@google/genai";
 import { verifySubscription } from "./utils/subscription";
 import { sanitizeText, sanitizeVoiceGender } from "./utils/sanitize";
@@ -60,7 +61,8 @@ async function getCachedAudio(
   hash: string
 ): Promise<{ audioBase64: string; audioUrl: string } | null> {
   const bucket = admin.storage().bucket();
-  const file = bucket.file(`${TTS_CACHE_PREFIX}/${uid}/${hash}.wav`);
+  const filePath = `${TTS_CACHE_PREFIX}/${uid}/${hash}.wav`;
+  const file = bucket.file(filePath);
 
   try {
     const [exists] = await file.exists();
@@ -68,7 +70,8 @@ async function getCachedAudio(
 
     const [buffer] = await file.download();
     const [metadata] = await file.getMetadata();
-    const audioUrl = metadata.mediaLink as string;
+    const token = metadata.metadata?.firebaseStorageDownloadTokens as string;
+    const audioUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(filePath)}?alt=media&token=${token}`;
 
     console.log(`[TTS Cache] HIT for ${hash}`);
     return { audioBase64: buffer.toString("base64"), audioUrl };
@@ -87,21 +90,23 @@ async function cacheAudio(
   wavBase64: string
 ): Promise<string> {
   const bucket = admin.storage().bucket();
-  const file = bucket.file(`${TTS_CACHE_PREFIX}/${uid}/${hash}.wav`);
+  const filePath = `${TTS_CACHE_PREFIX}/${uid}/${hash}.wav`;
+  const file = bucket.file(filePath);
   const buffer = Buffer.from(wavBase64, "base64");
+  const token = uuidv4();
 
   await file.save(buffer, {
     contentType: "audio/wav",
-    metadata: { cacheControl: "public, max-age=31536000" },
+    metadata: {
+      cacheControl: "public, max-age=31536000",
+      metadata: { firebaseStorageDownloadTokens: token },
+    },
   });
 
-  const [signedUrl] = await file.getSignedUrl({
-    action: "read",
-    expires: "01-01-2030",
-  });
+  const audioUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(filePath)}?alt=media&token=${token}`;
 
   console.log(`[TTS Cache] Stored ${buffer.length} bytes for ${hash}`);
-  return signedUrl;
+  return audioUrl;
 }
 
 /**
