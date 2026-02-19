@@ -88,11 +88,25 @@ export async function signInWithApple() {
   const result = await auth.signInWithCredential(credential);
   const user = result.user;
   const isNew = result.additionalUserInfo?.isNewUser;
-  const name = fullName
+  const appleName = fullName
     ? `${fullName.givenName ?? ""} ${fullName.familyName ?? ""}`.trim()
-    : user.displayName ?? "";
+    : "";
+  const name = appleName || user.displayName || "";
+
+  // Persist the display name on Firebase Auth profile (Apple only sends it once)
+  if (appleName && appleName !== user.displayName) {
+    await user.updateProfile({ displayName: appleName });
+  }
 
   await ensureUserDoc(user.uid, name, user.email ?? "", user.photoURL);
+
+  // Update Firestore doc with name if we got one from Apple (even for existing users)
+  if (appleName) {
+    await db.collection("users").doc(user.uid).update({
+      displayName: appleName,
+    }).catch(() => {});
+  }
+
   isNew ? trackSignUp("apple") : trackSignIn("apple");
   return user;
 }
