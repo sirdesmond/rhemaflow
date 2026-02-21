@@ -322,60 +322,61 @@ export default function HomeScreen() {
               transcript={transcript}
               onMicPress={handleMicPress}
             />
+
+            {/* Category pills below input */}
+            <View style={{ marginTop: 40 }}>
+              <CategoryPills
+                onSelect={handleMoodSelect}
+                disabled={isLoading}
+              />
+            </View>
           </View>
 
-          {/* Category pills + usage counter at bottom */}
-          <View style={{ paddingBottom: 16, gap: 16 }}>
-            <CategoryPills
-              onSelect={handleMoodSelect}
-              disabled={isLoading}
-            />
-
-            {/* Usage counter for free users */}
-            {!isPro && usage && (
-              <Pressable
-                onPress={() => {
-                  trackPaywallViewed("usage_counter");
-                  router.push("/(modals)/paywall" as any);
-                }}
+          {/* Usage counter for free users */}
+          {!isPro && usage && (
+            <Pressable
+              onPress={() => {
+                trackPaywallViewed("usage_counter");
+                router.push("/(modals)/paywall" as any);
+              }}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+                paddingVertical: 12,
+                paddingHorizontal: 16,
+                marginHorizontal: 20,
+                marginBottom: 100,
+                borderRadius: 12,
+                backgroundColor: COLORS.glass,
+                borderWidth: 1,
+                borderColor: COLORS.glassBorder,
+              }}
+            >
+              <Text
                 style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 8,
-                  paddingVertical: 12,
-                  paddingHorizontal: 16,
-                  marginHorizontal: 20,
-                  borderRadius: 12,
-                  backgroundColor: COLORS.glass,
-                  borderWidth: 1,
-                  borderColor: COLORS.glassBorder,
+                  fontFamily: "Lato",
+                  fontSize: 14,
+                  color: usage.canGenerate ? COLORS.slate400 : COLORS.fireOrange,
                 }}
               >
-                <Text
-                  style={{
-                    fontFamily: "Lato",
-                    fontSize: 14,
-                    color: usage.canGenerate ? COLORS.slate400 : COLORS.fireOrange,
-                  }}
-                >
-                  {usage.canGenerate
-                    ? `${usage.dailyLimit - usage.declarationsToday} of ${usage.dailyLimit} remaining today`
-                    : "Daily limit reached"}
-                </Text>
-                <Text
-                  style={{
-                    fontFamily: "Lato-Bold",
-                    fontSize: 12,
-                    color: COLORS.divineGold,
-                    textTransform: "uppercase",
-                  }}
-                >
-                  Upgrade
-                </Text>
-              </Pressable>
-            )}
-          </View>
+                {usage.canGenerate
+                  ? `${usage.dailyLimit - usage.declarationsToday} of ${usage.dailyLimit} remaining today`
+                  : "Daily limit reached"}
+              </Text>
+              <Text
+                style={{
+                  fontFamily: "Lato-Bold",
+                  fontSize: 12,
+                  color: COLORS.divineGold,
+                  textTransform: "uppercase",
+                }}
+              >
+                Upgrade
+              </Text>
+            </Pressable>
+          )}
         </KeyboardAvoidingView>
       ) : (
         <View style={{ flex: 1, padding: 16, paddingBottom: 100 }}>
