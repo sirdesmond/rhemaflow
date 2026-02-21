@@ -17,7 +17,7 @@ export default {
     splash: {
       image: "./assets/images/splash-icon.png",
       resizeMode: "contain",
-      backgroundColor: "#1C0B2E",
+      backgroundColor: "#0F172A",
     },
     ios: {
       supportsTablet: true,
@@ -35,7 +35,7 @@ export default {
         process.env.GOOGLE_SERVICES_JSON || "./google-services.json",
       adaptiveIcon: {
         foregroundImage: "./assets/images/adaptive-icon.png",
-        backgroundColor: "#1C0B2E",
+        backgroundColor: "#0F172A",
       },
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
