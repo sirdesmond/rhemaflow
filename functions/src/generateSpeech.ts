@@ -155,7 +155,7 @@ async function generateWithGemini(
 }
 
 export const generateSpeech = functions
-  .runWith({ timeoutSeconds: 120, memory: "512MB" })
+  .runWith({ timeoutSeconds: 120, memory: "1GB" })
   .https.onCall(async (data, context) => {
     if (!context.auth) {
       throw new functions.https.HttpsError("unauthenticated", "Must be signed in.");
@@ -196,15 +196,12 @@ export const generateSpeech = functions
         return { audioBase64: null, audioUrl: null };
       }
 
-      // 3. Cache to Storage (non-blocking — don't let cache failure break playback)
-      let audioUrl: string | null = null;
-      try {
-        audioUrl = await cacheAudio(uid, hash, wavBase64);
-      } catch (cacheErr) {
+      // 3. Cache to Storage in background — don't block the response
+      cacheAudio(uid, hash, wavBase64).catch((cacheErr) => {
         console.warn("[TTS Cache] Upload failed (non-fatal):", cacheErr);
-      }
+      });
 
-      return { audioBase64: wavBase64, audioUrl };
+      return { audioBase64: wavBase64, audioUrl: null };
     } catch (error) {
       console.error("generateSpeech error:", error);
       return { audioBase64: null, audioUrl: null };

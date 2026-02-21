@@ -79,7 +79,7 @@ export const generateDeclaration = functions
 
     const genderContext = gender
       ? `\nGender context: The user is ${gender}. This is CRITICAL — you MUST respect the user's gender throughout the declaration:
-- Use ONLY ${gender === "male" ? "masculine" : "feminine"} terms: "${gender === "male" ? "man of God, son, king, his, he, brother, father, husband" : "woman of God, daughter, queen, her, she, sister, mother, wife"}".
+- Use ONLY ${gender === "male" ? "masculine" : "feminine"} terms: "${gender === "male" ? "man of God, child of God,son, king, his, he, brother, father, husband" : "woman of God, child of God,  daughter, queen, her, she, sister, mother, wife"}".
 - NEVER use ${gender === "male" ? "feminine" : "masculine"} terms like "${gender === "male" ? "womb, daughter, queen, her, she, sister, mother, wife, woman of God" : "son, king, his, he, brother, father, husband, man of God"}".
 - ${gender === "male" ? "Do NOT reference womb, pregnancy, or female-specific body parts." : "You may reference womb or pregnancy only if relevant to the user's situation."}`
       : "";
