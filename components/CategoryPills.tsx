@@ -1,4 +1,4 @@
-import { ScrollView, Pressable, Text, StyleSheet } from "react-native";
+import { View, Pressable, Text, StyleSheet } from "react-native";
 import * as Haptics from "expo-haptics";
 import { MOOD_PRESETS } from "../constants/categories";
 import { MoodPreset } from "../types";
@@ -19,11 +19,7 @@ export function CategoryPills({
   };
 
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.container}
-    >
+    <View style={styles.container}>
       {MOOD_PRESETS.map((preset) => (
         <Pressable
           key={preset.label}
@@ -35,13 +31,15 @@ export function CategoryPills({
           <Text style={styles.label}>{preset.label}</Text>
         </Pressable>
       ))}
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 20,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
     gap: 10,
   },
   pill: {
@@ -51,16 +49,16 @@ const styles = StyleSheet.create({
     borderRadius: 9999,
     borderWidth: 1,
     borderColor: COLORS.glassBorder,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     gap: 6,
   },
   emoji: {
-    fontSize: 16,
+    fontSize: 14,
   },
   label: {
     fontFamily: "Lato-Bold",
-    fontSize: 12,
+    fontSize: 11,
     color: COLORS.white,
     letterSpacing: 0.3,
   },
