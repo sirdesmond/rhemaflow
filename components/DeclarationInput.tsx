@@ -6,7 +6,6 @@ import {
   StyleSheet,
   Animated,
   Easing,
-  Platform,
 } from "react-native";
 import { Mic, ArrowRight, Sparkles } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
@@ -149,8 +148,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 16,
     paddingHorizontal: 6,
-    paddingVertical: Platform.OS === "android" ? 2 : 4,
-    overflow: "hidden",
+    paddingVertical: 4,
   },
   containerDefault: {
     borderColor: COLORS.divineGold + "40",
@@ -179,7 +177,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.body,
     fontSize: 15,
     color: COLORS.white,
-    paddingVertical: Platform.OS === "android" ? 10 : 8,
+    paddingVertical: 12,
     paddingHorizontal: 4,
   },
   sendButton: {
