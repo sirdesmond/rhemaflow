@@ -156,7 +156,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 0 },
     shadowRadius: 12,
     shadowOpacity: 0.15,
-    elevation: 4,
   },
   containerListening: {
     borderColor: COLORS.divineGold + "80",
@@ -164,7 +163,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 0 },
     shadowRadius: 20,
     shadowOpacity: 0.35,
-    elevation: 8,
   },
   micButton: {
     width: 44,
@@ -193,7 +191,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 0 },
     shadowRadius: 8,
     shadowOpacity: 0.3,
-    elevation: 4,
   },
   sendButtonInactive: {
     backgroundColor: COLORS.slate700,
