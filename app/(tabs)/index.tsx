@@ -1,5 +1,5 @@
-import { View, Text, Pressable, Alert, KeyboardAvoidingView, Platform } from "react-native";
-import { useState, useRef, useCallback } from "react";
+import { View, Text, Pressable, Alert, KeyboardAvoidingView, Platform, Keyboard, ScrollView } from "react-native";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Flame, ChevronLeft, Sparkles, User, Crown } from "lucide-react-native";
 import { useRouter, useFocusEffect } from "expo-router";
@@ -47,6 +47,13 @@ export default function HomeScreen() {
   const [gender, setGender] = useState<UserSettings["gender"]>(null);
   const [maritalStatus, setMaritalStatus] = useState<UserSettings["maritalStatus"]>(null);
   const [voiceGender, setVoiceGender] = useState<UserSettings["voiceGender"]>("female");
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener("keyboardDidShow", () => setKeyboardVisible(true));
+    const hideSub = Keyboard.addListener("keyboardDidHide", () => setKeyboardVisible(false));
+    return () => { showSub.remove(); hideSub.remove(); };
+  }, []);
 
   const router = useRouter();
   const { isPro, usage, refreshUsage } = useSubscription();
@@ -286,8 +293,11 @@ export default function HomeScreen() {
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
         >
-          {/* Centered greeting + input */}
-          <View style={{ flex: 1, justifyContent: "center", paddingHorizontal: 24 }}>
+          <ScrollView
+            contentContainerStyle={{ flexGrow: 1, justifyContent: "center", paddingHorizontal: 24, paddingBottom: 100 }}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
             <Text
               style={{
                 fontFamily: "Cinzel",
@@ -323,60 +333,61 @@ export default function HomeScreen() {
               onMicPress={handleMicPress}
             />
 
-            {/* Category pills below input */}
-            <View style={{ marginTop: 40 }}>
-              <CategoryPills
-                onSelect={handleMoodSelect}
-                disabled={isLoading}
-              />
-            </View>
-          </View>
+            {/* Category pills below input — hide when keyboard is up */}
+            {!keyboardVisible && (
+              <View style={{ marginTop: 40 }}>
+                <CategoryPills
+                  onSelect={handleMoodSelect}
+                  disabled={isLoading}
+                />
+              </View>
+            )}
 
-          {/* Usage counter for free users */}
-          {!isPro && usage && (
-            <Pressable
-              onPress={() => {
-                trackPaywallViewed("usage_counter");
-                router.push("/(modals)/paywall" as any);
-              }}
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-                paddingVertical: 12,
-                paddingHorizontal: 16,
-                marginHorizontal: 20,
-                marginBottom: 100,
-                borderRadius: 12,
-                backgroundColor: COLORS.glass,
-                borderWidth: 1,
-                borderColor: COLORS.glassBorder,
-              }}
-            >
-              <Text
+            {/* Usage counter for free users */}
+            {!keyboardVisible && !isPro && usage && (
+              <Pressable
+                onPress={() => {
+                  trackPaywallViewed("usage_counter");
+                  router.push("/(modals)/paywall" as any);
+                }}
                 style={{
-                  fontFamily: "Lato",
-                  fontSize: 14,
-                  color: usage.canGenerate ? COLORS.slate400 : COLORS.fireOrange,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  paddingVertical: 12,
+                  paddingHorizontal: 16,
+                  marginTop: 16,
+                  borderRadius: 12,
+                  backgroundColor: COLORS.glass,
+                  borderWidth: 1,
+                  borderColor: COLORS.glassBorder,
                 }}
               >
-                {usage.canGenerate
-                  ? `${usage.dailyLimit - usage.declarationsToday} of ${usage.dailyLimit} remaining today`
-                  : "Daily limit reached"}
-              </Text>
-              <Text
-                style={{
-                  fontFamily: "Lato-Bold",
-                  fontSize: 12,
-                  color: COLORS.divineGold,
-                  textTransform: "uppercase",
-                }}
-              >
-                Upgrade
-              </Text>
-            </Pressable>
-          )}
+                <Text
+                  style={{
+                    fontFamily: "Lato",
+                    fontSize: 14,
+                    color: usage.canGenerate ? COLORS.slate400 : COLORS.fireOrange,
+                  }}
+                >
+                  {usage.canGenerate
+                    ? `${usage.dailyLimit - usage.declarationsToday} of ${usage.dailyLimit} remaining today`
+                    : "Daily limit reached"}
+                </Text>
+                <Text
+                  style={{
+                    fontFamily: "Lato-Bold",
+                    fontSize: 12,
+                    color: COLORS.divineGold,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Upgrade
+                </Text>
+              </Pressable>
+            )}
+          </ScrollView>
         </KeyboardAvoidingView>
       ) : (
         <View style={{ flex: 1, padding: 16, paddingBottom: 100 }}>
