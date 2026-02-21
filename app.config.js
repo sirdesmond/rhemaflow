@@ -68,6 +68,18 @@ export default {
       "@react-native-google-signin/google-signin",
       "expo-apple-authentication",
       ["expo-notifications", { sounds: [] }],
+      [
+        "expo-speech-recognition",
+        {
+          microphonePermission:
+            "Allow RhemaFlow to use the microphone for voice declarations.",
+          speechRecognitionPermission:
+            "Allow RhemaFlow to use speech recognition for voice declarations.",
+          androidSpeechServicePackages: [
+            "com.google.android.googlequicksearchbox",
+          ],
+        },
+      ],
     ],
     experiments: {
       typedRoutes: true,
