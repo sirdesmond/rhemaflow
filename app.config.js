@@ -27,6 +27,8 @@ export default {
       usesAppleSignIn: true,
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
+        NSPhotoLibraryUsageDescription:
+          "RhemaFlow needs access to your photo library to save and share declarations.",
       },
     },
     android: {
