@@ -1,17 +1,19 @@
-import { View, Text, ScrollView, Pressable, Alert, KeyboardAvoidingView, Platform } from "react-native";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { View, Text, Pressable, Alert, KeyboardAvoidingView, Platform } from "react-native";
+import { useState, useRef, useCallback } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Flame, ChevronLeft, Sparkles, User, Crown } from "lucide-react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 import * as Haptics from "expo-haptics";
 import ViewShot from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
-import { MoodInput } from "../../components/MoodInput";
+import { DeclarationInput } from "../../components/DeclarationInput";
+import { CategoryPills } from "../../components/CategoryPills";
 import { DeclarationCard } from "../../components/DeclarationCard";
 import { ShareCard } from "../../components/ShareCard";
 import { LoadingOverlay } from "../../components/LoadingOverlay";
 import { useAudio } from "../../hooks/useAudio";
 import { useSubscription } from "../../hooks/useSubscription";
+import { useSpeechRecognition } from "../../hooks/useSpeechRecognition";
 import {
   generateDeclaration,
   generateSpeech,
@@ -50,6 +52,13 @@ export default function HomeScreen() {
   const { isPro, usage, refreshUsage } = useSubscription();
   const { isPlaying, atmosphere, setAtmosphere, play, togglePlayback, cycleAtmosphere, stop, progress } =
     useAudio();
+  const {
+    isListening,
+    transcript,
+    startListening,
+    stopListening,
+    clearTranscript,
+  } = useSpeechRecognition();
   const viewShotRef = useRef<ViewShot>(null);
 
   // Reload user preferences every time the tab gains focus
@@ -133,6 +142,13 @@ export default function HomeScreen() {
     processGeneration(text, currentCategory);
   };
 
+  const handleMicPress = () => {
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening();
+    }
+  };
 
   const handleShare = async () => {
     if (!viewShotRef.current?.capture) return;
@@ -270,88 +286,96 @@ export default function HomeScreen() {
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
         >
-        <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={{ padding: 20, paddingBottom: 100, gap: 32 }}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="interactive"
-        >
-          {/* Hero */}
-          <View style={{ paddingTop: 24, gap: 8 }}>
+          {/* Centered greeting + input */}
+          <View style={{ flex: 1, justifyContent: "center", paddingHorizontal: 24 }}>
             <Text
               style={{
                 fontFamily: "Cinzel",
-                fontSize: 34,
+                fontSize: 26,
                 color: "white",
-                lineHeight: 42,
+                textAlign: "center",
+                lineHeight: 36,
+                marginBottom: 8,
               }}
             >
-              UNLEASH{"\n"}
-              <Text style={{ color: COLORS.divineGold }}>YOUR VOICE</Text>
+              What are you{"\n"}believing God for?
             </Text>
             <Text
               style={{
                 fontFamily: "Lato",
-                fontSize: 18,
+                fontSize: 14,
                 color: COLORS.slate400,
-                marginTop: 8,
-                lineHeight: 26,
+                textAlign: "center",
+                marginBottom: 32,
               }}
             >
-              The atmosphere shifts when you speak.
+              Type, speak, or pick a topic below
             </Text>
+
+            <DeclarationInput
+              onSubmit={(text) => {
+                clearTranscript();
+                handleCustomMood(text);
+              }}
+              isLoading={isLoading}
+              isListening={isListening}
+              transcript={transcript}
+              onMicPress={handleMicPress}
+            />
           </View>
 
-          <MoodInput
-            onMoodSelect={handleMoodSelect}
-            onCustomMood={handleCustomMood}
-            isLoading={isLoading}
-          />
+          {/* Category pills + usage counter at bottom */}
+          <View style={{ paddingBottom: 16, gap: 16 }}>
+            <CategoryPills
+              onSelect={handleMoodSelect}
+              disabled={isLoading}
+            />
 
-          {/* Usage counter for free users */}
-          {!isPro && usage && (
-            <Pressable
-              onPress={() => {
-                trackPaywallViewed("usage_counter");
-                router.push("/(modals)/paywall" as any);
-              }}
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-                paddingVertical: 12,
-                paddingHorizontal: 16,
-                borderRadius: 12,
-                backgroundColor: COLORS.glass,
-                borderWidth: 1,
-                borderColor: COLORS.glassBorder,
-              }}
-            >
-              <Text
+            {/* Usage counter for free users */}
+            {!isPro && usage && (
+              <Pressable
+                onPress={() => {
+                  trackPaywallViewed("usage_counter");
+                  router.push("/(modals)/paywall" as any);
+                }}
                 style={{
-                  fontFamily: "Lato",
-                  fontSize: 14,
-                  color: usage.canGenerate ? COLORS.slate400 : COLORS.fireOrange,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  paddingVertical: 12,
+                  paddingHorizontal: 16,
+                  marginHorizontal: 20,
+                  borderRadius: 12,
+                  backgroundColor: COLORS.glass,
+                  borderWidth: 1,
+                  borderColor: COLORS.glassBorder,
                 }}
               >
-                {usage.canGenerate
-                  ? `${usage.dailyLimit - usage.declarationsToday} of ${usage.dailyLimit} remaining today`
-                  : "Daily limit reached"}
-              </Text>
-              <Text
-                style={{
-                  fontFamily: "Lato-Bold",
-                  fontSize: 12,
-                  color: COLORS.divineGold,
-                  textTransform: "uppercase",
-                }}
-              >
-                Upgrade
-              </Text>
-            </Pressable>
-          )}
-        </ScrollView>
+                <Text
+                  style={{
+                    fontFamily: "Lato",
+                    fontSize: 14,
+                    color: usage.canGenerate ? COLORS.slate400 : COLORS.fireOrange,
+                  }}
+                >
+                  {usage.canGenerate
+                    ? `${usage.dailyLimit - usage.declarationsToday} of ${usage.dailyLimit} remaining today`
+                    : "Daily limit reached"}
+                </Text>
+                <Text
+                  style={{
+                    fontFamily: "Lato-Bold",
+                    fontSize: 12,
+                    color: COLORS.divineGold,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Upgrade
+                </Text>
+              </Pressable>
+            )}
+          </View>
         </KeyboardAvoidingView>
       ) : (
         <View style={{ flex: 1, padding: 16, paddingBottom: 100 }}>
