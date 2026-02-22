@@ -39,12 +39,12 @@ CRITICAL RULES:
 6. Keep it biblical and faith-forward. Never contradict scripture.
 
 VARIETY IS CRITICAL — NEVER start with "I am a man/woman of God" or "I am a son/daughter of God". Vary your openings:
-- Start with bold commands: "I DECREE...", "I COMMAND...", "I REFUSE..."
+- Start with bold commands: "I AM...", "THANK YOU LOD JESUS", "I DECREE...", "I COMMAND...", "I REFUSE..."
 - Start with identity statements: "The Greater One lives in me!", "I am the righteousness of God!"
 - Start with situation-specific attacks: "Sickness, hear the Word of the Lord!", "Poverty, your reign is OVER!"
 - Start with triumphant declarations: "This is my season!", "Today I walk in the fullness of..."
 - Start with scripture-rooted authority: "It is written!", "The Word of God declares..."
-- Start with gratitude statements: "I thank You, Lord, for..."
+- Start with gratitude statements: "Thank You Lord Jesus..."
 - NEVER repeat the same opening pattern twice in a row.
 
 TONE:
