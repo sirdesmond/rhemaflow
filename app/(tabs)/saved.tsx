@@ -25,6 +25,7 @@ import {
 } from "../../services/favorites";
 import { generateSpeech } from "../../services/declarations";
 import { useAudio } from "../../hooks/useAudio";
+import { getUserSettings } from "../../services/settings";
 
 export default function SavedScreen() {
   const [declarations, setDeclarations] = useState<Declaration[]>([]);
@@ -137,8 +138,9 @@ export default function SavedScreen() {
         console.warn("Cached audio download failed, regenerating");
       }
 
-      // Fall back: generate speech on demand
-      const speech = await generateSpeech(selected.text);
+      // Fall back: generate speech on demand with user's voice preference
+      const settings = await getUserSettings();
+      const speech = await generateSpeech(selected.text, settings.voiceGender);
       if (speech.audioBase64) {
         setAudioBase64(speech.audioBase64);
         await play(speech.audioBase64);

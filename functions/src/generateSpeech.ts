@@ -48,8 +48,20 @@ function pcmToWavBase64(
 
 const TTS_CACHE_PREFIX = "tts-cache";
 
-function ttsHash(text: string, voiceGender: string): string {
-  return crypto.createHash("sha256").update(`${voiceGender}:${text}`).digest("hex");
+function ttsHash(text: string, voiceName: string): string {
+  return crypto.createHash("sha256").update(`${voiceName}:${text}`).digest("hex");
+}
+
+/**
+ * Deterministically pick a voice based on text hash so the same text
+ * always gets the same voice (no random switching).
+ */
+function pickVoice(text: string, voiceGender: string): string {
+  const MALE_VOICES = ["Puck", "Charon", "Enceladus"];
+  const FEMALE_VOICES = ["Kore", "Aoede", "Leda"];
+  const pool = voiceGender === "male" ? MALE_VOICES : FEMALE_VOICES;
+  const hash = crypto.createHash("md5").update(text).digest();
+  return pool[hash[0] % pool.length];
 }
 
 /**
@@ -115,18 +127,13 @@ async function cacheAudio(
  */
 async function generateWithGemini(
   text: string,
-  voiceGender: string
+  voiceName: string
 ): Promise<string | null> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     console.error("GEMINI_API_KEY not set");
     return null;
   }
-
-  const MALE_VOICES = ["Puck", "Charon", "Enceladus"];
-  const FEMALE_VOICES = ["Kore", "Aoede", "Leda"];
-  const voicePool = voiceGender === "male" ? MALE_VOICES : FEMALE_VOICES;
-  const voiceName = voicePool[Math.floor(Math.random() * voicePool.length)];
 
   const ai = new GoogleGenAI({ apiKey });
 
@@ -178,7 +185,8 @@ export const generateSpeech = functions
     const voiceGender = sanitizeVoiceGender(data.voiceGender);
     console.log(`[generateSpeech] uid=${context.auth.uid}, voiceGender=${voiceGender}`);
 
-    const hash = ttsHash(text, voiceGender);
+    const voiceName = pickVoice(text, voiceGender);
+    const hash = ttsHash(text, voiceName);
     const uid = context.auth.uid;
 
     try {
@@ -190,18 +198,21 @@ export const generateSpeech = functions
       }
 
       // 2. Generate fresh audio via Gemini TTS
-      const wavBase64 = await generateWithGemini(text, voiceGender);
+      const wavBase64 = await generateWithGemini(text, voiceName);
 
       if (!wavBase64) {
         return { audioBase64: null, audioUrl: null };
       }
 
-      // 3. Cache to Storage in background — don't block the response
-      cacheAudio(uid, hash, wavBase64).catch((cacheErr) => {
+      // 3. Cache to Storage and return the URL
+      let audioUrl: string | null = null;
+      try {
+        audioUrl = await cacheAudio(uid, hash, wavBase64);
+      } catch (cacheErr) {
         console.warn("[TTS Cache] Upload failed (non-fatal):", cacheErr);
-      });
+      }
 
-      return { audioBase64: wavBase64, audioUrl: null };
+      return { audioBase64: wavBase64, audioUrl };
     } catch (error) {
       console.error("generateSpeech error:", error);
       return { audioBase64: null, audioUrl: null };
