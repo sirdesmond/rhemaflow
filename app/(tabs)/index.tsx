@@ -1,5 +1,5 @@
 import { View, Text, Pressable, Alert, KeyboardAvoidingView, Platform, Keyboard, ScrollView } from "react-native";
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, MutableRefObject } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Flame, ChevronLeft, Sparkles, User, Crown } from "lucide-react-native";
 import { useRouter, useFocusEffect } from "expo-router";
@@ -49,6 +49,7 @@ export default function HomeScreen() {
   const [voiceGender, setVoiceGender] = useState<UserSettings["voiceGender"]>("female");
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [lastPrompt, setLastPrompt] = useState<string>("");
+  const generationIdRef = useRef(0);
 
   useEffect(() => {
     const showSub = Keyboard.addListener("keyboardDidShow", () => setKeyboardVisible(true));
@@ -93,16 +94,23 @@ export default function HomeScreen() {
       return;
     }
 
+    // Increment generation ID to invalidate any in-flight TTS
+    const thisGeneration = ++generationIdRef.current;
+
     setIsLoading(true);
     setContent(null);
     setCurrentCategory(category);
     setLastPrompt(prompt);
     setIsSaved(false);
+    setIsAudioLoading(false);
     await stop();
 
     try {
       // Step 1: Get declaration text (fast — no TTS)
       const declaration = await generateDeclaration(category, prompt, undefined, gender, maritalStatus);
+
+      // Stale check — a newer generation was started
+      if (thisGeneration !== generationIdRef.current) return;
 
       // Show card immediately with text
       setContent({
@@ -124,6 +132,9 @@ export default function HomeScreen() {
         setIsAudioLoading(true);
 
         const speech = await generateSpeech(declaration.text, voiceGender).catch(() => null);
+
+        // Stale check — discard if a newer generation started while TTS was loading
+        if (thisGeneration !== generationIdRef.current) return;
 
         setIsAudioLoading(false);
 
@@ -192,9 +203,11 @@ export default function HomeScreen() {
   };
 
   const goBack = async () => {
+    generationIdRef.current++; // cancel any in-flight TTS
     await stop();
     setContent(null);
     setIsSaved(false);
+    setIsAudioLoading(false);
   };
 
   return (
