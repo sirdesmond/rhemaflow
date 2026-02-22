@@ -38,11 +38,11 @@ export const MOOD_PRESETS: MoodPreset[] = [
       "I walk in divine wisdom and clarity. Give me a declaration of supernatural insight and direction.",
   },
   {
-    emoji: "\u{2694}\u{FE0F}",
-    label: "Victory",
+    emoji: "\u{1F525}",
+    label: "Identity in Christ",
     category: DeclarationCategory.IDENTITY,
     prompt:
-      "I am more than a conqueror. Give me a declaration of total victory and dominion in Christ.",
+      "I am a new creation in Christ. Give me a powerful declaration about who I am in Christ — my identity, authority, and dominion as a child of God.",
   },
   {
     emoji: "\u{1F48D}",

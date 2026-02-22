@@ -48,6 +48,7 @@ export default function HomeScreen() {
   const [maritalStatus, setMaritalStatus] = useState<UserSettings["maritalStatus"]>(null);
   const [voiceGender, setVoiceGender] = useState<UserSettings["voiceGender"]>("female");
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [lastPrompt, setLastPrompt] = useState<string>("");
 
   useEffect(() => {
     const showSub = Keyboard.addListener("keyboardDidShow", () => setKeyboardVisible(true));
@@ -95,6 +96,7 @@ export default function HomeScreen() {
     setIsLoading(true);
     setContent(null);
     setCurrentCategory(category);
+    setLastPrompt(prompt);
     setIsSaved(false);
     await stop();
 
@@ -429,7 +431,7 @@ export default function HomeScreen() {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
               trackFreshFire(currentCategory);
               processGeneration(
-                `Generate another declaration about ${currentCategory}`,
+                lastPrompt || `Generate another declaration about ${currentCategory}`,
                 currentCategory
               );
             }}
