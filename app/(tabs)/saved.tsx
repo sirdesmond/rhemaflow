@@ -32,7 +32,7 @@ export default function SavedScreen() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "favorites">("all");
   const [selected, setSelected] = useState<Declaration | null>(null);
-  const [audioBase64, setAudioBase64] = useState<string | null>(null);
+  const [audioSource, setAudioSource] = useState<string | null>(null);
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
 
   const { isPlaying, atmosphere, play, togglePlayback, cycleAtmosphere, stop, progress } =
@@ -89,13 +89,13 @@ export default function SavedScreen() {
   const handleCardPress = (item: Declaration) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setSelected(item);
-    setAudioBase64(null);
+    setAudioSource(null);
   };
 
   const handleBack = async () => {
     await stop();
     setSelected(null);
-    setAudioBase64(null);
+    setAudioSource(null);
   };
 
   const handlePlayToggle = async () => {
@@ -105,45 +105,29 @@ export default function SavedScreen() {
     }
 
     // If we already have audio cached in memory, play it
-    if (audioBase64) {
-      await play(audioBase64);
+    if (audioSource) {
+      await play(audioSource);
       return;
     }
 
     if (!selected) return;
     setIsLoadingAudio(true);
     try {
-      // If the declaration has a cached audioUrl, download from Storage
+      // If the declaration has a cached audioUrl, play directly from URL
       if (selected.audioUrl) {
-        const res = await fetch(selected.audioUrl);
-        if (res.ok) {
-          const blob = await res.blob();
-          const reader = new FileReader();
-          const base64 = await new Promise<string | null>((resolve) => {
-            reader.onloadend = () => {
-              const dataUrl = reader.result as string;
-              // Strip "data:audio/wav;base64," prefix
-              resolve(dataUrl?.split(",")[1] ?? null);
-            };
-            reader.onerror = () => resolve(null);
-            reader.readAsDataURL(blob);
-          });
-          if (base64) {
-            setAudioBase64(base64);
-            await play(base64);
-            return;
-          }
-        }
-        // If download failed, fall through to regeneration
-        console.warn("Cached audio download failed, regenerating");
+        setAudioSource(selected.audioUrl);
+        await play(selected.audioUrl);
+        setIsLoadingAudio(false);
+        return;
       }
 
       // Fall back: generate speech on demand with user's voice preference
       const settings = await getUserSettings();
       const speech = await generateSpeech(selected.text, settings.voiceGender);
-      if (speech.audioBase64) {
-        setAudioBase64(speech.audioBase64);
-        await play(speech.audioBase64);
+      const source = speech.audioUrl ?? speech.audioBase64;
+      if (source) {
+        setAudioSource(source);
+        await play(source);
       }
     } catch (e) {
       console.error("Speech generation error:", e);

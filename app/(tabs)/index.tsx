@@ -50,6 +50,7 @@ export default function HomeScreen() {
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [lastPrompt, setLastPrompt] = useState<string>("");
   const generationIdRef = useRef(0);
+  const ttsAbortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     const showSub = Keyboard.addListener("keyboardDidShow", () => setKeyboardVisible(true));
@@ -94,7 +95,8 @@ export default function HomeScreen() {
       return;
     }
 
-    // Increment generation ID to invalidate any in-flight TTS
+    // Cancel any in-flight TTS and increment generation ID
+    ttsAbortRef.current?.abort();
     const thisGeneration = ++generationIdRef.current;
 
     setIsLoading(true);
@@ -112,7 +114,7 @@ export default function HomeScreen() {
       // Stale check — a newer generation was started
       if (thisGeneration !== generationIdRef.current) return;
 
-      // Show card immediately with text
+      // Show card immediately with text + kick off TTS in parallel
       setContent({
         text: declaration.text,
         reference: declaration.reference,
@@ -123,26 +125,32 @@ export default function HomeScreen() {
       });
       setIsLoading(false);
       trackDeclarationGenerated(category, isPro);
+      refreshUsage().catch(() => {});
 
-      // Refresh usage count after generation
-      refreshUsage();
-
-      // Step 2: Pro users get TTS audio
+      // Start TTS immediately — don't wait for UI render cycle
       if (isPro) {
         setIsAudioLoading(true);
+        const abortController = new AbortController();
+        ttsAbortRef.current = abortController;
 
-        const speech = await generateSpeech(declaration.text, voiceGender).catch(() => null);
+        // Fire TTS request immediately (runs concurrently with UI updates above)
+        generateSpeech(declaration.text, voiceGender, abortController.signal)
+          .then((speech) => {
+            // Stale check — discard if a newer generation started
+            if (thisGeneration !== generationIdRef.current) return;
 
-        // Stale check — discard if a newer generation started while TTS was loading
-        if (thisGeneration !== generationIdRef.current) return;
-
-        setIsAudioLoading(false);
-
-        if (speech?.audioBase64) {
-          setContent((prev) => prev ? { ...prev, audioBase64: speech.audioBase64, audioUrl: speech.audioUrl } : null);
-          play(speech.audioBase64);
-          trackAudioPlayed();
-        }
+            setIsAudioLoading(false);
+            const audioSource = speech?.audioBase64 ?? speech?.audioUrl;
+            if (audioSource) {
+              setContent((prev) => prev ? { ...prev, audioBase64: speech?.audioBase64 ?? null, audioUrl: speech?.audioUrl ?? null } : null);
+              play(audioSource);
+              trackAudioPlayed();
+            }
+          })
+          .catch((e) => {
+            if (e instanceof DOMException && e.name === "AbortError") return;
+            if (thisGeneration === generationIdRef.current) setIsAudioLoading(false);
+          });
       }
     } catch (error: any) {
       console.error("Generation failed:", error);
@@ -203,7 +211,8 @@ export default function HomeScreen() {
   };
 
   const goBack = async () => {
-    generationIdRef.current++; // cancel any in-flight TTS
+    ttsAbortRef.current?.abort();
+    generationIdRef.current++;
     await stop();
     setContent(null);
     setIsSaved(false);
@@ -413,7 +422,7 @@ export default function HomeScreen() {
             category={currentCategory}
             isPlaying={isPlaying}
             isAudioLoading={isAudioLoading}
-            onPlayToggle={() => togglePlayback(content.audioBase64)}
+            onPlayToggle={() => togglePlayback(content.audioBase64 ?? content.audioUrl)}
             atmosphere={atmosphere}
             onAtmosphereChange={cycleAtmosphere}
             onShare={handleShare}

@@ -33,14 +33,14 @@ class AudioEngine {
 
   /**
    * Orchestrates the full playback session:
-   * 1. Writes WAV base64 to temp file
+   * 1. Resolves audio source (URL or base64 → temp file)
    * 2. Loads speech + music sounds
    * 3. Plays speech at full volume
    * 4. Fades music in behind speech
    * 5. When speech ends: music swells, holds, fades out
    */
   async playSession(
-    audioBase64: string,
+    audioSource: string,
     atmosphere: AtmosphereType,
     onComplete: () => void,
     onProgress?: (position: number, duration: number) => void
@@ -51,10 +51,15 @@ class AudioEngine {
     await this.init();
 
     try {
-      // 1. Write WAV base64 to a temp file (expo-av needs a URI)
-      const speechFile = new File(Paths.cache, `speech_${Date.now()}.wav`);
-      speechFile.write(audioBase64, { encoding: "base64" });
-      const speechUri = speechFile.uri;
+      // 1. Resolve audio URI — URL plays directly, base64 writes to temp file
+      let speechUri: string;
+      if (audioSource.startsWith("http")) {
+        speechUri = audioSource;
+      } else {
+        const speechFile = new File(Paths.cache, `speech_${Date.now()}.mp3`);
+        speechFile.write(audioSource, { encoding: "base64" });
+        speechUri = speechFile.uri;
+      }
 
       // 2. Load speech sound
       const { sound: speechSound } = await Audio.Sound.createAsync(

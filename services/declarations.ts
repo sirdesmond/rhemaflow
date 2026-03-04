@@ -49,18 +49,36 @@ export async function generateDeclaration(
 
 /**
  * Calls the standalone generateSpeech Cloud Function.
- * Used for replaying saved declarations that don't have cached audio.
+ * Supports cancellation via AbortSignal to avoid wasting bandwidth
+ * when the user triggers a new generation before TTS completes.
  */
 export async function generateSpeech(
   text: string,
-  voiceGender?: "male" | "female"
+  voiceGender?: "male" | "female",
+  signal?: AbortSignal
 ): Promise<{ audioBase64: string | null; audioUrl: string | null }> {
   try {
     const fn = functions.httpsCallable("generateSpeech");
-    const result = await fn({ text, voiceGender });
+    const resultPromise = fn({ text, voiceGender });
+
+    // If an abort signal is provided, race the call against it
+    if (signal) {
+      const abortPromise = new Promise<never>((_, reject) => {
+        if (signal.aborted) reject(new DOMException("Aborted", "AbortError"));
+        signal.addEventListener("abort", () =>
+          reject(new DOMException("Aborted", "AbortError"))
+        );
+      });
+      const result = await Promise.race([resultPromise, abortPromise]);
+      const data = result.data as { audioBase64: string | null; audioUrl: string | null };
+      return { audioBase64: data.audioBase64, audioUrl: data.audioUrl ?? null };
+    }
+
+    const result = await resultPromise;
     const data = result.data as { audioBase64: string | null; audioUrl: string | null };
     return { audioBase64: data.audioBase64, audioUrl: data.audioUrl ?? null };
   } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") throw error;
     throw new Error(friendlyMessage(error));
   }
 }

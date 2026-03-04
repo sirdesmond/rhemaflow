@@ -2,54 +2,14 @@ import * as functions from "firebase-functions/v1";
 import * as admin from "firebase-admin";
 import * as crypto from "crypto";
 import { v4 as uuidv4 } from "uuid";
-import { GoogleGenAI } from "@google/genai";
+import * as https from "https";
 import { verifySubscription } from "./utils/subscription";
 import { sanitizeText, sanitizeVoiceGender } from "./utils/sanitize";
 
-/**
- * Converts raw 16-bit PCM audio from Gemini TTS into a WAV file.
- * expo-av on the mobile client can play WAV directly, but not raw PCM.
- */
-function pcmToWavBase64(
-  pcmBase64: string,
-  sampleRate = 24000,
-  channels = 1,
-  bitsPerSample = 16
-): string {
-  const pcmBuffer = Buffer.from(pcmBase64, "base64");
-  const dataLength = pcmBuffer.length;
-  const headerSize = 44;
-  const fileSize = headerSize + dataLength;
-
-  const wav = Buffer.alloc(fileSize);
-
-  // RIFF header
-  wav.write("RIFF", 0);
-  wav.writeUInt32LE(fileSize - 8, 4);
-  wav.write("WAVE", 8);
-
-  // fmt sub-chunk
-  wav.write("fmt ", 12);
-  wav.writeUInt32LE(16, 16); // sub-chunk size (PCM = 16)
-  wav.writeUInt16LE(1, 20); // audio format (1 = PCM)
-  wav.writeUInt16LE(channels, 22);
-  wav.writeUInt32LE(sampleRate, 24);
-  wav.writeUInt32LE(sampleRate * channels * (bitsPerSample / 8), 28); // byte rate
-  wav.writeUInt16LE(channels * (bitsPerSample / 8), 32); // block align
-  wav.writeUInt16LE(bitsPerSample, 34);
-
-  // data sub-chunk
-  wav.write("data", 36);
-  wav.writeUInt32LE(dataLength, 40);
-  pcmBuffer.copy(wav, 44);
-
-  return wav.toString("base64");
-}
-
 const TTS_CACHE_PREFIX = "tts-cache";
 
-function ttsHash(text: string, voiceName: string): string {
-  return crypto.createHash("sha256").update(`${voiceName}:${text}`).digest("hex");
+function ttsHash(text: string, voiceId: string): string {
+  return crypto.createHash("sha256").update(`${voiceId}:${text}`).digest("hex");
 }
 
 /**
@@ -57,112 +17,120 @@ function ttsHash(text: string, voiceName: string): string {
  * always gets the same voice (no random switching).
  */
 function pickVoice(text: string, voiceGender: string): string {
-  const MALE_VOICES = ["Puck", "Charon", "Enceladus"];
-  const FEMALE_VOICES = ["Kore", "Aoede", "Leda"];
+  const MALE_VOICES = [
+    "onwK4e9ZLuTAKqWW03F9", // Daniel
+    "N2lVS1w4EtoT3dr4eOWO", // Callum
+    "29vD33N1CtxCmqQRPOHJ", // Drew
+  ];
+  const FEMALE_VOICES = [
+    "21m00Tcm4TlvDq8ikWAM", // Rachel
+    "EXAVITQu4vr4xnSDxMaL", // Sarah
+    "XrExE9yKIg1WjnnlVkGX", // Matilda
+  ];
   const pool = voiceGender === "male" ? MALE_VOICES : FEMALE_VOICES;
   const hash = crypto.createHash("md5").update(text).digest();
   return pool[hash[0] % pool.length];
 }
 
 /**
- * Check Firebase Storage for a previously cached WAV file.
- * Returns { audioBase64, audioUrl } on hit, null on miss.
+ * Check Firebase Storage for a previously cached MP3 file.
+ * Returns { audioUrl } on hit, null on miss.
  */
 async function getCachedAudio(
   uid: string,
   hash: string
-): Promise<{ audioBase64: string; audioUrl: string } | null> {
+): Promise<{ audioUrl: string } | null> {
   const bucket = admin.storage().bucket();
-  const filePath = `${TTS_CACHE_PREFIX}/${uid}/${hash}.wav`;
+  const filePath = `${TTS_CACHE_PREFIX}/${uid}/${hash}.mp3`;
   const file = bucket.file(filePath);
 
   try {
     const [exists] = await file.exists();
     if (!exists) return null;
 
-    const [buffer] = await file.download();
     const [metadata] = await file.getMetadata();
     const token = metadata.metadata?.firebaseStorageDownloadTokens as string;
     const audioUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(filePath)}?alt=media&token=${token}`;
 
     console.log(`[TTS Cache] HIT for ${hash}`);
-    return { audioBase64: buffer.toString("base64"), audioUrl };
+    return { audioUrl };
   } catch {
     return null;
   }
 }
 
 /**
- * Upload generated WAV audio to Firebase Storage cache.
- * Returns the public download URL.
+ * Generate speech via ElevenLabs TTS API (Flash v2.5).
+ * Returns MP3 buffer on success, or null on failure.
  */
-async function cacheAudio(
-  uid: string,
-  hash: string,
-  wavBase64: string
-): Promise<string> {
-  const bucket = admin.storage().bucket();
-  const filePath = `${TTS_CACHE_PREFIX}/${uid}/${hash}.wav`;
-  const file = bucket.file(filePath);
-  const buffer = Buffer.from(wavBase64, "base64");
-  const token = uuidv4();
-
-  await file.save(buffer, {
-    contentType: "audio/wav",
-    metadata: {
-      cacheControl: "public, max-age=31536000",
-      metadata: { firebaseStorageDownloadTokens: token },
-    },
-  });
-
-  const audioUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(filePath)}?alt=media&token=${token}`;
-
-  console.log(`[TTS Cache] Stored ${buffer.length} bytes for ${hash}`);
-  return audioUrl;
-}
-
-/**
- * Generate speech via Gemini TTS.
- * Returns WAV base64 on success, or null on failure.
- */
-async function generateWithGemini(
+async function generateWithElevenLabs(
   text: string,
-  voiceName: string
-): Promise<string | null> {
-  const apiKey = process.env.GEMINI_API_KEY;
+  voiceId: string
+): Promise<Buffer | null> {
+  const apiKey = process.env.ELEVENLABS_API_KEY;
   if (!apiKey) {
-    console.error("GEMINI_API_KEY not set");
+    console.error("ELEVENLABS_API_KEY not set");
     return null;
   }
 
-  const ai = new GoogleGenAI({ apiKey });
+  const t0 = Date.now();
+  console.log(`[ElevenLabs] Generating for ${text.length} chars with voice=${voiceId}`);
 
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash-preview-tts",
-    contents: [{ parts: [{ text }] }],
-    config: {
-      responseModalities: ["AUDIO" as any],
-      speechConfig: {
-        voiceConfig: {
-          prebuiltVoiceConfig: { voiceName },
+  const body = JSON.stringify({
+    text,
+    model_id: "eleven_flash_v2_5",
+    voice_settings: {
+      stability: 0.6,
+      similarity_boost: 0.8,
+      style: 0.3,
+    },
+  });
+
+  const url = `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_22050_32`;
+
+  const buffer = await new Promise<Buffer | null>((resolve, reject) => {
+    const req = https.request(
+      url,
+      {
+        method: "POST",
+        headers: {
+          "xi-api-key": apiKey,
+          "Content-Type": "application/json",
+          "Content-Length": Buffer.byteLength(body),
         },
       },
-    },
+      (res) => {
+        if (res.statusCode !== 200) {
+          let errBody = "";
+          res.on("data", (chunk) => (errBody += chunk));
+          res.on("end", () => {
+            console.error(`[ElevenLabs] HTTP ${res.statusCode}: ${errBody}`);
+            resolve(null);
+          });
+          return;
+        }
+
+        const chunks: Buffer[] = [];
+        res.on("data", (chunk: Buffer) => chunks.push(chunk));
+        res.on("end", () => {
+          const result = Buffer.concat(chunks);
+          console.log(`[ElevenLabs] ${result.length} bytes in ${Date.now() - t0}ms`);
+          resolve(result);
+        });
+        res.on("error", (err) => reject(err));
+      }
+    );
+
+    req.on("error", (err) => reject(err));
+    req.write(body);
+    req.end();
   });
 
-  const pcmBase64 =
-    response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-
-  if (!pcmBase64) {
-    console.warn("No audio data returned from Gemini TTS");
-    return null;
-  }
-
-  return pcmToWavBase64(pcmBase64, 24000, 1, 16);
+  return buffer;
 }
 
 export const generateSpeech = functions
-  .runWith({ timeoutSeconds: 120, memory: "1GB" })
+  .runWith({ timeoutSeconds: 60, memory: "512MB" })
   .https.onCall(async (data, context) => {
     if (!context.auth) {
       throw new functions.https.HttpsError("unauthenticated", "Must be signed in.");
@@ -185,8 +153,8 @@ export const generateSpeech = functions
     const voiceGender = sanitizeVoiceGender(data.voiceGender);
     console.log(`[generateSpeech] uid=${context.auth.uid}, voiceGender=${voiceGender}`);
 
-    const voiceName = pickVoice(text, voiceGender);
-    const hash = ttsHash(text, voiceName);
+    const voiceId = pickVoice(text, voiceGender);
+    const hash = ttsHash(text, voiceId);
     const uid = context.auth.uid;
 
     try {
@@ -194,25 +162,37 @@ export const generateSpeech = functions
       const cached = await getCachedAudio(uid, hash);
       if (cached) {
         console.log("[generateSpeech] Serving from cache");
-        return { audioBase64: cached.audioBase64, audioUrl: cached.audioUrl };
+        return { audioBase64: null, audioUrl: cached.audioUrl };
       }
 
-      // 2. Generate fresh audio via Gemini TTS
-      const wavBase64 = await generateWithGemini(text, voiceName);
+      // 2. Generate fresh audio via ElevenLabs TTS
+      const mp3Buffer = await generateWithElevenLabs(text, voiceId);
 
-      if (!wavBase64) {
+      if (!mp3Buffer) {
         return { audioBase64: null, audioUrl: null };
       }
 
-      // 3. Cache to Storage and return the URL
-      let audioUrl: string | null = null;
-      try {
-        audioUrl = await cacheAudio(uid, hash, wavBase64);
-      } catch (cacheErr) {
-        console.warn("[TTS Cache] Upload failed (non-fatal):", cacheErr);
-      }
+      // 3. Upload to Storage and get URL
+      const bucket = admin.storage().bucket();
+      const filePath = `${TTS_CACHE_PREFIX}/${uid}/${hash}.mp3`;
+      const file = bucket.file(filePath);
+      const token = uuidv4();
 
-      return { audioBase64: wavBase64, audioUrl };
+      const t1 = Date.now();
+      await file.save(mp3Buffer, {
+        contentType: "audio/mpeg",
+        metadata: {
+          cacheControl: "public, max-age=31536000",
+          metadata: { firebaseStorageDownloadTokens: token },
+        },
+      });
+      console.log(`[TTS Cache] Stored ${mp3Buffer.length} bytes in ${Date.now() - t1}ms`);
+
+      const audioUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(filePath)}?alt=media&token=${token}`;
+
+      // Return base64 for immediate playback, audioUrl for saving to Firestore
+      // base64 is used by client for local file playback (reliable pause/resume)
+      return { audioBase64: mp3Buffer.toString("base64"), audioUrl };
     } catch (error) {
       console.error("generateSpeech error:", error);
       return { audioBase64: null, audioUrl: null };

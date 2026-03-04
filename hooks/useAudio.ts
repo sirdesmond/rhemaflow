@@ -18,11 +18,11 @@ export function useAudio() {
   }, []);
 
   const play = useCallback(
-    async (audioBase64: string) => {
+    async (audioSource: string) => {
       setIsPlaying(true);
       setProgress(null);
       await audioEngine.playSession(
-        audioBase64,
+        audioSource,
         atmosphere,
         () => {
           setIsPlaying(false);
@@ -43,7 +43,7 @@ export function useAudio() {
   }, []);
 
   const togglePlayback = useCallback(
-    async (audioBase64: string | null) => {
+    async (audioSource: string | null) => {
       if (isPlaying) {
         // Pause the current session instead of stopping
         await audioEngine.pause();
@@ -52,9 +52,9 @@ export function useAudio() {
         // Resume a paused session
         await audioEngine.resume();
         setIsPlaying(true);
-      } else if (audioBase64) {
+      } else if (audioSource) {
         // Start a new session
-        await play(audioBase64);
+        await play(audioSource);
       }
     },
     [isPlaying, play]
