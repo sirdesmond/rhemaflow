@@ -1,10 +1,10 @@
-import * as functions from "firebase-functions/v1";
-import * as admin from "firebase-admin";
 import * as crypto from "crypto";
-import { v4 as uuidv4 } from "uuid";
+import * as admin from "firebase-admin";
+import * as functions from "firebase-functions/v1";
 import * as https from "https";
-import { verifySubscription } from "./utils/subscription";
+import { v4 as uuidv4 } from "uuid";
 import { sanitizeText, sanitizeVoiceGender } from "./utils/sanitize";
+import { verifySubscription } from "./utils/subscription";
 
 const TTS_CACHE_PREFIX = "tts-cache";
 
@@ -18,14 +18,14 @@ function ttsHash(text: string, voiceId: string): string {
  */
 function pickVoice(text: string, voiceGender: string): string {
   const MALE_VOICES = [
-    "onwK4e9ZLuTAKqWW03F9", // Daniel
-    "N2lVS1w4EtoT3dr4eOWO", // Callum
-    "29vD33N1CtxCmqQRPOHJ", // Drew
+    "87tjwokZlpNU7QL3HaLP",
+    "1gxU0Txbl9UkhEbg4yBO",
+    "4UrpGKNt5towyRYXDwI0",
+    "25DFUXhfQAjHspxuRrkd",
   ];
   const FEMALE_VOICES = [
-    "21m00Tcm4TlvDq8ikWAM", // Rachel
-    "EXAVITQu4vr4xnSDxMaL", // Sarah
-    "XrExE9yKIg1WjnnlVkGX", // Matilda
+    "Qz5hY7PWm1aznSEfd9kd",
+    "eXh2Y4aqCNakBr6brw6B",
   ];
   const pool = voiceGender === "male" ? MALE_VOICES : FEMALE_VOICES;
   const hash = crypto.createHash("md5").update(text).digest();
@@ -60,12 +60,13 @@ async function getCachedAudio(
 }
 
 /**
- * Generate speech via ElevenLabs TTS API (Flash v2.5).
+ * Generate speech via ElevenLabs TTS API (Turbo v2.5).
  * Returns MP3 buffer on success, or null on failure.
  */
 async function generateWithElevenLabs(
   text: string,
-  voiceId: string
+  voiceId: string,
+  voiceGender: string
 ): Promise<Buffer | null> {
   const apiKey = process.env.ELEVENLABS_API_KEY;
   if (!apiKey) {
@@ -78,15 +79,13 @@ async function generateWithElevenLabs(
 
   const body = JSON.stringify({
     text,
-    model_id: "eleven_flash_v2_5",
-    voice_settings: {
-      stability: 0.6,
-      similarity_boost: 0.8,
-      style: 0.3,
-    },
+    model_id: "eleven_turbo_v2_5",
+    voice_settings: voiceGender === "male"
+      ? { stability: 0.80, similarity_boost: 0.85, style: 0.45, use_speaker_boost: true }
+      : { stability: 0.65, similarity_boost: 0.85, style: 0.55, use_speaker_boost: true },
   });
 
-  const url = `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_22050_32`;
+  const url = `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_44100_128`;
 
   const buffer = await new Promise<Buffer | null>((resolve, reject) => {
     const req = https.request(
@@ -166,7 +165,7 @@ export const generateSpeech = functions
       }
 
       // 2. Generate fresh audio via ElevenLabs TTS
-      const mp3Buffer = await generateWithElevenLabs(text, voiceId);
+      const mp3Buffer = await generateWithElevenLabs(text, voiceId, voiceGender);
 
       if (!mp3Buffer) {
         return { audioBase64: null, audioUrl: null };
