@@ -5,6 +5,7 @@ import Purchases, {
   PurchasesPackage,
 } from "react-native-purchases";
 import { SubscriptionTier } from "../types";
+import { logWarning } from "./crashlytics";
 
 // Replace with real API keys once Play Store / App Store apps are connected in RevenueCat
 const REVENUECAT_IOS_KEY = "appl_XMJPDPaXabvZZdtFvTGvyFvbKZR";
@@ -22,7 +23,7 @@ function isConfigured(): boolean {
  */
 export async function initRevenueCat(firebaseUid: string): Promise<void> {
   if (!isConfigured()) {
-    console.warn("RevenueCat: No production API key set, skipping init");
+    logWarning("No production API key set, skipping init", "RevenueCat");
     return;
   }
   const apiKey =

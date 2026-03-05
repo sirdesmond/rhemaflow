@@ -3,6 +3,7 @@ import {
   ExpoSpeechRecognitionModule,
   useSpeechRecognitionEvent,
 } from "expo-speech-recognition";
+import { logWarning } from "../services/crashlytics";
 
 export function useSpeechRecognition() {
   const [isListening, setIsListening] = useState(false);
@@ -22,7 +23,7 @@ export function useSpeechRecognition() {
   });
 
   useSpeechRecognitionEvent("error", (event) => {
-    console.warn("Speech recognition error:", event.error, event.message);
+    logWarning(`${event.error}: ${event.message}`, "Speech recognition");
     setIsListening(false);
   });
 
@@ -30,7 +31,7 @@ export function useSpeechRecognition() {
     const { granted } =
       await ExpoSpeechRecognitionModule.requestPermissionsAsync();
     if (!granted) {
-      console.warn("Speech recognition permissions not granted");
+      logWarning("Permissions not granted", "Speech recognition");
       return;
     }
     ExpoSpeechRecognitionModule.start({

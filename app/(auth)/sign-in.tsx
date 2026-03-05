@@ -7,6 +7,7 @@ import {
   signInWithApple,
   signInAnonymously,
 } from "../../services/auth";
+import { logError } from "../../services/crashlytics";
 import { COLORS, FONTS } from "../../constants/theme";
 
 export default function SignInScreen() {
@@ -16,7 +17,7 @@ export default function SignInScreen() {
     try {
       await signInWithGoogle();
     } catch (error: any) {
-      console.error("Google sign-in error:", JSON.stringify(error, null, 2));
+      logError(error, "Google sign-in");
       const code = error?.code || "";
       let message = error.message;
       if (code === "DEVELOPER_ERROR" || message?.includes("DEVELOPER_ERROR")) {
@@ -34,7 +35,7 @@ export default function SignInScreen() {
       const code = error?.code;
       // User cancelled — don't show error
       if (code === "ERR_REQUEST_CANCELED") return;
-      console.error("Apple sign-in error:", JSON.stringify(error, null, 2));
+      logError(error, "Apple sign-in");
       Alert.alert(
         "Sign in failed",
         error.message || `Unknown error (code: ${code})`

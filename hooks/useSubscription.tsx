@@ -14,6 +14,7 @@ import {
 import { functions } from "../services/firebase";
 import { SubscriptionTier, UsageStatus } from "../types";
 import { setUserTier } from "../services/analytics";
+import { logError } from "../services/crashlytics";
 
 interface SubscriptionContextValue {
   tier: SubscriptionTier;
@@ -48,7 +49,7 @@ export function SubscriptionProvider({
       const result = await fn();
       setUsage(result.data as UsageStatus);
     } catch (error) {
-      console.error("Failed to fetch usage:", error);
+      logError(error, "Failed to fetch usage");
     }
   }, [user]);
 
@@ -79,7 +80,7 @@ export function SubscriptionProvider({
 
         await fetchUsage();
       } catch (error) {
-        console.error("Subscription init error:", error);
+        logError(error, "Subscription init");
       } finally {
         setLoading(false);
       }

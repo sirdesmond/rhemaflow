@@ -8,6 +8,7 @@ import { useRouter, useSegments } from "expo-router";
 import { useAuth } from "../hooks/useAuth";
 import { SubscriptionProvider } from "../hooks/useSubscription";
 import { getUserSettings } from "../services/settings";
+import { initCrashlytics } from "../services/crashlytics";
 import "react-native-reanimated";
 
 export { ErrorBoundary } from "../components/ErrorBoundary";
@@ -79,6 +80,10 @@ export default function RootLayout() {
   useEffect(() => {
     if (fontsLoaded) SplashScreen.hideAsync();
   }, [fontsLoaded]);
+
+  useEffect(() => {
+    initCrashlytics();
+  }, []);
 
   if (!fontsLoaded) return null;
 

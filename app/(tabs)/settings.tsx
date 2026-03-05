@@ -46,6 +46,7 @@ import {
   getUserSettings,
   updateUserSettings,
 } from "../../services/settings";
+import { logError } from "../../services/crashlytics";
 import {
   trackNotificationToggled,
   trackNotificationTimeChanged,
@@ -247,7 +248,7 @@ export default function SettingsScreen() {
           try {
             await signOut();
           } catch (e) {
-            console.error("Sign out error:", e);
+            logError(e, "Sign out");
           }
         },
       },
@@ -278,7 +279,7 @@ export default function SettingsScreen() {
                     try {
                       await deleteAccount();
                     } catch (e) {
-                      console.error("Delete account error:", e);
+                      logError(e, "Delete account");
                       Alert.alert("Error", "Failed to delete account. Please try again.");
                     } finally {
                       setIsDeleting(false);

@@ -56,6 +56,7 @@ export default {
             forceStaticLinking: [
               "RNFBApp",
               "RNFBAuth",
+              "RNFBCrashlytics",
               "RNFBFirestore",
               "RNFBFunctions",
               "RNFBStorage",
@@ -69,6 +70,7 @@ export default {
       "@react-native-firebase/auth",
       "@react-native-google-signin/google-signin",
       "expo-apple-authentication",
+      "@react-native-firebase/crashlytics",
       ["expo-notifications", { sounds: [] }],
       [
         "expo-speech-recognition",
@@ -87,6 +89,7 @@ export default {
       typedRoutes: true,
     },
     extra: {
+      privacyPolicyUrl: "https://sirdesmond.github.io/rhemaflow/privacy-policy.html",
       router: {},
       eas: {
         projectId: "07320aee-cd96-4da8-8614-8b518ab20b89",

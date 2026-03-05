@@ -15,6 +15,7 @@ import {
   restorePurchases,
 } from "../../services/subscription";
 import { linkAccount } from "../../services/auth";
+import { logError } from "../../services/crashlytics";
 import {
   trackPaywallDismissed,
   trackPurchaseStarted,
@@ -65,7 +66,7 @@ export default function PaywallScreen() {
         setSelectedIndex(sorted.length > 1 ? 1 : 0);
       }
     } catch (error) {
-      console.error("Failed to load offerings:", error);
+      logError(error, "Failed to load offerings");
     } finally {
       setLoading(false);
     }
@@ -140,7 +141,7 @@ export default function PaywallScreen() {
         code === "SIGN_IN_CANCELLED" ||
         error?.userCancelled
       ) return;
-      console.error("Paywall sign-in error:", JSON.stringify(error, null, 2));
+      logError(error, "Paywall sign-in");
       Alert.alert("Sign In Failed", error.message || "Please try again.");
     }
   };

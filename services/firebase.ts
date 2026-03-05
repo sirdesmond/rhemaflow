@@ -4,6 +4,7 @@ import "@react-native-firebase/firestore";
 import "@react-native-firebase/storage";
 import "@react-native-firebase/functions";
 import "@react-native-firebase/analytics";
+import "@react-native-firebase/crashlytics";
 
 // Firebase initializes automatically from GoogleService-Info.plist (iOS)
 // and google-services.json (Android). These imports ensure each module
@@ -25,6 +26,6 @@ export async function initAppCheck() {
     const appCheck = appCheckModule.default();
     await appCheck.activate("apple-device-check", false);
   } catch (error) {
-    console.warn("App Check init failed (non-fatal):", error);
+    if (__DEV__) console.warn("App Check init failed (non-fatal):", error);
   }
 }

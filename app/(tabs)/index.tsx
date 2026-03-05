@@ -29,6 +29,7 @@ import {
 } from "../../types";
 import { COLORS } from "../../constants/theme";
 import { getUserSettings } from "../../services/settings";
+import { logError } from "../../services/crashlytics";
 import {
   trackDeclarationGenerated,
   trackDeclarationSaved,
@@ -159,7 +160,7 @@ export default function HomeScreen() {
           });
       }
     } catch (error: any) {
-      console.error("Generation failed:", error);
+      logError(error, "Generation failed");
       setIsLoading(false);
       Alert.alert(
         "Generation Failed",
@@ -191,7 +192,7 @@ export default function HomeScreen() {
       await Sharing.shareAsync(uri, { mimeType: "image/png" });
       trackDeclarationShared(currentCategory);
     } catch (error) {
-      console.error("Share failed:", error);
+      logError(error, "Share failed");
     }
   };
 
@@ -211,7 +212,7 @@ export default function HomeScreen() {
         audioUrl: content.audioUrl,
       });
     } catch (error) {
-      console.error("Save failed:", error);
+      logError(error, "Save failed");
       setIsSaved(false);
     }
   };

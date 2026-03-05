@@ -1,4 +1,5 @@
 import { db, auth } from "./firebase";
+import { logError } from "./crashlytics";
 import { UserSettings, DeclarationCategory } from "../types";
 
 const DEFAULT_SETTINGS: UserSettings = {
@@ -37,7 +38,7 @@ export async function getUserSettings(): Promise<UserSettings> {
       return settings;
     }
   } catch (e) {
-    console.error("getUserSettings error:", e);
+    logError(e, "getUserSettings");
   }
   return DEFAULT_SETTINGS;
 }
@@ -58,6 +59,6 @@ export async function updateUserSettings(
       { merge: true }
     );
   } catch (e) {
-    console.error("updateUserSettings error:", e);
+    logError(e, "updateUserSettings");
   }
 }

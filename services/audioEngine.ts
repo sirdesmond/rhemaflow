@@ -2,6 +2,7 @@ import { Audio, AVPlaybackStatus } from "expo-av";
 import { File, Paths } from "expo-file-system";
 import { AtmosphereType } from "../types";
 import { BUNDLED_TRACK_ASSETS } from "../constants/tracks";
+import { logError } from "./crashlytics";
 
 const FADE_STEP_MS = 50;
 const MUSIC_VOL_DURING_SPEECH = 0.3;
@@ -102,7 +103,7 @@ class AudioEngine {
         }
       );
     } catch (error) {
-      console.error("AudioEngine playSession error:", error);
+      logError(error, "AudioEngine playSession");
       await this.stopAll();
       onComplete();
     }

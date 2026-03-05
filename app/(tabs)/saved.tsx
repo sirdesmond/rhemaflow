@@ -26,6 +26,7 @@ import {
 import { generateSpeech } from "../../services/declarations";
 import { useAudio } from "../../hooks/useAudio";
 import { getUserSettings } from "../../services/settings";
+import { logError } from "../../services/crashlytics";
 
 export default function SavedScreen() {
   const [declarations, setDeclarations] = useState<Declaration[]>([]);
@@ -58,7 +59,7 @@ export default function SavedScreen() {
       try {
         await toggleFavorite(item.id, !item.isFavorite);
       } catch (e) {
-        console.error("Toggle favorite error:", e);
+        logError(e, "Toggle favorite");
       }
     },
     []
@@ -78,7 +79,7 @@ export default function SavedScreen() {
             try {
               await deleteDeclaration(item.id);
             } catch (e) {
-              console.error("Delete error:", e);
+              logError(e, "Delete declaration");
             }
           },
         },
@@ -130,7 +131,7 @@ export default function SavedScreen() {
         await play(source);
       }
     } catch (e) {
-      console.error("Speech generation error:", e);
+      logError(e, "Speech generation");
     } finally {
       setIsLoadingAudio(false);
     }
@@ -142,7 +143,7 @@ export default function SavedScreen() {
       const uri = await viewShotRef.current.capture();
       await Sharing.shareAsync(uri, { mimeType: "image/png" });
     } catch (error) {
-      console.error("Share failed:", error);
+      logError(error, "Share failed");
     }
   };
 
