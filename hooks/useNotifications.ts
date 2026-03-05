@@ -34,29 +34,39 @@ function parseTime(time: string): { hour: number; minute: number } {
  * Cancels any existing scheduled notifications first.
  */
 export async function scheduleDailyNotification(time: string): Promise<boolean> {
+  return scheduleMultipleNotifications([time]);
+}
+
+/**
+ * Schedule daily notifications for multiple times (up to 3).
+ * Cancels all existing notifications first.
+ */
+export async function scheduleMultipleNotifications(times: string[]): Promise<boolean> {
   const granted = await requestPermission();
   if (!granted) return false;
 
   await Notifications.cancelAllScheduledNotificationsAsync();
 
-  const { hour, minute } = parseTime(time);
-  const randomMsg =
-    NOTIFICATION_MESSAGES[
-      Math.floor(Math.random() * NOTIFICATION_MESSAGES.length)
-    ];
+  for (const time of times.slice(0, 3)) {
+    const { hour, minute } = parseTime(time);
+    const randomMsg =
+      NOTIFICATION_MESSAGES[
+        Math.floor(Math.random() * NOTIFICATION_MESSAGES.length)
+      ];
 
-  await Notifications.scheduleNotificationAsync({
-    content: {
-      title: randomMsg.title,
-      body: randomMsg.body,
-      sound: true,
-    },
-    trigger: {
-      type: Notifications.SchedulableTriggerInputTypes.DAILY,
-      hour,
-      minute,
-    },
-  });
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: randomMsg.title,
+        body: randomMsg.body,
+        sound: true,
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DAILY,
+        hour,
+        minute,
+      },
+    });
+  }
 
   return true;
 }
@@ -86,9 +96,13 @@ export function useNotifications() {
     return scheduleDailyNotification(time);
   }, []);
 
+  const scheduleMultiple = useCallback(async (times: string[]) => {
+    return scheduleMultipleNotifications(times);
+  }, []);
+
   const cancel = useCallback(async () => {
     return cancelNotifications();
   }, []);
 
-  return { schedule, cancel };
+  return { schedule, scheduleMultiple, cancel };
 }

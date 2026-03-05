@@ -4,12 +4,16 @@ import { UserSettings, DeclarationCategory } from "../types";
 const DEFAULT_SETTINGS: UserSettings = {
   notificationsEnabled: false,
   notificationTime: "08:00",
+  notificationTimes: [],
   defaultAtmosphere: "glory",
   defaultCategory: DeclarationCategory.GENERAL,
   gender: null,
   maritalStatus: null,
   voiceGender: "female",
   onboardingComplete: false,
+  ageRange: null,
+  lifeStage: null,
+  faithFocusAreas: [],
 };
 
 /**
@@ -24,7 +28,13 @@ export async function getUserSettings(): Promise<UserSettings> {
     const doc = await db.collection("users").doc(uid).get();
     if (doc.exists) {
       const data = doc.data();
-      return { ...DEFAULT_SETTINGS, ...data?.settings };
+      const raw = data?.settings || {};
+      const settings = { ...DEFAULT_SETTINGS, ...raw };
+      // Migrate: if old notificationTime exists but notificationTimes is empty, migrate it
+      if (raw.notificationTime && (!raw.notificationTimes || raw.notificationTimes.length === 0)) {
+        settings.notificationTimes = [settings.notificationTime];
+      }
+      return settings;
     }
   } catch (e) {
     console.error("getUserSettings error:", e);

@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import * as functions from "firebase-functions/v1";
-import { sanitizeCategory, sanitizeGender, sanitizeMaritalStatus, sanitizeText } from "./utils/sanitize";
+import { sanitizeCategory, sanitizeGender, sanitizeMaritalStatus, sanitizeText, sanitizeAgeRange, sanitizeLifeStage } from "./utils/sanitize";
 import {
   checkAndIncrementUsage,
   checkRateLimit,
@@ -90,7 +90,9 @@ export const generateDeclaration = functions
     const customText = sanitizeText(data.customText);
     const gender = sanitizeGender(data.gender);
     const maritalStatus = sanitizeMaritalStatus(data.maritalStatus);
-    console.log(`[generateDeclaration] uid=${uid}, category=${category}, gender=${gender}, maritalStatus=${maritalStatus}`);
+    const ageRange = sanitizeAgeRange(data.ageRange);
+    const lifeStage = sanitizeLifeStage(data.lifeStage);
+    console.log(`[generateDeclaration] uid=${uid}, category=${category}, gender=${gender}, maritalStatus=${maritalStatus}, ageRange=${ageRange}, lifeStage=${lifeStage}`);
 
     const userSituation = customText || mood;
     if (!userSituation) {
@@ -117,7 +119,15 @@ export const generateDeclaration = functions
 - ${maritalStatus === "single" ? "The user is NOT married. Do NOT reference spouse, husband, wife, or marriage as current reality. Do NOT call them a husband/wife/father/mother. Declarations about marriage should be future-focused (e.g. \"God is preparing my spouse\")." : "The user IS married. You may reference spouse and marriage as current reality."}`
       : "";
 
-    const prompt = `Category: ${category}. User Situation: "${userSituation}".${genderContext}${maritalContext} Write a personal declaration, cite the scripture, and write out the scripture text.`;
+    const ageContext = ageRange
+      ? `\nAge context: The user is in the ${ageRange} age range. Tailor the declaration to resonate with someone in this season of life.`
+      : "";
+
+    const lifeStageContext = lifeStage
+      ? `\nLife stage: The user is a ${lifeStage}. Make the declaration relevant to their daily reality and responsibilities.`
+      : "";
+
+    const prompt = `Category: ${category}. User Situation: "${userSituation}".${genderContext}${maritalContext}${ageContext}${lifeStageContext} Write a personal declaration, cite the scripture, and write out the scripture text.`;
 
     try {
       const response = await ai.models.generateContent({

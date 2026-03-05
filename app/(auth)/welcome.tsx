@@ -22,6 +22,7 @@ import {
 } from "lucide-react-native";
 import { COLORS, FONTS } from "../../constants/theme";
 import { scheduleDailyNotification } from "../../hooks/useNotifications";
+import { ScrollWheelTimePicker } from "../../components/ScrollWheelTimePicker";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -37,8 +38,7 @@ export default function WelcomeScreen() {
   const router = useRouter();
   const flatListRef = useRef<FlatList>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [notifHour, setNotifHour] = useState(8);
-  const [notifMinute, setNotifMinute] = useState(0);
+  const [notifTime, setNotifTime] = useState("08:00");
 
   const goToIndex = useCallback(
     (index: number) => {
@@ -53,11 +53,10 @@ export default function WelcomeScreen() {
 
   const handleGetStarted = useCallback(async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    const timeStr = `${String(notifHour).padStart(2, "0")}:${String(notifMinute).padStart(2, "0")}`;
     // Fire-and-forget — don't block navigation on permission result
-    scheduleDailyNotification(timeStr).catch(() => {});
+    scheduleDailyNotification(notifTime).catch(() => {});
     router.push("/(auth)/sign-in");
-  }, [notifHour, notifMinute, router]);
+  }, [notifTime, router]);
 
   const onViewableItemsChanged = useRef(
     ({ viewableItems }: { viewableItems: Array<{ index: number | null }> }) => {
@@ -69,14 +68,8 @@ export default function WelcomeScreen() {
 
   const viewabilityConfig = useRef({ viewAreaCoveragePercentThreshold: 50 }).current;
 
-  const cycleHour = useCallback(() => {
-    setNotifHour((h) => (h + 1) % 24);
-    Haptics.selectionAsync();
-  }, []);
-
-  const cycleMinute = useCallback(() => {
-    setNotifMinute((m) => (m + 15) % 60);
-    Haptics.selectionAsync();
+  const handleTimeChange = useCallback((time: string) => {
+    setNotifTime(time);
   }, []);
 
   const renderScreen = useCallback(
@@ -224,20 +217,12 @@ export default function WelcomeScreen() {
 
                 {/* Time picker */}
                 <Text style={styles.timeLabel}>REMIND ME DAILY AT</Text>
-                <View style={styles.timePicker}>
-                  <Pressable onPress={cycleHour} style={styles.timeButton}>
-                    <Text style={styles.timeValue}>
-                      {String(notifHour).padStart(2, "0")}
-                    </Text>
-                  </Pressable>
-                  <Text style={styles.timeColon}>:</Text>
-                  <Pressable onPress={cycleMinute} style={styles.timeButton}>
-                    <Text style={styles.timeValue}>
-                      {String(notifMinute).padStart(2, "0")}
-                    </Text>
-                  </Pressable>
+                <View style={styles.timePickerWrapper}>
+                  <ScrollWheelTimePicker
+                    value={notifTime}
+                    onChange={handleTimeChange}
+                  />
                 </View>
-                <Text style={styles.timeHint}>Tap to change</Text>
 
                 {/* CTA */}
                 <Pressable
@@ -255,7 +240,7 @@ export default function WelcomeScreen() {
           );
       }
     },
-    [notifHour, notifMinute, cycleHour, cycleMinute, handleGetStarted]
+    [notifTime, handleTimeChange, handleGetStarted]
   );
 
   return (
@@ -495,34 +480,7 @@ const styles = StyleSheet.create({
     marginTop: 28,
     marginBottom: 12,
   },
-  timePicker: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  timeButton: {
-    backgroundColor: COLORS.slate900,
-    borderWidth: 1,
-    borderColor: COLORS.glassBorder,
-    borderRadius: 16,
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-  },
-  timeValue: {
-    fontFamily: FONTS.bodyBold,
-    fontSize: 32,
-    color: COLORS.white,
-  },
-  timeColon: {
-    fontFamily: FONTS.bodyBold,
-    fontSize: 32,
-    color: COLORS.slate400,
-  },
-  timeHint: {
-    fontFamily: FONTS.body,
-    fontSize: 12,
-    color: COLORS.slate400,
-    marginTop: 8,
+  timePickerWrapper: {
     marginBottom: 36,
   },
   ctaButton: {

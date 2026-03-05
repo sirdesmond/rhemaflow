@@ -55,3 +55,23 @@ export function sanitizeVoiceGender(input: unknown): "male" | "female" {
   if (input === "male" || input === "female") return input;
   return "female";
 }
+
+const VALID_AGE_RANGES = ["18-24", "25-34", "35-44", "45-54", "55+"];
+
+/**
+ * Validate age range input.
+ */
+export function sanitizeAgeRange(input: unknown): string | null {
+  if (typeof input === "string" && VALID_AGE_RANGES.includes(input)) return input;
+  return null;
+}
+
+const VALID_LIFE_STAGES = ["student", "professional", "business-owner", "homemaker", "retired"];
+
+/**
+ * Validate life stage input.
+ */
+export function sanitizeLifeStage(input: unknown): string | null {
+  if (typeof input === "string" && VALID_LIFE_STAGES.includes(input)) return input;
+  return null;
+}

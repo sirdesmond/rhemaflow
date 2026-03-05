@@ -24,6 +24,8 @@ import {
   MoodPreset,
   GeneratedContent,
   UserSettings,
+  AgeRange,
+  LifeStage,
 } from "../../types";
 import { COLORS } from "../../constants/theme";
 import { getUserSettings } from "../../services/settings";
@@ -47,6 +49,8 @@ export default function HomeScreen() {
   const [gender, setGender] = useState<UserSettings["gender"]>(null);
   const [maritalStatus, setMaritalStatus] = useState<UserSettings["maritalStatus"]>(null);
   const [voiceGender, setVoiceGender] = useState<UserSettings["voiceGender"]>("female");
+  const [ageRange, setAgeRange] = useState<AgeRange | null>(null);
+  const [lifeStage, setLifeStage] = useState<LifeStage | null>(null);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [lastPrompt, setLastPrompt] = useState<string>("");
   const generationIdRef = useRef(0);
@@ -80,6 +84,8 @@ export default function HomeScreen() {
         setGender(settings.gender);
         setMaritalStatus(settings.maritalStatus);
         setVoiceGender(settings.voiceGender);
+        setAgeRange(settings.ageRange);
+        setLifeStage(settings.lifeStage);
       });
     }, [])
   );
@@ -109,7 +115,7 @@ export default function HomeScreen() {
 
     try {
       // Step 1: Get declaration text (fast — no TTS)
-      const declaration = await generateDeclaration(category, prompt, undefined, gender, maritalStatus);
+      const declaration = await generateDeclaration(category, prompt, undefined, gender, maritalStatus, ageRange, lifeStage);
 
       // Stale check — a newer generation was started
       if (thisGeneration !== generationIdRef.current) return;

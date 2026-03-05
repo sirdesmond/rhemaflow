@@ -15,12 +15,16 @@ GoogleSignin.configure({
 const DEFAULT_SETTINGS: UserSettings = {
   notificationsEnabled: true,
   notificationTime: "08:00",
+  notificationTimes: [],
   defaultAtmosphere: "glory",
   defaultCategory: DeclarationCategory.GENERAL,
   gender: null,
   maritalStatus: null,
   voiceGender: "female",
   onboardingComplete: false,
+  ageRange: null,
+  lifeStage: null,
+  faithFocusAreas: [],
 };
 
 /**

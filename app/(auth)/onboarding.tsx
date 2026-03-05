@@ -1,20 +1,55 @@
 import { useState } from "react";
-import { View, Text, Pressable, StyleSheet, Platform } from "react-native";
+import { View, Text, Pressable, StyleSheet, Platform, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
 import { ArrowRight, ArrowLeft } from "lucide-react-native";
 import { COLORS, FONTS } from "../../constants/theme";
 import { updateUserSettings } from "../../services/settings";
+import { DeclarationCategory, AgeRange, LifeStage } from "../../types";
 
 type GenderOption = "male" | "female" | null;
 type MaritalOption = "single" | "married" | null;
 
+const TOTAL_STEPS = 5;
+
+const AGE_RANGES: { value: AgeRange; label: string }[] = [
+  { value: "18-24", label: "18-24" },
+  { value: "25-34", label: "25-34" },
+  { value: "35-44", label: "35-44" },
+  { value: "45-54", label: "45-54" },
+  { value: "55+", label: "55+" },
+];
+
+const LIFE_STAGES: { value: LifeStage; label: string; desc: string }[] = [
+  { value: "student", label: "Student", desc: "Learning & growing" },
+  { value: "professional", label: "Professional", desc: "Building my career" },
+  { value: "business-owner", label: "Business Owner", desc: "Running my enterprise" },
+  { value: "homemaker", label: "Homemaker", desc: "Building my home" },
+  { value: "retired", label: "Retired", desc: "Enjoying my harvest" },
+];
+
+const FAITH_CATEGORIES: { value: DeclarationCategory; label: string }[] = [
+  { value: DeclarationCategory.HEALTH, label: "Health & Healing" },
+  { value: DeclarationCategory.WEALTH, label: "Wealth & Prosperity" },
+  { value: DeclarationCategory.IDENTITY, label: "Identity" },
+  { value: DeclarationCategory.SUCCESS, label: "Success & Victory" },
+  { value: DeclarationCategory.PROTECTION, label: "Protection" },
+  { value: DeclarationCategory.WISDOM, label: "Wisdom & Guidance" },
+  { value: DeclarationCategory.MARRIAGE, label: "Marriage & Family" },
+  { value: DeclarationCategory.FAVOR, label: "Favor & Open Doors" },
+  { value: DeclarationCategory.PEACE, label: "Peace & Rest" },
+  { value: DeclarationCategory.CHILDREN, label: "Children" },
+];
+
 export default function OnboardingScreen() {
   const router = useRouter();
-  const [step, setStep] = useState<1 | 2>(1);
+  const [step, setStep] = useState(1);
   const [gender, setGender] = useState<GenderOption>(null);
   const [maritalStatus, setMaritalStatus] = useState<MaritalOption>(null);
+  const [ageRange, setAgeRange] = useState<AgeRange | null>(null);
+  const [lifeStage, setLifeStage] = useState<LifeStage | null>(null);
+  const [faithFocusAreas, setFaithFocusAreas] = useState<DeclarationCategory[]>([]);
   const [hasSelectedGender, setHasSelectedGender] = useState(false);
   const [hasSelectedMarital, setHasSelectedMarital] = useState(false);
 
@@ -30,33 +65,78 @@ export default function OnboardingScreen() {
     setHasSelectedMarital(true);
   };
 
+  const handleSelectAgeRange = (a: AgeRange) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setAgeRange(a);
+  };
+
+  const handleSelectLifeStage = (l: LifeStage) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setLifeStage(l);
+  };
+
+  const handleToggleFaithArea = (cat: DeclarationCategory) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setFaithFocusAreas((prev) => {
+      if (prev.includes(cat)) return prev.filter((c) => c !== cat);
+      if (prev.length >= 3) return prev; // max 3
+      return [...prev, cat];
+    });
+  };
+
   const handleNextStep = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    setStep(2);
+    setStep((s) => Math.min(s + 1, TOTAL_STEPS) as any);
   };
 
   const handleBack = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setStep(1);
+    setStep((s) => Math.max(s - 1, 1) as any);
   };
 
   const handleFinish = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     const voiceGender: "male" | "female" = gender === "male" ? "male" : "female";
-    await updateUserSettings({ gender, maritalStatus, voiceGender, onboardingComplete: true });
+    await updateUserSettings({
+      gender,
+      maritalStatus,
+      voiceGender,
+      ageRange,
+      lifeStage,
+      faithFocusAreas,
+      onboardingComplete: true,
+    });
     router.replace("/(tabs)");
   };
 
   const handleSkip = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    if (step === 1) {
-      await updateUserSettings({ gender: null, maritalStatus: null, voiceGender: "female", onboardingComplete: true });
-    } else {
-      const voiceGender: "male" | "female" = gender === "male" ? "male" : "female";
-      await updateUserSettings({ gender, maritalStatus: null, voiceGender, onboardingComplete: true });
-    }
+    const voiceGender: "male" | "female" = gender === "male" ? "male" : "female";
+    await updateUserSettings({
+      gender: gender,
+      maritalStatus: maritalStatus,
+      voiceGender,
+      ageRange,
+      lifeStage,
+      faithFocusAreas,
+      onboardingComplete: true,
+    });
     router.replace("/(tabs)");
   };
+
+  // Whether the current step has a selection that enables Continue
+  const canContinue = (() => {
+    switch (step) {
+      case 1: return hasSelectedGender;
+      case 2: return hasSelectedMarital;
+      case 3: return ageRange !== null;
+      case 4: return lifeStage !== null;
+      case 5: return faithFocusAreas.length >= 2;
+      default: return false;
+    }
+  })();
+
+  const isLastStep = step === TOTAL_STEPS;
 
   return (
     <LinearGradient
@@ -64,8 +144,8 @@ export default function OnboardingScreen() {
       locations={[0, 0.45, 1]}
       style={styles.container}
     >
-      {/* Back button (step 2 only) */}
-      {step === 2 && (
+      {/* Back button (step 2+) */}
+      {step > 1 && (
         <Pressable onPress={handleBack} style={styles.backButton}>
           <ArrowLeft size={20} color={COLORS.slate400} />
         </Pressable>
@@ -79,98 +159,164 @@ export default function OnboardingScreen() {
       <View style={styles.content}>
         {/* Step indicator */}
         <View style={styles.stepIndicator}>
-          <View style={[styles.dot, step === 1 && styles.dotActive]} />
-          <View style={[styles.dot, step === 2 && styles.dotActive]} />
+          {Array.from({ length: TOTAL_STEPS }, (_, i) => (
+            <View key={i} style={[styles.dot, step === i + 1 && styles.dotActive]} />
+          ))}
         </View>
 
-        {step === 1 ? (
+        {step === 1 && (
           <>
             <Text style={styles.headline}>Personalize Your</Text>
             <Text style={styles.headlineAccent}>Experience</Text>
-
             <Text style={styles.tagline}>
               Choose your gender so declarations{"\n"}speak directly to you
             </Text>
-
-            {/* Gender pills */}
             <View style={styles.pillContainer}>
               <Pressable
                 style={[styles.pill, gender === "male" && styles.pillActive]}
                 onPress={() => handleSelectGender("male")}
               >
                 <Text style={styles.pillEmoji}>{"  "}</Text>
-                <Text style={[styles.pillLabel, gender === "male" && styles.pillLabelActive]}>
-                  Male
-                </Text>
+                <Text style={[styles.pillLabel, gender === "male" && styles.pillLabelActive]}>Male</Text>
                 <Text style={styles.pillDesc}>Man of God, Son, King</Text>
               </Pressable>
-
               <Pressable
                 style={[styles.pill, gender === "female" && styles.pillActive]}
                 onPress={() => handleSelectGender("female")}
               >
                 <Text style={styles.pillEmoji}>{"  "}</Text>
-                <Text style={[styles.pillLabel, gender === "female" && styles.pillLabelActive]}>
-                  Female
-                </Text>
+                <Text style={[styles.pillLabel, gender === "female" && styles.pillLabelActive]}>Female</Text>
                 <Text style={styles.pillDesc}>Woman of God, Daughter, Queen</Text>
               </Pressable>
             </View>
-
-            {hasSelectedGender && (
-              <Pressable
-                onPress={handleNextStep}
-                style={({ pressed }) => [styles.ctaButton, pressed && styles.ctaButtonPressed]}
-              >
-                <Text style={styles.ctaText}>Continue</Text>
-                <ArrowRight size={20} color={COLORS.white} />
-              </Pressable>
-            )}
           </>
-        ) : (
-          <>
-            <Text style={styles.headline}>One More Thing</Text>
-            <Text style={styles.headlineAccent}>Your Status</Text>
+        )}
 
+        {step === 2 && (
+          <>
+            <Text style={styles.headline}>Your</Text>
+            <Text style={styles.headlineAccent}>Status</Text>
             <Text style={styles.tagline}>
               So your declarations match{"\n"}where you are in life
             </Text>
-
-            {/* Marital status pills */}
             <View style={styles.pillContainer}>
               <Pressable
                 style={[styles.pill, maritalStatus === "single" && styles.pillActive]}
                 onPress={() => handleSelectMarital("single")}
               >
                 <Text style={styles.pillEmoji}>{"  "}</Text>
-                <Text style={[styles.pillLabel, maritalStatus === "single" && styles.pillLabelActive]}>
-                  Single
-                </Text>
+                <Text style={[styles.pillLabel, maritalStatus === "single" && styles.pillLabelActive]}>Single</Text>
                 <Text style={styles.pillDesc}>Trusting God for my future</Text>
               </Pressable>
-
               <Pressable
                 style={[styles.pill, maritalStatus === "married" && styles.pillActive]}
                 onPress={() => handleSelectMarital("married")}
               >
                 <Text style={styles.pillEmoji}>{"  "}</Text>
-                <Text style={[styles.pillLabel, maritalStatus === "married" && styles.pillLabelActive]}>
-                  Married
-                </Text>
+                <Text style={[styles.pillLabel, maritalStatus === "married" && styles.pillLabelActive]}>Married</Text>
                 <Text style={styles.pillDesc}>Building with my spouse</Text>
               </Pressable>
             </View>
-
-            {hasSelectedMarital && (
-              <Pressable
-                onPress={handleFinish}
-                style={({ pressed }) => [styles.ctaButton, pressed && styles.ctaButtonPressed]}
-              >
-                <Text style={styles.ctaText}>Get Started</Text>
-                <ArrowRight size={20} color={COLORS.white} />
-              </Pressable>
-            )}
           </>
+        )}
+
+        {step === 3 && (
+          <>
+            <Text style={styles.headline}>Your</Text>
+            <Text style={styles.headlineAccent}>Age Range</Text>
+            <Text style={styles.tagline}>
+              Helps us tailor declarations{"\n"}to your season of life
+            </Text>
+            <View style={styles.chipContainer}>
+              {AGE_RANGES.map((a) => (
+                <Pressable
+                  key={a.value}
+                  style={[styles.chip, ageRange === a.value && styles.chipActive]}
+                  onPress={() => handleSelectAgeRange(a.value)}
+                >
+                  <Text style={[styles.chipLabel, ageRange === a.value && styles.chipLabelActive]}>
+                    {a.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </>
+        )}
+
+        {step === 4 && (
+          <>
+            <Text style={styles.headline}>Your</Text>
+            <Text style={styles.headlineAccent}>Life Stage</Text>
+            <Text style={styles.tagline}>
+              So declarations speak to{"\n"}your daily reality
+            </Text>
+            <View style={styles.chipContainer}>
+              {LIFE_STAGES.map((l) => (
+                <Pressable
+                  key={l.value}
+                  style={[styles.chip, styles.chipWide, lifeStage === l.value && styles.chipActive]}
+                  onPress={() => handleSelectLifeStage(l.value)}
+                >
+                  <Text style={[styles.chipLabel, lifeStage === l.value && styles.chipLabelActive]}>
+                    {l.label}
+                  </Text>
+                  <Text style={styles.chipDesc}>{l.desc}</Text>
+                </Pressable>
+              ))}
+            </View>
+          </>
+        )}
+
+        {step === 5 && (
+          <>
+            <Text style={styles.headline}>Faith</Text>
+            <Text style={styles.headlineAccent}>Focus Areas</Text>
+            <Text style={styles.tagline}>
+              Pick 2-3 areas you're believing{"\n"}God for right now
+            </Text>
+            <ScrollView
+              contentContainerStyle={styles.chipContainer}
+              showsVerticalScrollIndicator={false}
+              style={{ maxHeight: 280 }}
+            >
+              {FAITH_CATEGORIES.map((c) => {
+                const isSelected = faithFocusAreas.includes(c.value);
+                const isDisabled = !isSelected && faithFocusAreas.length >= 3;
+                return (
+                  <Pressable
+                    key={c.value}
+                    style={[
+                      styles.chip,
+                      isSelected && styles.chipActive,
+                      isDisabled && styles.chipDisabled,
+                    ]}
+                    onPress={() => handleToggleFaithArea(c.value)}
+                    disabled={isDisabled}
+                  >
+                    <Text
+                      style={[
+                        styles.chipLabel,
+                        isSelected && styles.chipLabelActive,
+                        isDisabled && styles.chipLabelDisabled,
+                      ]}
+                    >
+                      {c.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          </>
+        )}
+
+        {canContinue && (
+          <Pressable
+            onPress={isLastStep ? handleFinish : handleNextStep}
+            style={({ pressed }) => [styles.ctaButton, pressed && styles.ctaButtonPressed]}
+          >
+            <Text style={styles.ctaText}>{isLastStep ? "Get Started" : "Continue"}</Text>
+            <ArrowRight size={20} color={COLORS.white} />
+          </Pressable>
         )}
       </View>
     </LinearGradient>
@@ -283,6 +429,50 @@ const styles = StyleSheet.create({
     color: COLORS.slate400,
     textAlign: "center",
     lineHeight: 18,
+  },
+  chipContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+    justifyContent: "center",
+    marginBottom: 40,
+    width: "100%",
+  },
+  chip: {
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderRadius: 24,
+    backgroundColor: COLORS.glass,
+    borderWidth: 1,
+    borderColor: COLORS.glassBorder,
+  },
+  chipWide: {
+    width: "100%",
+    alignItems: "center",
+  },
+  chipActive: {
+    borderColor: COLORS.divineGold,
+    backgroundColor: "rgba(212,168,84,0.12)",
+  },
+  chipDisabled: {
+    opacity: 0.35,
+  },
+  chipLabel: {
+    fontFamily: FONTS.bodyBold,
+    fontSize: 15,
+    color: COLORS.white,
+  },
+  chipLabelActive: {
+    color: COLORS.divineGold,
+  },
+  chipLabelDisabled: {
+    color: COLORS.slate400,
+  },
+  chipDesc: {
+    fontFamily: FONTS.body,
+    fontSize: 12,
+    color: COLORS.slate400,
+    marginTop: 4,
   },
   ctaButton: {
     flexDirection: "row",

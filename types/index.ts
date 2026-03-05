@@ -57,15 +57,22 @@ export interface TrackMeta {
   bundled: boolean;
 }
 
+export type AgeRange = "18-24" | "25-34" | "35-44" | "45-54" | "55+";
+export type LifeStage = "student" | "professional" | "business-owner" | "homemaker" | "retired";
+
 export interface UserSettings {
   notificationsEnabled: boolean;
   notificationTime: string;
+  notificationTimes: string[];
   defaultAtmosphere: AtmosphereType;
   defaultCategory: DeclarationCategory;
   gender: "male" | "female" | null;
   maritalStatus: "single" | "married" | null;
   voiceGender: "male" | "female";
   onboardingComplete: boolean;
+  ageRange: AgeRange | null;
+  lifeStage: LifeStage | null;
+  faithFocusAreas: DeclarationCategory[];
 }
 
 export interface UserProfile {

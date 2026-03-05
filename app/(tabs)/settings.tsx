@@ -9,6 +9,7 @@ import {
   StyleSheet,
   Platform,
   Linking,
+  Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -23,18 +24,22 @@ import {
   Crown,
   Zap,
   Volume2,
+  Plus,
+  X,
+  Briefcase,
+  Calendar,
 } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import { Typography } from "../../components/ui/Typography";
 import { COLORS } from "../../constants/theme";
 import { ATMOSPHERE_TRACKS } from "../../constants/tracks";
-import { AtmosphereType, UserSettings } from "../../types";
+import { AtmosphereType, UserSettings, AgeRange, LifeStage } from "../../types";
 import { useRouter } from "expo-router";
 import { auth } from "../../services/firebase";
 import { signOut, deleteAccount } from "../../services/auth";
 import { useSubscription } from "../../hooks/useSubscription";
 import {
-  scheduleDailyNotification,
+  scheduleMultipleNotifications,
   cancelNotifications,
 } from "../../hooks/useNotifications";
 import {
@@ -47,6 +52,7 @@ import {
   trackDefaultAtmosphereChanged,
   trackPaywallViewed,
 } from "../../services/analytics";
+import { ScrollWheelTimePicker } from "../../components/ScrollWheelTimePicker";
 
 const ATMOSPHERE_OPTIONS: { id: AtmosphereType; label: string }[] =
   ATMOSPHERE_TRACKS.filter((t) => t.id !== "none").map((t) => ({
@@ -54,41 +60,69 @@ const ATMOSPHERE_OPTIONS: { id: AtmosphereType; label: string }[] =
     label: t.label,
   }));
 
-const TIME_OPTIONS = [
-  { label: "6:00 AM", value: "06:00" },
-  { label: "7:00 AM", value: "07:00" },
-  { label: "8:00 AM", value: "08:00" },
-  { label: "9:00 AM", value: "09:00" },
-  { label: "12:00 PM", value: "12:00" },
-  { label: "9:00 PM", value: "21:00" },
+const AGE_RANGE_OPTIONS: { id: AgeRange; label: string }[] = [
+  { id: "18-24", label: "18-24" },
+  { id: "25-34", label: "25-34" },
+  { id: "35-44", label: "35-44" },
+  { id: "45-54", label: "45-54" },
+  { id: "55+", label: "55+" },
 ];
+
+const LIFE_STAGE_OPTIONS: { id: LifeStage; label: string }[] = [
+  { id: "student", label: "Student" },
+  { id: "professional", label: "Professional" },
+  { id: "business-owner", label: "Business Owner" },
+  { id: "homemaker", label: "Homemaker" },
+  { id: "retired", label: "Retired" },
+];
+
+/**
+ * Format "HH:MM" (24h) to display string like "8:00 AM"
+ */
+function formatTime(time: string): string {
+  const [h, m] = time.split(":").map(Number);
+  const hour24 = h || 0;
+  const minute = m || 0;
+  const period = hour24 >= 12 ? "PM" : "AM";
+  let hour12 = hour24 % 12;
+  if (hour12 === 0) hour12 = 12;
+  return `${hour12}:${String(minute).padStart(2, "0")} ${period}`;
+}
 
 export default function SettingsScreen() {
   const user = auth.currentUser;
   const router = useRouter();
   const { isPro, usage } = useSubscription();
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-  const [notificationTime, setNotificationTime] = useState("08:00");
+  const [notificationTimes, setNotificationTimes] = useState<string[]>([]);
   const [defaultAtmosphere, setDefaultAtmosphere] =
     useState<AtmosphereType>("glory");
-  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [showTimePickerModal, setShowTimePickerModal] = useState(false);
+  const [editingTimeIndex, setEditingTimeIndex] = useState<number | null>(null); // null = adding new
+  const [pickerTime, setPickerTime] = useState("08:00");
   const [showAtmospherePicker, setShowAtmospherePicker] = useState(false);
   const [showGenderPicker, setShowGenderPicker] = useState(false);
   const [showMaritalPicker, setShowMaritalPicker] = useState(false);
+  const [showAgeRangePicker, setShowAgeRangePicker] = useState(false);
+  const [showLifeStagePicker, setShowLifeStagePicker] = useState(false);
   const [gender, setGender] = useState<UserSettings["gender"]>(null);
   const [maritalStatus, setMaritalStatus] = useState<UserSettings["maritalStatus"]>(null);
   const [voiceGender, setVoiceGender] = useState<UserSettings["voiceGender"]>("female");
+  const [ageRange, setAgeRange] = useState<AgeRange | null>(null);
+  const [lifeStage, setLifeStage] = useState<LifeStage | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Load saved settings from Firestore on mount
   useEffect(() => {
     getUserSettings().then((settings) => {
       setNotificationsEnabled(settings.notificationsEnabled);
-      setNotificationTime(settings.notificationTime);
+      setNotificationTimes(settings.notificationTimes || []);
       setDefaultAtmosphere(settings.defaultAtmosphere);
       setGender(settings.gender);
       setMaritalStatus(settings.maritalStatus);
       setVoiceGender(settings.voiceGender);
+      setAgeRange(settings.ageRange);
+      setLifeStage(settings.lifeStage);
     });
   }, []);
 
@@ -97,7 +131,8 @@ export default function SettingsScreen() {
     setNotificationsEnabled(enabled);
     trackNotificationToggled(enabled);
     if (enabled) {
-      const success = await scheduleDailyNotification(notificationTime);
+      const times = notificationTimes.length > 0 ? notificationTimes : ["08:00"];
+      const success = await scheduleMultipleNotifications(times);
       if (!success) {
         setNotificationsEnabled(false);
         Alert.alert(
@@ -106,20 +141,51 @@ export default function SettingsScreen() {
         );
         return;
       }
+      if (notificationTimes.length === 0) {
+        setNotificationTimes(["08:00"]);
+        updateUserSettings({ notificationsEnabled: enabled, notificationTimes: ["08:00"] });
+        return;
+      }
     } else {
       await cancelNotifications();
     }
     updateUserSettings({ notificationsEnabled: enabled });
   };
 
-  const handleTimeChange = async (time: string) => {
-    setNotificationTime(time);
-    setShowTimePicker(false);
-    trackNotificationTimeChanged(time);
-    if (notificationsEnabled) {
-      await scheduleDailyNotification(time);
+  const openTimePicker = (index: number | null) => {
+    setEditingTimeIndex(index);
+    setPickerTime(index !== null && notificationTimes[index] ? notificationTimes[index] : "08:00");
+    setShowTimePickerModal(true);
+  };
+
+  const handleSaveTime = async () => {
+    let newTimes: string[];
+    if (editingTimeIndex !== null) {
+      newTimes = [...notificationTimes];
+      newTimes[editingTimeIndex] = pickerTime;
+    } else {
+      newTimes = [...notificationTimes, pickerTime];
     }
-    updateUserSettings({ notificationTime: time });
+    setNotificationTimes(newTimes);
+    setShowTimePickerModal(false);
+    trackNotificationTimeChanged(pickerTime);
+    if (notificationsEnabled) {
+      await scheduleMultipleNotifications(newTimes);
+    }
+    updateUserSettings({ notificationTimes: newTimes });
+  };
+
+  const handleRemoveTime = async (index: number) => {
+    const newTimes = notificationTimes.filter((_, i) => i !== index);
+    setNotificationTimes(newTimes);
+    if (notificationsEnabled) {
+      if (newTimes.length > 0) {
+        await scheduleMultipleNotifications(newTimes);
+      } else {
+        await cancelNotifications();
+      }
+    }
+    updateUserSettings({ notificationTimes: newTimes });
   };
 
   const handleAtmosphereChange = (atm: AtmosphereType) => {
@@ -148,6 +214,20 @@ export default function SettingsScreen() {
     setMaritalStatus(m);
     setShowMaritalPicker(false);
     updateUserSettings({ maritalStatus: m });
+  };
+
+  const handleAgeRangeChange = (a: AgeRange | null) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setAgeRange(a);
+    setShowAgeRangePicker(false);
+    updateUserSettings({ ageRange: a });
+  };
+
+  const handleLifeStageChange = (l: LifeStage | null) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setLifeStage(l);
+    setShowLifeStagePicker(false);
+    updateUserSettings({ lifeStage: l });
   };
 
   const handleVoiceGenderChange = (v: "male" | "female") => {
@@ -212,10 +292,6 @@ export default function SettingsScreen() {
       ]
     );
   };
-
-  const timeLabel =
-    TIME_OPTIONS.find((t) => t.value === notificationTime)?.label ||
-    notificationTime;
 
   const atmosphereLabel =
     ATMOSPHERE_OPTIONS.find((a) => a.id === defaultAtmosphere)?.label ||
@@ -310,51 +386,42 @@ export default function SettingsScreen() {
 
         {notificationsEnabled && (
           <View>
-            <Pressable
-              style={styles.row}
-              onPress={() => setShowTimePicker(!showTimePicker)}
-            >
-              <View style={styles.rowLeft}>
-                <View style={[styles.iconCircle, { backgroundColor: COLORS.fireOrange + "20" }]}>
-                  <Clock size={18} color={COLORS.fireOrange} />
-                </View>
-                <Typography variant="body" style={styles.rowLabel}>
-                  Reminder Time
-                </Typography>
+            {notificationTimes.map((time, index) => (
+              <View key={index} style={styles.row}>
+                <Pressable
+                  style={styles.rowLeft}
+                  onPress={() => openTimePicker(index)}
+                >
+                  <View style={[styles.iconCircle, { backgroundColor: COLORS.fireOrange + "20" }]}>
+                    <Clock size={18} color={COLORS.fireOrange} />
+                  </View>
+                  <Typography variant="body" style={styles.rowLabel}>
+                    {formatTime(time)}
+                  </Typography>
+                </Pressable>
+                <Pressable
+                  onPress={() => handleRemoveTime(index)}
+                  hitSlop={8}
+                >
+                  <X size={18} color={COLORS.slate400} />
+                </Pressable>
               </View>
-              <View style={styles.rowRight}>
-                <Typography variant="caption" style={styles.rowValue}>
-                  {timeLabel}
-                </Typography>
-                <ChevronRight size={16} color={COLORS.slate400} />
-              </View>
-            </Pressable>
+            ))}
 
-            {showTimePicker && (
-              <View style={styles.pickerContainer}>
-                {TIME_OPTIONS.map((opt) => (
-                  <Pressable
-                    key={opt.value}
-                    style={[
-                      styles.pickerOption,
-                      notificationTime === opt.value &&
-                        styles.pickerOptionActive,
-                    ]}
-                    onPress={() => handleTimeChange(opt.value)}
-                  >
-                    <Typography
-                      variant="body"
-                      style={[
-                        styles.pickerText,
-                        notificationTime === opt.value &&
-                          styles.pickerTextActive,
-                      ]}
-                    >
-                      {opt.label}
-                    </Typography>
-                  </Pressable>
-                ))}
-              </View>
+            {notificationTimes.length < 3 && (
+              <Pressable
+                style={styles.row}
+                onPress={() => openTimePicker(null)}
+              >
+                <View style={styles.rowLeft}>
+                  <View style={[styles.iconCircle, { backgroundColor: COLORS.electricPurple + "20" }]}>
+                    <Plus size={18} color={COLORS.electricPurple} />
+                  </View>
+                  <Typography variant="body" style={[styles.rowLabel, { color: COLORS.electricPurple }]}>
+                    Add Reminder
+                  </Typography>
+                </View>
+              </Pressable>
             )}
           </View>
         )}
@@ -531,6 +598,122 @@ export default function SettingsScreen() {
             <ChevronRight size={16} color={COLORS.slate400} />
           </View>
         </Pressable>
+
+        {/* Age Range row */}
+        <Pressable
+          style={styles.row}
+          onPress={() => setShowAgeRangePicker(!showAgeRangePicker)}
+        >
+          <View style={styles.rowLeft}>
+            <View style={[styles.iconCircle, { backgroundColor: COLORS.divineGold + "20" }]}>
+              <Calendar size={18} color={COLORS.divineGold} />
+            </View>
+            <Typography variant="body" style={styles.rowLabel}>
+              Age Range
+            </Typography>
+          </View>
+          <View style={styles.rowRight}>
+            <Typography variant="caption" style={styles.rowValue}>
+              {ageRange || "Not Set"}
+            </Typography>
+            <ChevronRight size={16} color={COLORS.slate400} />
+          </View>
+        </Pressable>
+
+        {showAgeRangePicker && (
+          <View style={styles.pickerContainer}>
+            {AGE_RANGE_OPTIONS.map((opt) => (
+              <Pressable
+                key={opt.id}
+                style={[
+                  styles.pickerOption,
+                  ageRange === opt.id && styles.pickerOptionActive,
+                ]}
+                onPress={() => handleAgeRangeChange(opt.id)}
+              >
+                <Typography
+                  variant="body"
+                  style={[
+                    styles.pickerText,
+                    ageRange === opt.id && styles.pickerTextActive,
+                  ]}
+                >
+                  {opt.label}
+                </Typography>
+              </Pressable>
+            ))}
+            <Pressable
+              style={[styles.pickerOption, ageRange === null && styles.pickerOptionActive]}
+              onPress={() => handleAgeRangeChange(null)}
+            >
+              <Typography
+                variant="body"
+                style={[styles.pickerText, ageRange === null && styles.pickerTextActive]}
+              >
+                Not Set
+              </Typography>
+            </Pressable>
+          </View>
+        )}
+
+        {/* Life Stage row */}
+        <Pressable
+          style={styles.row}
+          onPress={() => setShowLifeStagePicker(!showLifeStagePicker)}
+        >
+          <View style={styles.rowLeft}>
+            <View style={[styles.iconCircle, { backgroundColor: COLORS.electricPurple + "20" }]}>
+              <Briefcase size={18} color={COLORS.electricPurple} />
+            </View>
+            <Typography variant="body" style={styles.rowLabel}>
+              Life Stage
+            </Typography>
+          </View>
+          <View style={styles.rowRight}>
+            <Typography variant="caption" style={styles.rowValue}>
+              {lifeStage
+                ? LIFE_STAGE_OPTIONS.find((l) => l.id === lifeStage)?.label || lifeStage
+                : "Not Set"}
+            </Typography>
+            <ChevronRight size={16} color={COLORS.slate400} />
+          </View>
+        </Pressable>
+
+        {showLifeStagePicker && (
+          <View style={styles.pickerContainer}>
+            {LIFE_STAGE_OPTIONS.map((opt) => (
+              <Pressable
+                key={opt.id}
+                style={[
+                  styles.pickerOption,
+                  lifeStage === opt.id && styles.pickerOptionActive,
+                ]}
+                onPress={() => handleLifeStageChange(opt.id)}
+              >
+                <Typography
+                  variant="body"
+                  style={[
+                    styles.pickerText,
+                    lifeStage === opt.id && styles.pickerTextActive,
+                  ]}
+                >
+                  {opt.label}
+                </Typography>
+              </Pressable>
+            ))}
+            <Pressable
+              style={[styles.pickerOption, lifeStage === null && styles.pickerOptionActive]}
+              onPress={() => handleLifeStageChange(null)}
+            >
+              <Typography
+                variant="body"
+                style={[styles.pickerText, lifeStage === null && styles.pickerTextActive]}
+              >
+                Not Set
+              </Typography>
+            </Pressable>
+          </View>
+        )}
       </View>
 
       {/* Subscription section */}
@@ -652,6 +835,35 @@ export default function SettingsScreen() {
         RhemaFlow v1.0.0
       </Typography>
     </ScrollView>
+
+    {/* Time Picker Modal */}
+    <Modal
+      visible={showTimePickerModal}
+      transparent
+      animationType="fade"
+      onRequestClose={() => setShowTimePickerModal(false)}
+    >
+      <Pressable
+        style={styles.modalOverlay}
+        onPress={() => setShowTimePickerModal(false)}
+      >
+        <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
+          <Text style={styles.modalTitle}>
+            {editingTimeIndex !== null ? "Edit Reminder" : "Add Reminder"}
+          </Text>
+          <ScrollWheelTimePicker
+            value={pickerTime}
+            onChange={setPickerTime}
+          />
+          <Pressable
+            onPress={handleSaveTime}
+            style={({ pressed }) => [styles.modalSaveButton, pressed && { opacity: 0.8 }]}
+          >
+            <Text style={styles.modalSaveText}>Save</Text>
+          </Pressable>
+        </Pressable>
+      </Pressable>
+    </Modal>
     </SafeAreaView>
   );
 }
@@ -776,5 +988,42 @@ const styles = StyleSheet.create({
     color: COLORS.slate700,
     textAlign: "center",
     marginTop: 40,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: COLORS.slate900,
+    borderRadius: 24,
+    padding: 28,
+    alignItems: "center",
+    width: "85%",
+    borderWidth: 1,
+    borderColor: COLORS.glassBorder,
+  },
+  modalTitle: {
+    fontFamily: "Cinzel",
+    fontSize: 18,
+    color: COLORS.white,
+    marginBottom: 24,
+    textTransform: "uppercase",
+    letterSpacing: 2,
+  },
+  modalSaveButton: {
+    backgroundColor: COLORS.electricPurple,
+    paddingVertical: 14,
+    paddingHorizontal: 48,
+    borderRadius: 14,
+    marginTop: 24,
+  },
+  modalSaveText: {
+    fontFamily: "Lato-Bold",
+    fontSize: 16,
+    color: COLORS.white,
+    textTransform: "uppercase",
+    letterSpacing: 1,
   },
 });
