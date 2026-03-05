@@ -18,14 +18,18 @@ function ttsHash(text: string, voiceId: string): string {
  */
 function pickVoice(text: string, voiceGender: string): string {
   const MALE_VOICES = [
-    "87tjwokZlpNU7QL3HaLP",
-    "1gxU0Txbl9UkhEbg4yBO",
-    "4UrpGKNt5towyRYXDwI0",
-    "25DFUXhfQAjHspxuRrkd",
+    "nPczCjzI2devNBz1zQrb", // Brian — deep, resonant
+    "pNInz6obpgDQGcFmaJgB", // Adam — dominant, firm
+    "onwK4e9ZLuTAKqWW03F9", // Daniel — strong broadcaster
+    "JBFqnCBsd6RMkjVDRZzb", // George — warm, captivating
+    "pqHfZKP75CvOlQylNhV4", // Bill — steady, authoritative
   ];
   const FEMALE_VOICES = [
-    "Qz5hY7PWm1aznSEfd9kd",
-    "eXh2Y4aqCNakBr6brw6B",
+    "EXAVITQu4vr4xnSDxMaL", // Sarah — clear, confident
+    "XrExE9yKIg1WjnnlVkGX", // Matilda — warm, authoritative
+    "cgSgspJ2msm6clMCkdW9", // Jessica — strong, expressive
+    "hpp4J3VqNfWAUOO0d1Us", // Bella — bold, engaging
+    "FGY2WhTYpPnrIDTdsKH5", // Laura — confident, articulate
   ];
   const pool = voiceGender === "male" ? MALE_VOICES : FEMALE_VOICES;
   const hash = crypto.createHash("md5").update(text).digest();
@@ -74,11 +78,16 @@ async function generateWithElevenLabs(
     return null;
   }
 
+  // Normalize smart quotes/apostrophes to ASCII so TTS doesn't mangle them
+  const normalizedText = text
+    .replace(/[\u2018\u2019\u0060\u00B4]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"');
+
   const t0 = Date.now();
-  console.log(`[ElevenLabs] Generating for ${text.length} chars with voice=${voiceId}`);
+  console.log(`[ElevenLabs] Generating for ${normalizedText.length} chars with voice=${voiceId}`);
 
   const body = JSON.stringify({
-    text,
+    text: normalizedText,
     model_id: "eleven_turbo_v2_5",
     voice_settings: voiceGender === "male"
       ? { stability: 0.80, similarity_boost: 0.85, style: 0.45, use_speaker_boost: true }

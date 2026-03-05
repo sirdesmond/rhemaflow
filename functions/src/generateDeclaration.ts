@@ -37,6 +37,8 @@ CRITICAL RULES:
 4. ALWAYS end with "In the mighty name of Jesus. AMEN!"
 5. Be SPECIFIC to the user's situation — no vague generic filler.
 6. Keep it biblical and faith-forward. Never contradict scripture.
+7. MINIMUM LENGTH: Declarations MUST be at least 150 words. Build momentum with multiple bold statements, rebukes, and decrees. Short declarations are UNACCEPTABLE — pack it with fire and authority.
+8. Use ONLY straight apostrophes (') and straight quotes ("). NEVER use curly/smart quotes.
 
 VARIETY IS CRITICAL — NEVER start with "I am a man/woman of God" or "I am a son/daughter of God". Vary your openings:
 - Start with bold commands: "I AM...", "THANK YOU LORD JESUS...", "I DECREE...", "I COMMAND...", "I REFUSE..."
