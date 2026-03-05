@@ -26,14 +26,12 @@ import {
   Volume2,
   Plus,
   X,
-  Briefcase,
-  Calendar,
 } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import { Typography } from "../../components/ui/Typography";
 import { COLORS } from "../../constants/theme";
 import { ATMOSPHERE_TRACKS } from "../../constants/tracks";
-import { AtmosphereType, UserSettings, AgeRange, LifeStage } from "../../types";
+import { AtmosphereType, UserSettings } from "../../types";
 import { useRouter } from "expo-router";
 import { auth } from "../../services/firebase";
 import { signOut, deleteAccount } from "../../services/auth";
@@ -61,22 +59,6 @@ const ATMOSPHERE_OPTIONS: { id: AtmosphereType; label: string }[] =
     label: t.label,
   }));
 
-const AGE_RANGE_OPTIONS: { id: AgeRange; label: string }[] = [
-  { id: "18-24", label: "18-24" },
-  { id: "25-34", label: "25-34" },
-  { id: "35-44", label: "35-44" },
-  { id: "45-54", label: "45-54" },
-  { id: "55+", label: "55+" },
-];
-
-const LIFE_STAGE_OPTIONS: { id: LifeStage; label: string }[] = [
-  { id: "student", label: "Student" },
-  { id: "professional", label: "Professional" },
-  { id: "business-owner", label: "Business Owner" },
-  { id: "homemaker", label: "Homemaker" },
-  { id: "retired", label: "Retired" },
-];
-
 /**
  * Format "HH:MM" (24h) to display string like "8:00 AM"
  */
@@ -102,15 +84,7 @@ export default function SettingsScreen() {
   const [editingTimeIndex, setEditingTimeIndex] = useState<number | null>(null); // null = adding new
   const [pickerTime, setPickerTime] = useState("08:00");
   const [showAtmospherePicker, setShowAtmospherePicker] = useState(false);
-  const [showGenderPicker, setShowGenderPicker] = useState(false);
-  const [showMaritalPicker, setShowMaritalPicker] = useState(false);
-  const [showAgeRangePicker, setShowAgeRangePicker] = useState(false);
-  const [showLifeStagePicker, setShowLifeStagePicker] = useState(false);
-  const [gender, setGender] = useState<UserSettings["gender"]>(null);
-  const [maritalStatus, setMaritalStatus] = useState<UserSettings["maritalStatus"]>(null);
   const [voiceGender, setVoiceGender] = useState<UserSettings["voiceGender"]>("female");
-  const [ageRange, setAgeRange] = useState<AgeRange | null>(null);
-  const [lifeStage, setLifeStage] = useState<LifeStage | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Load saved settings from Firestore on mount
@@ -119,11 +93,7 @@ export default function SettingsScreen() {
       setNotificationsEnabled(settings.notificationsEnabled);
       setNotificationTimes(settings.notificationTimes || []);
       setDefaultAtmosphere(settings.defaultAtmosphere);
-      setGender(settings.gender);
-      setMaritalStatus(settings.maritalStatus);
       setVoiceGender(settings.voiceGender);
-      setAgeRange(settings.ageRange);
-      setLifeStage(settings.lifeStage);
     });
   }, []);
 
@@ -195,40 +165,6 @@ export default function SettingsScreen() {
     setShowAtmospherePicker(false);
     trackDefaultAtmosphereChanged(atm);
     updateUserSettings({ defaultAtmosphere: atm });
-  };
-
-  const handleGenderChange = (g: "male" | "female" | null) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setGender(g);
-    setShowGenderPicker(false);
-    // Auto-match voice gender when gender changes
-    if (g) {
-      setVoiceGender(g);
-      updateUserSettings({ gender: g, voiceGender: g });
-    } else {
-      updateUserSettings({ gender: g });
-    }
-  };
-
-  const handleMaritalStatusChange = (m: "single" | "married" | null) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setMaritalStatus(m);
-    setShowMaritalPicker(false);
-    updateUserSettings({ maritalStatus: m });
-  };
-
-  const handleAgeRangeChange = (a: AgeRange | null) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setAgeRange(a);
-    setShowAgeRangePicker(false);
-    updateUserSettings({ ageRange: a });
-  };
-
-  const handleLifeStageChange = (l: LifeStage | null) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setLifeStage(l);
-    setShowLifeStagePicker(false);
-    updateUserSettings({ lifeStage: l });
   };
 
   const handleVoiceGenderChange = (v: "male" | "female") => {
@@ -479,106 +415,6 @@ export default function SettingsScreen() {
           </View>
         )}
 
-        {/* Gender row */}
-        <Pressable
-          style={styles.row}
-          onPress={() => setShowGenderPicker(!showGenderPicker)}
-        >
-          <View style={styles.rowLeft}>
-            <View style={[styles.iconCircle, { backgroundColor: COLORS.electricPurple + "20" }]}>
-              <User size={18} color={COLORS.electricPurple} />
-            </View>
-            <Typography variant="body" style={styles.rowLabel}>
-              Gender
-            </Typography>
-          </View>
-          <View style={styles.rowRight}>
-            <Typography variant="caption" style={styles.rowValue}>
-              {gender ? gender.charAt(0).toUpperCase() + gender.slice(1) : "Not Set"}
-            </Typography>
-            <ChevronRight size={16} color={COLORS.slate400} />
-          </View>
-        </Pressable>
-
-        {showGenderPicker && (
-          <View style={styles.pickerContainer}>
-            {([
-              { id: "male" as const, label: "Male" },
-              { id: "female" as const, label: "Female" },
-              { id: null, label: "Not Set" },
-            ]).map((opt) => (
-              <Pressable
-                key={opt.label}
-                style={[
-                  styles.pickerOption,
-                  gender === opt.id && styles.pickerOptionActive,
-                ]}
-                onPress={() => handleGenderChange(opt.id)}
-              >
-                <Typography
-                  variant="body"
-                  style={[
-                    styles.pickerText,
-                    gender === opt.id && styles.pickerTextActive,
-                  ]}
-                >
-                  {opt.label}
-                </Typography>
-              </Pressable>
-            ))}
-          </View>
-        )}
-
-        {/* Marital Status row */}
-        <Pressable
-          style={styles.row}
-          onPress={() => setShowMaritalPicker(!showMaritalPicker)}
-        >
-          <View style={styles.rowLeft}>
-            <View style={[styles.iconCircle, { backgroundColor: COLORS.divineGold + "20" }]}>
-              <User size={18} color={COLORS.divineGold} />
-            </View>
-            <Typography variant="body" style={styles.rowLabel}>
-              Marital Status
-            </Typography>
-          </View>
-          <View style={styles.rowRight}>
-            <Typography variant="caption" style={styles.rowValue}>
-              {maritalStatus ? maritalStatus.charAt(0).toUpperCase() + maritalStatus.slice(1) : "Not Set"}
-            </Typography>
-            <ChevronRight size={16} color={COLORS.slate400} />
-          </View>
-        </Pressable>
-
-        {showMaritalPicker && (
-          <View style={styles.pickerContainer}>
-            {([
-              { id: "single" as const, label: "Single" },
-              { id: "married" as const, label: "Married" },
-              { id: null, label: "Not Set" },
-            ]).map((opt) => (
-              <Pressable
-                key={opt.label}
-                style={[
-                  styles.pickerOption,
-                  maritalStatus === opt.id && styles.pickerOptionActive,
-                ]}
-                onPress={() => handleMaritalStatusChange(opt.id)}
-              >
-                <Typography
-                  variant="body"
-                  style={[
-                    styles.pickerText,
-                    maritalStatus === opt.id && styles.pickerTextActive,
-                  ]}
-                >
-                  {opt.label}
-                </Typography>
-              </Pressable>
-            ))}
-          </View>
-        )}
-
         {/* Voice row */}
         <Pressable
           style={styles.row}
@@ -600,121 +436,6 @@ export default function SettingsScreen() {
           </View>
         </Pressable>
 
-        {/* Age Range row */}
-        <Pressable
-          style={styles.row}
-          onPress={() => setShowAgeRangePicker(!showAgeRangePicker)}
-        >
-          <View style={styles.rowLeft}>
-            <View style={[styles.iconCircle, { backgroundColor: COLORS.divineGold + "20" }]}>
-              <Calendar size={18} color={COLORS.divineGold} />
-            </View>
-            <Typography variant="body" style={styles.rowLabel}>
-              Age Range
-            </Typography>
-          </View>
-          <View style={styles.rowRight}>
-            <Typography variant="caption" style={styles.rowValue}>
-              {ageRange || "Not Set"}
-            </Typography>
-            <ChevronRight size={16} color={COLORS.slate400} />
-          </View>
-        </Pressable>
-
-        {showAgeRangePicker && (
-          <View style={styles.pickerContainer}>
-            {AGE_RANGE_OPTIONS.map((opt) => (
-              <Pressable
-                key={opt.id}
-                style={[
-                  styles.pickerOption,
-                  ageRange === opt.id && styles.pickerOptionActive,
-                ]}
-                onPress={() => handleAgeRangeChange(opt.id)}
-              >
-                <Typography
-                  variant="body"
-                  style={[
-                    styles.pickerText,
-                    ageRange === opt.id && styles.pickerTextActive,
-                  ]}
-                >
-                  {opt.label}
-                </Typography>
-              </Pressable>
-            ))}
-            <Pressable
-              style={[styles.pickerOption, ageRange === null && styles.pickerOptionActive]}
-              onPress={() => handleAgeRangeChange(null)}
-            >
-              <Typography
-                variant="body"
-                style={[styles.pickerText, ageRange === null && styles.pickerTextActive]}
-              >
-                Not Set
-              </Typography>
-            </Pressable>
-          </View>
-        )}
-
-        {/* Life Stage row */}
-        <Pressable
-          style={styles.row}
-          onPress={() => setShowLifeStagePicker(!showLifeStagePicker)}
-        >
-          <View style={styles.rowLeft}>
-            <View style={[styles.iconCircle, { backgroundColor: COLORS.electricPurple + "20" }]}>
-              <Briefcase size={18} color={COLORS.electricPurple} />
-            </View>
-            <Typography variant="body" style={styles.rowLabel}>
-              Life Stage
-            </Typography>
-          </View>
-          <View style={styles.rowRight}>
-            <Typography variant="caption" style={styles.rowValue}>
-              {lifeStage
-                ? LIFE_STAGE_OPTIONS.find((l) => l.id === lifeStage)?.label || lifeStage
-                : "Not Set"}
-            </Typography>
-            <ChevronRight size={16} color={COLORS.slate400} />
-          </View>
-        </Pressable>
-
-        {showLifeStagePicker && (
-          <View style={styles.pickerContainer}>
-            {LIFE_STAGE_OPTIONS.map((opt) => (
-              <Pressable
-                key={opt.id}
-                style={[
-                  styles.pickerOption,
-                  lifeStage === opt.id && styles.pickerOptionActive,
-                ]}
-                onPress={() => handleLifeStageChange(opt.id)}
-              >
-                <Typography
-                  variant="body"
-                  style={[
-                    styles.pickerText,
-                    lifeStage === opt.id && styles.pickerTextActive,
-                  ]}
-                >
-                  {opt.label}
-                </Typography>
-              </Pressable>
-            ))}
-            <Pressable
-              style={[styles.pickerOption, lifeStage === null && styles.pickerOptionActive]}
-              onPress={() => handleLifeStageChange(null)}
-            >
-              <Typography
-                variant="body"
-                style={[styles.pickerText, lifeStage === null && styles.pickerTextActive]}
-              >
-                Not Set
-              </Typography>
-            </Pressable>
-          </View>
-        )}
       </View>
 
       {/* Subscription section */}
@@ -844,11 +565,12 @@ export default function SettingsScreen() {
       animationType="fade"
       onRequestClose={() => setShowTimePickerModal(false)}
     >
-      <Pressable
-        style={styles.modalOverlay}
-        onPress={() => setShowTimePickerModal(false)}
-      >
-        <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
+      <View style={styles.modalOverlay}>
+        <Pressable
+          style={StyleSheet.absoluteFill}
+          onPress={() => setShowTimePickerModal(false)}
+        />
+        <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>
             {editingTimeIndex !== null ? "Edit Reminder" : "Add Reminder"}
           </Text>
@@ -862,8 +584,8 @@ export default function SettingsScreen() {
           >
             <Text style={styles.modalSaveText}>Save</Text>
           </Pressable>
-        </Pressable>
-      </Pressable>
+        </View>
+      </View>
     </Modal>
     </SafeAreaView>
   );
