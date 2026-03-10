@@ -2,6 +2,7 @@ import { View, Text, Pressable, Alert, KeyboardAvoidingView, Platform, Keyboard,
 import { useState, useRef, useCallback, useEffect, MutableRefObject } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Flame, ChevronLeft, Sparkles, Crown } from "lucide-react-native";
+import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { useRouter, useFocusEffect } from "expo-router";
 import * as Haptics from "expo-haptics";
 import ViewShot from "react-native-view-shot";
@@ -19,6 +20,7 @@ import {
   generateSpeech,
 } from "../../services/declarations";
 import { saveDeclaration } from "../../services/favorites";
+import { getStreakData } from "../../services/streak";
 import {
   DeclarationCategory,
   MoodPreset,
@@ -26,6 +28,7 @@ import {
   UserSettings,
   AgeRange,
   LifeStage,
+  StreakData,
 } from "../../types";
 import { COLORS } from "../../constants/theme";
 import { getUserSettings } from "../../services/settings";
@@ -37,6 +40,8 @@ import {
   trackAudioPlayed,
   trackFreshFire,
   trackPaywallViewed,
+  trackStreakMilestone,
+  trackStreakReset,
 } from "../../services/analytics";
 
 export default function HomeScreen() {
@@ -55,6 +60,8 @@ export default function HomeScreen() {
   const [faithFocusAreas, setFaithFocusAreas] = useState<DeclarationCategory[]>([]);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [lastPrompt, setLastPrompt] = useState<string>("");
+  const [streak, setStreak] = useState(0);
+  const [milestoneMessage, setMilestoneMessage] = useState<string | null>(null);
   const generationIdRef = useRef(0);
   const ttsAbortRef = useRef<AbortController | null>(null);
 
@@ -79,6 +86,35 @@ export default function HomeScreen() {
 
   // Reload user preferences every time the tab gains focus
   // (picks up changes made in Settings or Onboarding)
+  const STREAK_MILESTONES = [1, 7, 14, 30, 60, 100];
+
+  const MILESTONE_MESSAGES: Record<number, string> = {
+    1: "Your faith journey begins! Can you make it to 7?",
+    7: "7 days of faith! Keep declaring!",
+    14: "14 days strong! You're building a habit!",
+    30: "30 days of faith! Unstoppable!",
+    60: "60 days! Your faith is on fire!",
+    100: "100 days! What a testimony!",
+  };
+
+  const handleStreakUpdate = useCallback((streakData: StreakData | null) => {
+    if (!streakData) return;
+    const prev = streak;
+    setStreak(streakData.currentStreak);
+
+    // Streak reset detection
+    if (prev > 1 && streakData.currentStreak === 1) {
+      trackStreakReset();
+    }
+
+    // Milestone detection
+    if (STREAK_MILESTONES.includes(streakData.currentStreak) && streakData.currentStreak !== prev) {
+      trackStreakMilestone(streakData.currentStreak);
+      setMilestoneMessage(MILESTONE_MESSAGES[streakData.currentStreak]);
+      setTimeout(() => setMilestoneMessage(null), 4000);
+    }
+  }, [streak]);
+
   useFocusEffect(
     useCallback(() => {
       getUserSettings().then((settings) => {
@@ -90,6 +126,7 @@ export default function HomeScreen() {
         setLifeStages(settings.lifeStages);
         setFaithFocusAreas(settings.faithFocusAreas);
       });
+      getStreakData().then(handleStreakUpdate);
     }, [])
   );
 
@@ -134,6 +171,7 @@ export default function HomeScreen() {
       });
       setIsLoading(false);
       trackDeclarationGenerated(category, isPro);
+      handleStreakUpdate(declaration.streakData);
       refreshUsage().catch(() => {});
 
       // Start TTS immediately — don't wait for UI render cycle
@@ -157,7 +195,7 @@ export default function HomeScreen() {
             }
           })
           .catch((e) => {
-            if (e instanceof DOMException && e.name === "AbortError") return;
+            if (e instanceof Error && e.name === "AbortError") return;
             if (thisGeneration === generationIdRef.current) setIsAudioLoading(false);
           });
       }
@@ -303,7 +341,60 @@ export default function HomeScreen() {
             </View>
           )}
         </View>
+
+        {/* Streak badge */}
+        {streak > 0 && (
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 4,
+              backgroundColor: "rgba(245,158,11,0.12)",
+              paddingHorizontal: 10,
+              paddingVertical: 4,
+              borderRadius: 12,
+              borderWidth: 1,
+              borderColor: "rgba(245,158,11,0.25)",
+            }}
+          >
+            <Flame size={14} color={COLORS.fireOrange} fill={COLORS.fireOrange} />
+            <Text
+              style={{
+                fontFamily: "Lato-Bold",
+                fontSize: 13,
+                color: COLORS.fireOrange,
+              }}
+            >
+              {streak}
+            </Text>
+          </View>
+        )}
       </View>
+
+      {/* Milestone celebration */}
+      {milestoneMessage && (
+        <Animated.View
+          entering={FadeIn.duration(300)}
+          exiting={FadeOut.duration(300)}
+          style={{
+            alignItems: "center",
+            paddingVertical: 6,
+            paddingHorizontal: 16,
+          }}
+        >
+          <Text
+            style={{
+              fontFamily: "Lato-Bold",
+              fontSize: 13,
+              color: COLORS.divineGold,
+              textAlign: "center",
+            }}
+          >
+            {milestoneMessage}
+          </Text>
+        </Animated.View>
+      )}
+
       {/* Gold accent line */}
       <View style={{ height: 1, backgroundColor: COLORS.glassBorder, marginHorizontal: 16 }}>
         <View style={{ height: 1, width: 60, backgroundColor: COLORS.divineGold, opacity: 0.5 }} />

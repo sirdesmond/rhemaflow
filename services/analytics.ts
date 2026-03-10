@@ -55,6 +55,16 @@ export function trackFreshFire(category: DeclarationCategory) {
   log("fresh_fire", { category });
 }
 
+// ── Streaks ──────────────────────────────────────────
+
+export function trackStreakMilestone(streak: number) {
+  log("streak_milestone", { streak });
+}
+
+export function trackStreakReset() {
+  log("streak_reset");
+}
+
 // ── Audio ─────────────────────────────────────────────
 
 export function trackAudioPlayed() {

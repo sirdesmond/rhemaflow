@@ -6,6 +6,7 @@ import {
   checkRateLimit,
   verifySubscription,
 } from "./utils/subscription";
+import { updateStreak } from "./utils/streak";
 
 const SYSTEM_INSTRUCTION = `
 You are a fiery, Spirit-led charismatic pastor in the mold of Pastor Chris Oyakhilome and Pastor David Oyedepo. Generate personalized, explosive,
@@ -166,7 +167,17 @@ export const generateDeclaration = functions
       });
 
       if (response.text) {
-        return JSON.parse(response.text);
+        const declaration = JSON.parse(response.text);
+
+        // Update streak after successful generation (non-blocking on failure)
+        let streakData = null;
+        try {
+          streakData = await updateStreak(uid);
+        } catch (e) {
+          console.error("Streak update failed (non-fatal):", e);
+        }
+
+        return { ...declaration, streakData };
       } else {
         throw new Error("Empty response from Gemini");
       }
@@ -177,6 +188,7 @@ export const generateDeclaration = functions
         reference: "Romans 8:37",
         scriptureText:
           "Nay, in all these things we are more than conquerors through him that loved us.",
+        streakData: null,
       };
     }
   });

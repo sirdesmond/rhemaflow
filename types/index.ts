@@ -83,6 +83,14 @@ export interface UserProfile {
   createdAt: number;
   settings: UserSettings;
   subscriptionTier?: SubscriptionTier;
+  streakData?: StreakData;
+}
+
+export interface StreakData {
+  currentStreak: number;
+  longestStreak: number;
+  lastDeclarationDate: string; // YYYY-MM-DD
+  graceUsed: boolean;          // true if yesterday was missed but grace preserved streak
 }
 
 export type SubscriptionTier = "free" | "pro";

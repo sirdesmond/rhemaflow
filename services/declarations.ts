@@ -1,6 +1,13 @@
 import { functions } from "./firebase";
-import { DeclarationCategory, AgeRange } from "../types";
+import { DeclarationCategory, AgeRange, StreakData } from "../types";
 import { getDeviceId } from "./device";
+
+class AbortError extends Error {
+  name = "AbortError";
+  constructor() {
+    super("Aborted");
+  }
+}
 
 function friendlyMessage(error: unknown): string {
   const msg =
@@ -39,12 +46,12 @@ export async function generateDeclaration(
   ageRange?: AgeRange | null,
   lifeStages?: string[],
   faithFocusAreas?: string[]
-): Promise<{ text: string; reference: string; scriptureText: string }> {
+): Promise<{ text: string; reference: string; scriptureText: string; streakData: StreakData | null }> {
   try {
     const deviceId = await getDeviceId();
     const fn = functions.httpsCallable("generateDeclaration");
     const result = await fn({ category, mood, customText, deviceId, gender, maritalStatus, ageRange, lifeStages, faithFocusAreas });
-    return result.data as { text: string; reference: string; scriptureText: string };
+    return result.data as { text: string; reference: string; scriptureText: string; streakData: StreakData | null };
   } catch (error) {
     throw new Error(friendlyMessage(error));
   }
@@ -67,10 +74,8 @@ export async function generateSpeech(
     // If an abort signal is provided, race the call against it
     if (signal) {
       const abortPromise = new Promise<never>((_, reject) => {
-        if (signal.aborted) reject(new DOMException("Aborted", "AbortError"));
-        signal.addEventListener("abort", () =>
-          reject(new DOMException("Aborted", "AbortError"))
-        );
+        if (signal.aborted) reject(new AbortError());
+        signal.addEventListener("abort", () => reject(new AbortError()));
       });
       const result = await Promise.race([resultPromise, abortPromise]);
       const data = result.data as { audioBase64: string | null; audioUrl: string | null };
@@ -81,7 +86,7 @@ export async function generateSpeech(
     const data = result.data as { audioBase64: string | null; audioUrl: string | null };
     return { audioBase64: data.audioBase64, audioUrl: data.audioUrl ?? null };
   } catch (error) {
-    if (error instanceof DOMException && error.name === "AbortError") throw error;
+    if (error instanceof Error && error.name === "AbortError") throw error;
     throw new Error(friendlyMessage(error));
   }
 }
