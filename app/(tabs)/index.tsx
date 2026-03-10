@@ -1,7 +1,7 @@
 import { View, Text, Pressable, Alert, KeyboardAvoidingView, Platform, Keyboard, ScrollView } from "react-native";
 import { useState, useRef, useCallback, useEffect, MutableRefObject } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Flame, ChevronLeft, Sparkles, User, Crown } from "lucide-react-native";
+import { Flame, ChevronLeft, Sparkles, Crown } from "lucide-react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 import * as Haptics from "expo-haptics";
 import ViewShot from "react-native-view-shot";
@@ -51,7 +51,8 @@ export default function HomeScreen() {
   const [maritalStatus, setMaritalStatus] = useState<UserSettings["maritalStatus"]>(null);
   const [voiceGender, setVoiceGender] = useState<UserSettings["voiceGender"]>("female");
   const [ageRange, setAgeRange] = useState<AgeRange | null>(null);
-  const [lifeStage, setLifeStage] = useState<LifeStage | null>(null);
+  const [lifeStages, setLifeStages] = useState<LifeStage[]>([]);
+  const [faithFocusAreas, setFaithFocusAreas] = useState<DeclarationCategory[]>([]);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [lastPrompt, setLastPrompt] = useState<string>("");
   const generationIdRef = useRef(0);
@@ -86,7 +87,8 @@ export default function HomeScreen() {
         setMaritalStatus(settings.maritalStatus);
         setVoiceGender(settings.voiceGender);
         setAgeRange(settings.ageRange);
-        setLifeStage(settings.lifeStage);
+        setLifeStages(settings.lifeStages);
+        setFaithFocusAreas(settings.faithFocusAreas);
       });
     }, [])
   );
@@ -116,7 +118,7 @@ export default function HomeScreen() {
 
     try {
       // Step 1: Get declaration text (fast — no TTS)
-      const declaration = await generateDeclaration(category, prompt, undefined, gender, maritalStatus, ageRange, lifeStage);
+      const declaration = await generateDeclaration(category, prompt, undefined, gender, maritalStatus, ageRange, lifeStages, faithFocusAreas);
 
       // Stale check — a newer generation was started
       if (thisGeneration !== generationIdRef.current) return;
@@ -164,7 +166,11 @@ export default function HomeScreen() {
       setIsLoading(false);
       Alert.alert(
         "Generation Failed",
-        error?.message || "Something went wrong. Please try again."
+        error?.message || "Something went wrong. Please try again.",
+        [
+          { text: "Retry", onPress: () => processGeneration(prompt, category) },
+          { text: "OK" },
+        ]
       );
     }
   };
@@ -297,18 +303,6 @@ export default function HomeScreen() {
             </View>
           )}
         </View>
-        <Pressable
-          onPress={() => router.push("/(tabs)/settings")}
-          style={{
-            padding: 8,
-            borderRadius: 20,
-            borderWidth: 1,
-            borderColor: COLORS.glassBorder,
-            backgroundColor: COLORS.glass,
-          }}
-        >
-          <User size={18} color={COLORS.divineGold} />
-        </Pressable>
       </View>
       {/* Gold accent line */}
       <View style={{ height: 1, backgroundColor: COLORS.glassBorder, marginHorizontal: 16 }}>

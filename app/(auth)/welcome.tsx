@@ -1,28 +1,28 @@
-import { useRef, useState, useCallback } from "react";
-import {
-  View,
-  Text,
-  Pressable,
-  StyleSheet,
-  FlatList,
-  Dimensions,
-  Platform,
-} from "react-native";
-import { useRouter } from "expo-router";
-import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
+import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
 import {
-  Flame,
-  Layers,
-  Volume2,
-  Share2,
+  ArrowRight,
   Bell,
   ChevronRight,
-  ArrowRight,
+  Flame,
+  Layers,
+  Share2,
+  Volume2,
 } from "lucide-react-native";
+import { useCallback, useRef, useState } from "react";
+import {
+  Dimensions,
+  FlatList,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { ScrollWheelTimePicker } from "../../components/ScrollWheelTimePicker";
 import { COLORS, FONTS } from "../../constants/theme";
 import { scheduleDailyNotification } from "../../hooks/useNotifications";
-import { ScrollWheelTimePicker } from "../../components/ScrollWheelTimePicker";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -155,7 +155,7 @@ export default function WelcomeScreen() {
                         STEP 2
                       </Text>
                       <Text style={styles.stepTitle}>
-                        Hear it spoken over you
+                        Declare or Hear it spoken over you
                       </Text>
                       <Text style={styles.stepDesc}>
                         With cinematic audio & atmospheric backing

@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import * as functions from "firebase-functions/v1";
-import { sanitizeCategory, sanitizeGender, sanitizeMaritalStatus, sanitizeText, sanitizeAgeRange, sanitizeLifeStage } from "./utils/sanitize";
+import { sanitizeCategory, sanitizeGender, sanitizeMaritalStatus, sanitizeText, sanitizeAgeRange, sanitizeLifeStages, sanitizeFaithFocusAreas } from "./utils/sanitize";
 import {
   checkAndIncrementUsage,
   checkRateLimit,
@@ -93,8 +93,10 @@ export const generateDeclaration = functions
     const gender = sanitizeGender(data.gender);
     const maritalStatus = sanitizeMaritalStatus(data.maritalStatus);
     const ageRange = sanitizeAgeRange(data.ageRange);
-    const lifeStage = sanitizeLifeStage(data.lifeStage);
-    console.log(`[generateDeclaration] uid=${uid}, category=${category}, gender=${gender}, maritalStatus=${maritalStatus}, ageRange=${ageRange}, lifeStage=${lifeStage}`);
+    const lifeStages = sanitizeLifeStages(data.lifeStages ?? data.lifeStage);
+    const faithFocusAreas = sanitizeFaithFocusAreas(data.faithFocusAreas);
+    console.log(`[generateDeclaration] uid=${uid}, category=${category}, gender=${gender}, maritalStatus=${maritalStatus}, ageRange=${ageRange}, lifeStages=${lifeStages.join(",")}, faithFocus=${faithFocusAreas.join(",")}`);
+
 
     const userSituation = customText || mood;
     if (!userSituation) {
@@ -125,11 +127,15 @@ export const generateDeclaration = functions
       ? `\nAge context: The user is in the ${ageRange} age range. Tailor the declaration to resonate with someone in this season of life.`
       : "";
 
-    const lifeStageContext = lifeStage
-      ? `\nLife stage: The user is a ${lifeStage}. Make the declaration relevant to their daily reality and responsibilities.`
+    const lifeStageContext = lifeStages.length > 0
+      ? `\nLife stages: The user identifies as: ${lifeStages.join(", ")}. Make the declaration relevant to their daily reality and responsibilities.`
       : "";
 
-    const prompt = `Category: ${category}. User Situation: "${userSituation}".${genderContext}${maritalContext}${ageContext}${lifeStageContext} Write a personal declaration, cite the scripture, and write out the scripture text.`;
+    const faithContext = (faithFocusAreas.length > 0 && category === "General")
+      ? `\nThe user's faith focus areas are: ${faithFocusAreas.join(", ")}. Subtly weave these themes in, but keep the declaration primarily focused on the user's situation above.`
+      : "";
+
+    const prompt = `Category: ${category}. User Situation: "${userSituation}".${genderContext}${maritalContext}${ageContext}${lifeStageContext}${faithContext} Write a personal declaration, cite the scripture, and write out the scripture text.`;
 
     try {
       const response = await ai.models.generateContent({

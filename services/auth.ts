@@ -23,7 +23,7 @@ const DEFAULT_SETTINGS: UserSettings = {
   voiceGender: "female",
   onboardingComplete: false,
   ageRange: null,
-  lifeStage: null,
+  lifeStages: [],
   faithFocusAreas: [],
 };
 

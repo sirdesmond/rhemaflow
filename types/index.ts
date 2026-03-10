@@ -58,7 +58,7 @@ export interface TrackMeta {
 }
 
 export type AgeRange = "18-24" | "25-34" | "35-44" | "45-54" | "55+";
-export type LifeStage = "student" | "professional" | "business-owner" | "homemaker" | "retired";
+export type LifeStage = "student" | "professional" | "business-owner" | "homemaker" | "retired" | "other";
 
 export interface UserSettings {
   notificationsEnabled: boolean;
@@ -71,7 +71,7 @@ export interface UserSettings {
   voiceGender: "male" | "female";
   onboardingComplete: boolean;
   ageRange: AgeRange | null;
-  lifeStage: LifeStage | null;
+  lifeStages: LifeStage[];
   faithFocusAreas: DeclarationCategory[];
 }
 

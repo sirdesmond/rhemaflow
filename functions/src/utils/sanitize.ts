@@ -66,7 +66,7 @@ export function sanitizeAgeRange(input: unknown): string | null {
   return null;
 }
 
-const VALID_LIFE_STAGES = ["student", "professional", "business-owner", "homemaker", "retired"];
+const VALID_LIFE_STAGES = ["student", "professional", "business-owner", "homemaker", "retired", "other"];
 
 /**
  * Validate life stage input.
@@ -74,4 +74,30 @@ const VALID_LIFE_STAGES = ["student", "professional", "business-owner", "homemak
 export function sanitizeLifeStage(input: unknown): string | null {
   if (typeof input === "string" && VALID_LIFE_STAGES.includes(input)) return input;
   return null;
+}
+
+/**
+ * Validate life stages array input. Returns filtered array of valid life stages.
+ */
+/**
+ * Validate faith focus areas array. Returns filtered array of valid categories.
+ */
+export function sanitizeFaithFocusAreas(input: unknown): string[] {
+  if (!Array.isArray(input)) return [];
+  return input.filter(
+    (item): item is string =>
+      typeof item === "string" && VALID_CATEGORIES.includes(item)
+  );
+}
+
+export function sanitizeLifeStages(input: unknown): string[] {
+  if (!Array.isArray(input)) {
+    // Migrate single string value
+    const single = sanitizeLifeStage(input);
+    return single ? [single] : [];
+  }
+  return input.filter(
+    (item): item is string =>
+      typeof item === "string" && VALID_LIFE_STAGES.includes(item)
+  );
 }

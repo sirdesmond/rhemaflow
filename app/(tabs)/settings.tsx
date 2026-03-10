@@ -31,7 +31,7 @@ import * as Haptics from "expo-haptics";
 import { Typography } from "../../components/ui/Typography";
 import { COLORS } from "../../constants/theme";
 import { ATMOSPHERE_TRACKS } from "../../constants/tracks";
-import { AtmosphereType, UserSettings } from "../../types";
+import { AtmosphereType, UserSettings, LifeStage } from "../../types";
 import { useRouter } from "expo-router";
 import { auth } from "../../services/firebase";
 import { signOut, deleteAccount } from "../../services/auth";
@@ -85,6 +85,8 @@ export default function SettingsScreen() {
   const [pickerTime, setPickerTime] = useState("08:00");
   const [showAtmospherePicker, setShowAtmospherePicker] = useState(false);
   const [voiceGender, setVoiceGender] = useState<UserSettings["voiceGender"]>("female");
+  const [lifeStages, setLifeStages] = useState<LifeStage[]>([]);
+  const [showLifeStages, setShowLifeStages] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Load saved settings from Firestore on mount
@@ -94,6 +96,7 @@ export default function SettingsScreen() {
       setNotificationTimes(settings.notificationTimes || []);
       setDefaultAtmosphere(settings.defaultAtmosphere);
       setVoiceGender(settings.voiceGender);
+      setLifeStages(settings.lifeStages || []);
     });
   }, []);
 
@@ -171,6 +174,17 @@ export default function SettingsScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setVoiceGender(v);
     updateUserSettings({ voiceGender: v });
+  };
+
+  const handleToggleLifeStage = (stage: LifeStage) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setLifeStages((prev) => {
+      const next = prev.includes(stage)
+        ? prev.filter((s) => s !== stage)
+        : [...prev, stage];
+      updateUserSettings({ lifeStages: next });
+      return next;
+    });
   };
 
   const handleSignOut = () => {
@@ -435,6 +449,58 @@ export default function SettingsScreen() {
             <ChevronRight size={16} color={COLORS.slate400} />
           </View>
         </Pressable>
+
+        {/* Life Stages row */}
+        <Pressable
+          style={styles.row}
+          onPress={() => setShowLifeStages(!showLifeStages)}
+        >
+          <View style={styles.rowLeft}>
+            <View style={[styles.iconCircle, { backgroundColor: COLORS.electricPurple + "20" }]}>
+              <User size={18} color={COLORS.electricPurple} />
+            </View>
+            <View>
+              <Typography variant="body" style={styles.rowLabel}>
+                Life Stages
+              </Typography>
+              {lifeStages.length > 0 && !showLifeStages && (
+                <Typography variant="caption" style={{ color: COLORS.slate400, marginTop: 2 }}>
+                  {lifeStages.map((s) => s === "business-owner" ? "Business Owner" : s.charAt(0).toUpperCase() + s.slice(1)).join(", ")}
+                </Typography>
+              )}
+            </View>
+          </View>
+          <ChevronRight size={16} color={COLORS.slate400} />
+        </Pressable>
+
+        {showLifeStages && (
+          <View style={styles.pickerContainer}>
+            {([
+              { value: "student" as LifeStage, label: "Student" },
+              { value: "professional" as LifeStage, label: "Professional" },
+              { value: "business-owner" as LifeStage, label: "Business Owner" },
+              { value: "homemaker" as LifeStage, label: "Homemaker" },
+              { value: "retired" as LifeStage, label: "Retired" },
+              { value: "other" as LifeStage, label: "Other" },
+            ]).map((opt) => {
+              const isSelected = lifeStages.includes(opt.value);
+              return (
+                <Pressable
+                  key={opt.value}
+                  style={[styles.pickerOption, isSelected && styles.pickerOptionActive]}
+                  onPress={() => handleToggleLifeStage(opt.value)}
+                >
+                  <Typography
+                    variant="body"
+                    style={[styles.pickerText, isSelected && styles.pickerTextActive]}
+                  >
+                    {opt.label}
+                  </Typography>
+                </Pressable>
+              );
+            })}
+          </View>
+        )}
 
       </View>
 

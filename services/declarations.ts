@@ -1,5 +1,5 @@
 import { functions } from "./firebase";
-import { DeclarationCategory, AgeRange, LifeStage } from "../types";
+import { DeclarationCategory, AgeRange } from "../types";
 import { getDeviceId } from "./device";
 
 function friendlyMessage(error: unknown): string {
@@ -37,12 +37,13 @@ export async function generateDeclaration(
   gender?: "male" | "female" | null,
   maritalStatus?: "single" | "married" | null,
   ageRange?: AgeRange | null,
-  lifeStage?: LifeStage | null
+  lifeStages?: string[],
+  faithFocusAreas?: string[]
 ): Promise<{ text: string; reference: string; scriptureText: string }> {
   try {
     const deviceId = await getDeviceId();
     const fn = functions.httpsCallable("generateDeclaration");
-    const result = await fn({ category, mood, customText, deviceId, gender, maritalStatus, ageRange, lifeStage });
+    const result = await fn({ category, mood, customText, deviceId, gender, maritalStatus, ageRange, lifeStages, faithFocusAreas });
     return result.data as { text: string; reference: string; scriptureText: string };
   } catch (error) {
     throw new Error(friendlyMessage(error));

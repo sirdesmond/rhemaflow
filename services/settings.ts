@@ -13,7 +13,7 @@ const DEFAULT_SETTINGS: UserSettings = {
   voiceGender: "female",
   onboardingComplete: false,
   ageRange: null,
-  lifeStage: null,
+  lifeStages: [],
   faithFocusAreas: [],
 };
 
@@ -34,6 +34,10 @@ export async function getUserSettings(): Promise<UserSettings> {
       // Migrate: if old notificationTime exists but notificationTimes is empty, migrate it
       if (raw.notificationTime && (!raw.notificationTimes || raw.notificationTimes.length === 0)) {
         settings.notificationTimes = [settings.notificationTime];
+      }
+      // Migrate: old single lifeStage → lifeStages array
+      if (raw.lifeStage && (!raw.lifeStages || raw.lifeStages.length === 0)) {
+        settings.lifeStages = [raw.lifeStage];
       }
       return settings;
     }

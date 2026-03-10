@@ -90,8 +90,8 @@ async function generateWithElevenLabs(
     text: normalizedText,
     model_id: "eleven_turbo_v2_5",
     voice_settings: voiceGender === "male"
-      ? { stability: 0.80, similarity_boost: 0.85, style: 0.45, use_speaker_boost: true }
-      : { stability: 0.65, similarity_boost: 0.85, style: 0.55, use_speaker_boost: true },
+      ? { stability: 0.90, similarity_boost: 0.85, style: 0.45, use_speaker_boost: true }
+      : { stability: 0.93, similarity_boost: 0.85, style: 0.45, use_speaker_boost: true },
   });
 
   const url = `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_44100_128`;

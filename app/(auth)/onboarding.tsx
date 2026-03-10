@@ -27,6 +27,7 @@ const LIFE_STAGES: { value: LifeStage; label: string; desc: string }[] = [
   { value: "business-owner", label: "Business Owner", desc: "Running my enterprise" },
   { value: "homemaker", label: "Homemaker", desc: "Building my home" },
   { value: "retired", label: "Retired", desc: "Enjoying my harvest" },
+  { value: "other", label: "Other", desc: "Something not listed" },
 ];
 
 const FAITH_CATEGORIES: { value: DeclarationCategory; label: string }[] = [
@@ -48,7 +49,7 @@ export default function OnboardingScreen() {
   const [gender, setGender] = useState<GenderOption>(null);
   const [maritalStatus, setMaritalStatus] = useState<MaritalOption>(null);
   const [ageRange, setAgeRange] = useState<AgeRange | null>(null);
-  const [lifeStage, setLifeStage] = useState<LifeStage | null>(null);
+  const [lifeStages, setLifeStages] = useState<LifeStage[]>([]);
   const [faithFocusAreas, setFaithFocusAreas] = useState<DeclarationCategory[]>([]);
   const [hasSelectedGender, setHasSelectedGender] = useState(false);
   const [hasSelectedMarital, setHasSelectedMarital] = useState(false);
@@ -70,9 +71,11 @@ export default function OnboardingScreen() {
     setAgeRange(a);
   };
 
-  const handleSelectLifeStage = (l: LifeStage) => {
+  const handleToggleLifeStage = (l: LifeStage) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setLifeStage(l);
+    setLifeStages((prev) =>
+      prev.includes(l) ? prev.filter((s) => s !== l) : [...prev, l]
+    );
   };
 
   const handleToggleFaithArea = (cat: DeclarationCategory) => {
@@ -102,7 +105,7 @@ export default function OnboardingScreen() {
       maritalStatus,
       voiceGender,
       ageRange,
-      lifeStage,
+      lifeStages,
       faithFocusAreas,
       onboardingComplete: true,
     });
@@ -117,7 +120,7 @@ export default function OnboardingScreen() {
       maritalStatus: maritalStatus,
       voiceGender,
       ageRange,
-      lifeStage,
+      lifeStages,
       faithFocusAreas,
       onboardingComplete: true,
     });
@@ -130,7 +133,7 @@ export default function OnboardingScreen() {
       case 1: return hasSelectedGender;
       case 2: return hasSelectedMarital;
       case 3: return ageRange !== null;
-      case 4: return lifeStage !== null;
+      case 4: return lifeStages.length > 0;
       case 5: return faithFocusAreas.length >= 2;
       default: return false;
     }
@@ -248,21 +251,24 @@ export default function OnboardingScreen() {
             <Text style={styles.headline}>Your</Text>
             <Text style={styles.headlineAccent}>Life Stage</Text>
             <Text style={styles.tagline}>
-              So declarations speak to{"\n"}your daily reality
+              Select all that apply to{"\n"}your daily reality
             </Text>
             <View style={styles.chipContainer}>
-              {LIFE_STAGES.map((l) => (
-                <Pressable
-                  key={l.value}
-                  style={[styles.chip, styles.chipWide, lifeStage === l.value && styles.chipActive]}
-                  onPress={() => handleSelectLifeStage(l.value)}
-                >
-                  <Text style={[styles.chipLabel, lifeStage === l.value && styles.chipLabelActive]}>
-                    {l.label}
-                  </Text>
-                  <Text style={styles.chipDesc}>{l.desc}</Text>
-                </Pressable>
-              ))}
+              {LIFE_STAGES.map((l) => {
+                const isSelected = lifeStages.includes(l.value);
+                return (
+                  <Pressable
+                    key={l.value}
+                    style={[styles.chip, styles.chipWide, isSelected && styles.chipActive]}
+                    onPress={() => handleToggleLifeStage(l.value)}
+                  >
+                    <Text style={[styles.chipLabel, isSelected && styles.chipLabelActive]}>
+                      {l.label}
+                    </Text>
+                    <Text style={styles.chipDesc}>{l.desc}</Text>
+                  </Pressable>
+                );
+              })}
             </View>
           </>
         )}
