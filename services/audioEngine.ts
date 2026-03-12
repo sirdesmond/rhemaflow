@@ -93,7 +93,7 @@ class AudioEngine {
       // 2. Load speech sound
       const { sound: speechSound } = await Audio.Sound.createAsync(
         { uri: speechUri },
-        { volume: 1.0, shouldPlay: false }
+        { volume: 1.0, shouldPlay: false, progressUpdateIntervalMillis: 50 }
       );
       this.speechSound = speechSound;
 
@@ -124,8 +124,8 @@ class AudioEngine {
           if (!status.isLoaded) return;
           if (status.durationMillis) {
             const now = Date.now();
-            // Direct listeners (HighlightedText, autoscroll) — 10x/sec for smooth tracking
-            if (now - this.lastProgressTime >= 100) {
+            // Direct listeners (HighlightedText, autoscroll) — 20x/sec for smooth tracking
+            if (now - this.lastProgressTime >= 50) {
               this.lastProgressTime = now;
               this.emitProgress(status.positionMillis, status.durationMillis);
             }

@@ -2,11 +2,57 @@ import React, { useMemo, useState, useEffect, useRef } from "react";
 import { Text, StyleSheet } from "react-native";
 import { COLORS } from "../constants/theme";
 import { AudioProgress } from "../hooks/useAudio";
-import { audioEngine } from "../services/audioEngine";
+import { audioEngine, WordTiming } from "../services/audioEngine";
+
+const LOOK_AHEAD_MS = 150;
 
 interface HighlightedTextProps {
   text: string;
   progress: AudioProgress | null;
+}
+
+/** Strip curly quotes and common punctuation for fuzzy word matching. */
+function normalize(s: string): string {
+  return s.replace(/[\u201C\u201D".,!?;:—\-'"()]/g, "").toLowerCase();
+}
+
+/**
+ * Build a mapping from alignment word indices to display word indices.
+ * Uses greedy forward matching with normalized comparison so curly quotes,
+ * punctuation differences, etc. don't cause drift.
+ */
+function buildAlignmentMap(
+  alignment: WordTiming[],
+  displayWords: { start: number; end: number }[],
+  fullText: string
+): number[] {
+  const map: number[] = [];
+  let dIdx = 0;
+
+  for (let aIdx = 0; aIdx < alignment.length; aIdx++) {
+    const aNorm = normalize(alignment[aIdx].word);
+    let bestMatch = Math.min(dIdx, displayWords.length - 1);
+
+    // Search forward from current display position for best match
+    for (let j = dIdx; j < displayWords.length; j++) {
+      const dWord = fullText.slice(displayWords[j].start, displayWords[j].end);
+      if (normalize(dWord) === aNorm) {
+        bestMatch = j;
+        dIdx = j + 1; // advance past this match
+        break;
+      }
+      // If we've searched too far ahead, settle for current position
+      if (j - dIdx > 2) {
+        bestMatch = Math.min(dIdx, displayWords.length - 1);
+        dIdx = Math.min(dIdx + 1, displayWords.length);
+        break;
+      }
+    }
+
+    map.push(bestMatch);
+  }
+
+  return map;
 }
 
 /**
@@ -54,25 +100,46 @@ function HighlightedTextInner({ text }: HighlightedTextProps) {
 
   const [wordIndex, setWordIndex] = useState(-1);
   const lastIndexRef = useRef(-1);
+  // Cache the alignment map so we only rebuild when alignment changes
+  const alignmentMapRef = useRef<{ alignment: WordTiming[]; map: number[] } | null>(null);
 
   useEffect(() => {
     const onStatus = (positionMs: number, durationMs: number) => {
       const alignment = audioEngine.alignment;
-      let idx: number;
+      let displayIdx: number;
 
       if (alignment && alignment.length > 0) {
-        // Use real timestamps from ElevenLabs (seconds)
-        const posSec = positionMs / 1000;
-        idx = 0;
-        for (let i = 0; i < alignment.length; i++) {
-          if (posSec >= alignment[i].start) {
-            idx = i;
+        // Build or reuse alignment-to-display mapping
+        if (
+          !alignmentMapRef.current ||
+          alignmentMapRef.current.alignment !== alignment
+        ) {
+          alignmentMapRef.current = {
+            alignment,
+            map: buildAlignmentMap(alignment, displayWords, fullText),
+          };
+        }
+        const map = alignmentMapRef.current.map;
+
+        // Apply look-ahead: subtract offset so highlight leads slightly
+        const posSec = Math.max(0, positionMs - LOOK_AHEAD_MS) / 1000;
+
+        // Binary search for the last alignment word where posSec >= start
+        let lo = 0;
+        let hi = alignment.length - 1;
+        let alignIdx = 0;
+        while (lo <= hi) {
+          const mid = (lo + hi) >> 1;
+          if (alignment[mid].start <= posSec) {
+            alignIdx = mid;
+            lo = mid + 1;
           } else {
-            break;
+            hi = mid - 1;
           }
         }
-        // Clamp to display word count (alignment may differ slightly)
-        idx = Math.min(idx, displayWords.length - 1);
+
+        // Map alignment index to display word index
+        displayIdx = map[alignIdx] ?? Math.min(alignIdx, displayWords.length - 1);
       } else {
         // Fallback: weighted character estimation
         const ratio = Math.min(positionMs / durationMs, 1);
@@ -87,18 +154,18 @@ function HighlightedTextInner({ text }: HighlightedTextProps) {
             hi = mid;
           }
         }
-        idx = Math.min(lo, displayWords.length - 1);
+        displayIdx = Math.min(lo, displayWords.length - 1);
       }
 
-      if (idx !== lastIndexRef.current) {
-        lastIndexRef.current = idx;
-        setWordIndex(idx);
+      if (displayIdx !== lastIndexRef.current) {
+        lastIndexRef.current = displayIdx;
+        setWordIndex(displayIdx);
       }
     };
 
     audioEngine.addProgressListener(onStatus);
     return () => audioEngine.removeProgressListener(onStatus);
-  }, [displayWords, weightThresholds, totalWeight]);
+  }, [displayWords, fullText, weightThresholds, totalWeight]);
 
   useEffect(() => {
     const onReset = () => {
@@ -106,6 +173,7 @@ function HighlightedTextInner({ text }: HighlightedTextProps) {
         lastIndexRef.current = -1;
         setWordIndex(-1);
       }
+      alignmentMapRef.current = null;
     };
 
     audioEngine.addResetListener(onReset);

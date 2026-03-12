@@ -38,12 +38,12 @@ function pickVoice(text: string, voiceGender: string): string {
 
 /**
  * Check Firebase Storage for a previously cached MP3 file.
- * Returns { audioUrl } on hit, null on miss.
+ * Returns { audioUrl, alignment } on hit, null on miss.
  */
 async function getCachedAudio(
   uid: string,
   hash: string
-): Promise<{ audioUrl: string } | null> {
+): Promise<{ audioUrl: string; alignment: WordTiming[] | null } | null> {
   const bucket = admin.storage().bucket();
   const filePath = `${TTS_CACHE_PREFIX}/${uid}/${hash}.mp3`;
   const file = bucket.file(filePath);
@@ -56,8 +56,22 @@ async function getCachedAudio(
     const token = metadata.metadata?.firebaseStorageDownloadTokens as string;
     const audioUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(filePath)}?alt=media&token=${token}`;
 
-    console.log(`[TTS Cache] HIT for ${hash}`);
-    return { audioUrl };
+    // Retrieve cached alignment from Firestore
+    let alignment: WordTiming[] | null = null;
+    try {
+      const doc = await admin.firestore()
+        .collection("tts-alignment")
+        .doc(`${uid}_${hash}`)
+        .get();
+      if (doc.exists) {
+        alignment = (doc.data()?.alignment as WordTiming[]) ?? null;
+      }
+    } catch {
+      // Alignment miss is non-fatal — falls back to estimation
+    }
+
+    console.log(`[TTS Cache] HIT for ${hash}, alignment: ${alignment ? alignment.length + " words" : "none"}`);
+    return { audioUrl, alignment };
   } catch {
     return null;
   }
@@ -234,7 +248,7 @@ export const generateSpeech = functions
       const cached = await getCachedAudio(uid, hash);
       if (cached) {
         console.log("[generateSpeech] Serving from cache");
-        return { audioBase64: null, audioUrl: cached.audioUrl, alignment: null };
+        return { audioBase64: null, audioUrl: cached.audioUrl, alignment: cached.alignment ?? null };
       }
 
       // 2. Generate fresh audio via ElevenLabs TTS (with timestamps)
@@ -263,6 +277,15 @@ export const generateSpeech = functions
       console.log(`[TTS Cache] Stored ${mp3Buffer.length} bytes in ${Date.now() - t1}ms`);
 
       const audioUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(filePath)}?alt=media&token=${token}`;
+
+      // Store alignment in Firestore for cache replay
+      if (alignment.length > 0) {
+        admin.firestore()
+          .collection("tts-alignment")
+          .doc(`${uid}_${hash}`)
+          .set({ alignment, createdAt: Date.now() })
+          .catch(() => {}); // fire-and-forget, non-critical
+      }
 
       // Return base64 for immediate playback, audioUrl for saving, alignment for highlighting
       return { audioBase64: mp3Buffer.toString("base64"), audioUrl, alignment };
