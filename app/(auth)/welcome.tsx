@@ -10,7 +10,7 @@ import {
   Share2,
   Volume2,
 } from "lucide-react-native";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import {
   Dimensions,
   FlatList,
@@ -21,7 +21,8 @@ import {
   View,
 } from "react-native";
 import { ScrollWheelTimePicker } from "../../components/ScrollWheelTimePicker";
-import { COLORS, FONTS, SHADOWS } from "../../constants/theme";
+import { FONTS } from "../../constants/theme";
+import { useTheme } from "../../hooks/useTheme";
 import { scheduleDailyNotification } from "../../hooks/useNotifications";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -35,10 +36,13 @@ const SCREENS: ScreenKey[] = [
 ];
 
 export default function WelcomeScreen() {
+  const { colors, shadows } = useTheme();
   const router = useRouter();
   const flatListRef = useRef<FlatList>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [notifTime, setNotifTime] = useState("08:00");
+
+  const styles = useMemo(() => createStyles(colors, shadows), [colors, shadows]);
 
   const goToIndex = useCallback(
     (index: number) => {
@@ -82,7 +86,7 @@ export default function WelcomeScreen() {
                 {/* Flame icon */}
                 <View style={styles.flameContainer}>
                   <View style={styles.flameGlow} />
-                  <Flame size={80} color={COLORS.accent} />
+                  <Flame size={80} color={colors.accent} />
                 </View>
 
                 {/* Branding */}
@@ -122,7 +126,7 @@ export default function WelcomeScreen() {
                         { backgroundColor: "rgba(212,149,74,0.10)" },
                       ]}
                     >
-                      <Layers size={26} color={COLORS.accent} />
+                      <Layers size={26} color={colors.accent} />
                     </View>
                     <View style={styles.stepText}>
                       <Text style={styles.stepLabel}>STEP 1</Text>
@@ -140,16 +144,16 @@ export default function WelcomeScreen() {
                     <View
                       style={[
                         styles.stepIcon,
-                        { backgroundColor: COLORS.purpleMuted },
+                        { backgroundColor: colors.purpleMuted },
                       ]}
                     >
-                      <Volume2 size={26} color={COLORS.purple} />
+                      <Volume2 size={26} color={colors.purple} />
                     </View>
                     <View style={styles.stepText}>
                       <Text
                         style={[
                           styles.stepLabel,
-                          { color: COLORS.purple },
+                          { color: colors.purple },
                         ]}
                       >
                         STEP 2
@@ -168,16 +172,16 @@ export default function WelcomeScreen() {
                     <View
                       style={[
                         styles.stepIcon,
-                        { backgroundColor: COLORS.accentMuted },
+                        { backgroundColor: colors.accentMuted },
                       ]}
                     >
-                      <Share2 size={26} color={COLORS.accent} />
+                      <Share2 size={26} color={colors.accent} />
                     </View>
                     <View style={styles.stepText}>
                       <Text
                         style={[
                           styles.stepLabel,
-                          { color: COLORS.accent },
+                          { color: colors.accent },
                         ]}
                       >
                         STEP 3
@@ -203,7 +207,7 @@ export default function WelcomeScreen() {
                 <View style={styles.bellContainer}>
                   <View style={styles.bellGlow} />
                   <View style={styles.bellCircle}>
-                    <Bell size={44} color={COLORS.textInverse} />
+                    <Bell size={44} color={colors.textInverse} />
                   </View>
                 </View>
 
@@ -233,19 +237,19 @@ export default function WelcomeScreen() {
                   ]}
                 >
                   <Text style={styles.ctaText}>Get Started</Text>
-                  <ArrowRight size={20} color={COLORS.textInverse} />
+                  <ArrowRight size={20} color={colors.textInverse} />
                 </Pressable>
               </View>
             </View>
           );
       }
     },
-    [notifTime, handleTimeChange, handleGetStarted]
+    [notifTime, handleTimeChange, handleGetStarted, colors, shadows, styles]
   );
 
   return (
     <LinearGradient
-      colors={[COLORS.background, "#F0E6D6", COLORS.background]}
+      colors={[colors.background, "#F0E6D6", colors.background]}
       locations={[0, 0.45, 1]}
       style={styles.container}
     >
@@ -305,7 +309,7 @@ export default function WelcomeScreen() {
               pressed && { opacity: 0.7 },
             ]}
           >
-            <ChevronRight size={22} color={COLORS.textPrimary} />
+            <ChevronRight size={22} color={colors.textPrimary} />
           </Pressable>
         ) : (
           <View style={{ width: 48 }} />
@@ -315,227 +319,228 @@ export default function WelcomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  flatList: {
-    flex: 1,
-  },
-  skipButton: {
-    position: "absolute",
-    top: Platform.OS === "ios" ? 60 : 40,
-    right: 24,
-    zIndex: 10,
-    padding: 8,
-  },
-  skipText: {
-    fontFamily: FONTS.bodyBold,
-    fontSize: 14,
-    color: COLORS.textTertiary,
-    letterSpacing: 2,
-    textTransform: "uppercase",
-  },
+const createStyles = (colors: any, shadows: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    flatList: {
+      flex: 1,
+    },
+    skipButton: {
+      position: "absolute",
+      top: Platform.OS === "ios" ? 60 : 40,
+      right: 24,
+      zIndex: 10,
+      padding: 8,
+    },
+    skipText: {
+      fontFamily: FONTS.bodyBold,
+      fontSize: 14,
+      color: colors.textTertiary,
+      letterSpacing: 2,
+      textTransform: "uppercase",
+    },
 
-  // --- Screens ---
-  screen: {
-    width: SCREEN_WIDTH,
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  screenContent: {
-    alignItems: "center",
-    paddingHorizontal: 32,
-    width: "100%",
-  },
+    // --- Screens ---
+    screen: {
+      width: SCREEN_WIDTH,
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    screenContent: {
+      alignItems: "center",
+      paddingHorizontal: 32,
+      width: "100%",
+    },
 
-  // --- Screen 1: Speak Life ---
-  flameContainer: {
-    marginBottom: 24,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  flameGlow: {
-    position: "absolute",
-    width: 160,
-    height: 160,
-    borderRadius: 80,
-    backgroundColor: "rgba(212,149,74,0.12)",
-  },
-  brandTitle: {
-    fontFamily: FONTS.display,
-    fontSize: 44,
-    color: COLORS.textPrimary,
-    textAlign: "center",
-    letterSpacing: 6,
-    lineHeight: 54,
-  },
-  brandAccent: {
-    color: COLORS.purple,
-  },
-  divider: {
-    width: 60,
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: COLORS.accent,
-    marginVertical: 24,
-  },
-  headline: {
-    fontFamily: FONTS.display,
-    fontSize: 24,
-    color: COLORS.textPrimary,
-    textAlign: "center",
-  },
-  headlineAccent: {
-    fontFamily: FONTS.display,
-    fontSize: 24,
-    color: COLORS.accent,
-    textAlign: "center",
-    marginBottom: 16,
-  },
-  tagline: {
-    fontFamily: FONTS.body,
-    fontSize: 16,
-    color: COLORS.textSecondary,
-    textAlign: "center",
-    lineHeight: 24,
-  },
+    // --- Screen 1: Speak Life ---
+    flameContainer: {
+      marginBottom: 24,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    flameGlow: {
+      position: "absolute",
+      width: 160,
+      height: 160,
+      borderRadius: 80,
+      backgroundColor: "rgba(212,149,74,0.12)",
+    },
+    brandTitle: {
+      fontFamily: FONTS.display,
+      fontSize: 44,
+      color: colors.textPrimary,
+      textAlign: "center",
+      letterSpacing: 6,
+      lineHeight: 54,
+    },
+    brandAccent: {
+      color: colors.purple,
+    },
+    divider: {
+      width: 60,
+      height: 3,
+      borderRadius: 2,
+      backgroundColor: colors.accent,
+      marginVertical: 24,
+    },
+    headline: {
+      fontFamily: FONTS.display,
+      fontSize: 24,
+      color: colors.textPrimary,
+      textAlign: "center",
+    },
+    headlineAccent: {
+      fontFamily: FONTS.display,
+      fontSize: 24,
+      color: colors.accent,
+      textAlign: "center",
+      marginBottom: 16,
+    },
+    tagline: {
+      fontFamily: FONTS.body,
+      fontSize: 16,
+      color: colors.textSecondary,
+      textAlign: "center",
+      lineHeight: 24,
+    },
 
-  // --- Screen 2: How It Works ---
-  sectionTitle: {
-    fontFamily: FONTS.display,
-    fontSize: 28,
-    color: COLORS.textPrimary,
-    textAlign: "center",
-    marginBottom: 40,
-  },
-  stepsContainer: {
-    width: "100%",
-    gap: 28,
-  },
-  stepRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 16,
-  },
-  stepIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-    ...SHADOWS.small,
-  },
-  stepText: {
-    flex: 1,
-  },
-  stepLabel: {
-    fontFamily: FONTS.bodyBold,
-    fontSize: 10,
-    color: COLORS.accent,
-    letterSpacing: 3,
-    marginBottom: 4,
-  },
-  stepTitle: {
-    fontFamily: FONTS.bodyBold,
-    fontSize: 17,
-    color: COLORS.textPrimary,
-  },
-  stepDesc: {
-    fontFamily: FONTS.body,
-    fontSize: 13,
-    color: COLORS.textSecondary,
-    marginTop: 4,
-    lineHeight: 18,
-  },
+    // --- Screen 2: How It Works ---
+    sectionTitle: {
+      fontFamily: FONTS.display,
+      fontSize: 28,
+      color: colors.textPrimary,
+      textAlign: "center",
+      marginBottom: 40,
+    },
+    stepsContainer: {
+      width: "100%",
+      gap: 28,
+    },
+    stepRow: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: 16,
+    },
+    stepIcon: {
+      width: 56,
+      height: 56,
+      borderRadius: 16,
+      alignItems: "center",
+      justifyContent: "center",
+      ...shadows.small,
+    },
+    stepText: {
+      flex: 1,
+    },
+    stepLabel: {
+      fontFamily: FONTS.bodyBold,
+      fontSize: 10,
+      color: colors.accent,
+      letterSpacing: 3,
+      marginBottom: 4,
+    },
+    stepTitle: {
+      fontFamily: FONTS.bodyBold,
+      fontSize: 17,
+      color: colors.textPrimary,
+    },
+    stepDesc: {
+      fontFamily: FONTS.body,
+      fontSize: 13,
+      color: colors.textSecondary,
+      marginTop: 4,
+      lineHeight: 18,
+    },
 
-  // --- Screen 3: Daily Declaration ---
-  bellContainer: {
-    marginBottom: 28,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  bellGlow: {
-    position: "absolute",
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    backgroundColor: "rgba(139,92,246,0.10)",
-  },
-  bellCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: COLORS.purple,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  timeLabel: {
-    fontFamily: FONTS.bodyBold,
-    fontSize: 10,
-    color: COLORS.textTertiary,
-    letterSpacing: 3,
-    marginTop: 28,
-    marginBottom: 12,
-  },
-  timePickerWrapper: {
-    marginBottom: 36,
-  },
-  ctaButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    backgroundColor: COLORS.purple,
-    width: "100%",
-    paddingVertical: 18,
-    borderRadius: 16,
-  },
-  ctaButtonPressed: {
-    opacity: 0.8,
-  },
-  ctaText: {
-    fontFamily: FONTS.display,
-    fontSize: 18,
-    color: COLORS.textInverse,
-    letterSpacing: 2,
-    textTransform: "uppercase",
-  },
+    // --- Screen 3: Daily Declaration ---
+    bellContainer: {
+      marginBottom: 28,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    bellGlow: {
+      position: "absolute",
+      width: 140,
+      height: 140,
+      borderRadius: 70,
+      backgroundColor: "rgba(139,92,246,0.10)",
+    },
+    bellCircle: {
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+      backgroundColor: colors.purple,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    timeLabel: {
+      fontFamily: FONTS.bodyBold,
+      fontSize: 10,
+      color: colors.textTertiary,
+      letterSpacing: 3,
+      marginTop: 28,
+      marginBottom: 12,
+    },
+    timePickerWrapper: {
+      marginBottom: 36,
+    },
+    ctaButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 10,
+      backgroundColor: colors.purple,
+      width: "100%",
+      paddingVertical: 18,
+      borderRadius: 16,
+    },
+    ctaButtonPressed: {
+      opacity: 0.8,
+    },
+    ctaText: {
+      fontFamily: FONTS.display,
+      fontSize: 18,
+      color: colors.textInverse,
+      letterSpacing: 2,
+      textTransform: "uppercase",
+    },
 
-  // --- Bottom Bar ---
-  bottomBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 32,
-    paddingBottom: Platform.OS === "ios" ? 50 : 32,
-    paddingTop: 16,
-  },
-  dots: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  dot: {
-    borderRadius: 4,
-  },
-  dotActive: {
-    width: 28,
-    height: 6,
-    backgroundColor: COLORS.accent,
-  },
-  dotInactive: {
-    width: 8,
-    height: 6,
-    backgroundColor: COLORS.border,
-  },
-  nextButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: COLORS.surface,
-    alignItems: "center",
-    justifyContent: "center",
-    ...SHADOWS.small,
-  },
-});
+    // --- Bottom Bar ---
+    bottomBar: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 32,
+      paddingBottom: Platform.OS === "ios" ? 50 : 32,
+      paddingTop: 16,
+    },
+    dots: {
+      flexDirection: "row",
+      gap: 8,
+    },
+    dot: {
+      borderRadius: 4,
+    },
+    dotActive: {
+      width: 28,
+      height: 6,
+      backgroundColor: colors.accent,
+    },
+    dotInactive: {
+      width: 8,
+      height: 6,
+      backgroundColor: colors.border,
+    },
+    nextButton: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: colors.surface,
+      alignItems: "center",
+      justifyContent: "center",
+      ...shadows.small,
+    },
+  });

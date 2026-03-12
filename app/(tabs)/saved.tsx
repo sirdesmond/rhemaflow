@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import {
   View,
   FlatList,
@@ -15,7 +15,7 @@ import ViewShot from "react-native-view-shot";
 import { Typography } from "../../components/ui/Typography";
 import { DeclarationCard } from "../../components/DeclarationCard";
 import { ShareCard } from "../../components/ShareCard";
-import { COLORS, SHADOWS } from "../../constants/theme";
+import { useTheme } from "../../hooks/useTheme";
 import { CATEGORY_TINTS } from "../../constants/categories";
 import { Declaration, DeclarationCategory } from "../../types";
 import {
@@ -30,6 +30,7 @@ import { getUserSettings } from "../../services/settings";
 import { logError } from "../../services/crashlytics";
 
 export default function SavedScreen() {
+  const { colors, shadows } = useTheme();
   const [declarations, setDeclarations] = useState<Declaration[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "favorites">("all");
@@ -40,6 +41,8 @@ export default function SavedScreen() {
   const { isPlaying, atmosphere, play, togglePlayback, cycleAtmosphere, stop, progress } =
     useAudio();
   const viewShotRef = useRef<ViewShot>(null);
+
+  const styles = useMemo(() => createStyles(colors, shadows), [colors, shadows]);
 
   useEffect(() => {
     const unsubscribe = onDeclarationsSnapshot((items) => {
@@ -165,7 +168,7 @@ export default function SavedScreen() {
         {/* Header with back button */}
         <View style={styles.detailHeader}>
           <Pressable onPress={handleBack} style={styles.backBtn}>
-            <ChevronLeft size={18} color={COLORS.textPrimary} />
+            <ChevronLeft size={18} color={colors.textPrimary} />
             <Typography variant="caption" style={styles.backBtnText}>
               Back
             </Typography>
@@ -254,9 +257,9 @@ export default function SavedScreen() {
                   <Heart
                     size={18}
                     color={
-                      item.isFavorite ? COLORS.accent : COLORS.textTertiary
+                      item.isFavorite ? colors.accent : colors.textTertiary
                     }
-                    fill={item.isFavorite ? COLORS.accent : "transparent"}
+                    fill={item.isFavorite ? colors.accent : "transparent"}
                   />
                 </Pressable>
                 <Pressable
@@ -266,7 +269,7 @@ export default function SavedScreen() {
                   }}
                   style={styles.iconBtn}
                 >
-                  <Trash2 size={18} color={COLORS.textTertiary} />
+                  <Trash2 size={18} color={colors.textTertiary} />
                 </Pressable>
               </View>
             </View>
@@ -282,7 +285,7 @@ export default function SavedScreen() {
 
             {/* Scripture */}
             <View style={styles.scriptureRow}>
-              <BookOpen size={14} color={COLORS.accent} />
+              <BookOpen size={14} color={colors.accent} />
               <Typography variant="caption" style={styles.reference}>
                 {item.reference}
               </Typography>
@@ -335,11 +338,11 @@ export default function SavedScreen() {
 
       {loading ? (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color={COLORS.purple} />
+          <ActivityIndicator size="large" color={colors.purple} />
         </View>
       ) : filtered.length === 0 ? (
         <View style={styles.center}>
-          <Heart size={48} color={COLORS.border} />
+          <Heart size={48} color={colors.border} />
           <Typography variant="heading" style={styles.emptyTitle}>
             {filter === "favorites"
               ? "No favorites yet"
@@ -364,143 +367,144 @@ export default function SavedScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  // Detail view
-  detailHeader: {
-    height: 56,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.borderLight,
-  },
-  backBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    backgroundColor: COLORS.surface,
-    ...SHADOWS.small,
-  },
-  backBtnText: {
-    color: COLORS.textPrimary,
-    fontSize: 12,
-    letterSpacing: 0.5,
-  },
-  detailHeaderText: {
-    color: COLORS.textTertiary,
-    fontSize: 11,
-    letterSpacing: 2,
-    textTransform: "uppercase",
-  },
-  detailContent: {
-    flex: 1,
-    padding: 16,
-    paddingBottom: 100,
-  },
-  // List view
-  filterRow: {
-    flexDirection: "row",
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 8,
-    gap: 12,
-  },
-  filterBtn: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: COLORS.surface,
-    ...SHADOWS.small,
-  },
-  filterBtnActive: {
-    backgroundColor: COLORS.accent,
-  },
-  filterText: {
-    color: COLORS.textSecondary,
-    fontSize: 13,
-    letterSpacing: 0.5,
-  },
-  filterTextActive: {
-    color: COLORS.textInverse,
-  },
-  list: {
-    padding: 20,
-    paddingBottom: 100,
-    gap: 16,
-  },
-  card: {
-    borderRadius: 16,
-    overflow: "hidden",
-    backgroundColor: COLORS.surface,
-    flexDirection: "row",
-    ...SHADOWS.medium,
-  },
-  accentBar: {
-    width: 4,
-  },
-  cardBody: {
-    flex: 1,
-    padding: 16,
-  },
-  cardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  categoryPill: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  categoryText: {
-    fontSize: 11,
-    textTransform: "uppercase",
-    letterSpacing: 1,
-  },
-  cardActions: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  iconBtn: {
-    padding: 6,
-  },
-  declarationText: {
-    color: COLORS.textPrimary,
-    lineHeight: 24,
-    marginBottom: 12,
-  },
-  scriptureRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  reference: {
-    color: COLORS.accent,
-    fontSize: 12,
-  },
-  center: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 40,
-    gap: 12,
-  },
-  emptyTitle: {
-    color: COLORS.textSecondary,
-    textAlign: "center",
-  },
-  emptySubtitle: {
-    color: COLORS.textTertiary,
-    textAlign: "center",
-    lineHeight: 20,
-  },
-});
+const createStyles = (colors: any, shadows: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    // Detail view
+    detailHeader: {
+      height: 56,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.borderLight,
+    },
+    backBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 20,
+      backgroundColor: colors.surface,
+      ...shadows.small,
+    },
+    backBtnText: {
+      color: colors.textPrimary,
+      fontSize: 12,
+      letterSpacing: 0.5,
+    },
+    detailHeaderText: {
+      color: colors.textTertiary,
+      fontSize: 11,
+      letterSpacing: 2,
+      textTransform: "uppercase",
+    },
+    detailContent: {
+      flex: 1,
+      padding: 16,
+      paddingBottom: 100,
+    },
+    // List view
+    filterRow: {
+      flexDirection: "row",
+      paddingHorizontal: 20,
+      paddingTop: 16,
+      paddingBottom: 8,
+      gap: 12,
+    },
+    filterBtn: {
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      borderRadius: 20,
+      backgroundColor: colors.surface,
+      ...shadows.small,
+    },
+    filterBtnActive: {
+      backgroundColor: colors.accent,
+    },
+    filterText: {
+      color: colors.textSecondary,
+      fontSize: 13,
+      letterSpacing: 0.5,
+    },
+    filterTextActive: {
+      color: colors.textInverse,
+    },
+    list: {
+      padding: 20,
+      paddingBottom: 100,
+      gap: 16,
+    },
+    card: {
+      borderRadius: 16,
+      overflow: "hidden",
+      backgroundColor: colors.surface,
+      flexDirection: "row",
+      ...shadows.medium,
+    },
+    accentBar: {
+      width: 4,
+    },
+    cardBody: {
+      flex: 1,
+      padding: 16,
+    },
+    cardHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 12,
+    },
+    categoryPill: {
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 12,
+    },
+    categoryText: {
+      fontSize: 11,
+      textTransform: "uppercase",
+      letterSpacing: 1,
+    },
+    cardActions: {
+      flexDirection: "row",
+      gap: 8,
+    },
+    iconBtn: {
+      padding: 6,
+    },
+    declarationText: {
+      color: colors.textPrimary,
+      lineHeight: 24,
+      marginBottom: 12,
+    },
+    scriptureRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+    },
+    reference: {
+      color: colors.accent,
+      fontSize: 12,
+    },
+    center: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      padding: 40,
+      gap: 12,
+    },
+    emptyTitle: {
+      color: colors.textSecondary,
+      textAlign: "center",
+    },
+    emptySubtitle: {
+      color: colors.textTertiary,
+      textAlign: "center",
+      lineHeight: 20,
+    },
+  });

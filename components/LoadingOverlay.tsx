@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet } from "react-native";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Flame } from "lucide-react-native";
 import Animated, {
   useSharedValue,
@@ -9,13 +9,17 @@ import Animated, {
   withSequence,
   Easing,
 } from "react-native-reanimated";
-import { LOADING_MESSAGES, COLORS } from "../constants/theme";
+import { LOADING_MESSAGES } from "../constants/theme";
+import { useTheme } from "../hooks/useTheme";
 
 export function LoadingOverlay() {
+  const { colors } = useTheme();
   const [messageIndex, setMessageIndex] = useState(0);
   const scale = useSharedValue(1);
   const opacity = useSharedValue(0.6);
   const glowOpacity = useSharedValue(0.3);
+
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   useEffect(() => {
     scale.value = withRepeat(
@@ -65,7 +69,7 @@ export function LoadingOverlay() {
       <View style={styles.iconWrapper}>
         <Animated.View style={[styles.glowRing, animatedGlow]} />
         <Animated.View style={[styles.iconContainer, animatedIcon]}>
-          <Flame size={56} color={COLORS.accent} fill={COLORS.accent} />
+          <Flame size={56} color={colors.accent} fill={colors.accent} />
         </Animated.View>
       </View>
 
@@ -78,58 +82,59 @@ export function LoadingOverlay() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 24,
-  },
-  iconWrapper: {
-    marginBottom: 40,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  glowRing: {
-    position: "absolute",
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: COLORS.accentLight,
-    shadowColor: COLORS.accent,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 30,
-  },
-  iconContainer: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: COLORS.accentMuted,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  title: {
-    fontFamily: "Cinzel",
-    fontSize: 24,
-    color: COLORS.accent,
-    textAlign: "center",
-    letterSpacing: 4,
-  },
-  divider: {
-    width: 40,
-    height: 2,
-    backgroundColor: COLORS.accent,
-    marginVertical: 16,
-    borderRadius: 1,
-    opacity: 0.5,
-  },
-  subtitle: {
-    fontFamily: "Lato",
-    fontSize: 13,
-    color: COLORS.textSecondary,
-    textTransform: "uppercase",
-    letterSpacing: 3,
-    textAlign: "center",
-  },
-});
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      padding: 24,
+    },
+    iconWrapper: {
+      marginBottom: 40,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    glowRing: {
+      position: "absolute",
+      width: 120,
+      height: 120,
+      borderRadius: 60,
+      backgroundColor: colors.accentLight,
+      shadowColor: colors.accent,
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.3,
+      shadowRadius: 30,
+    },
+    iconContainer: {
+      width: 96,
+      height: 96,
+      borderRadius: 48,
+      backgroundColor: colors.accentMuted,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    title: {
+      fontFamily: "Cinzel",
+      fontSize: 24,
+      color: colors.accent,
+      textAlign: "center",
+      letterSpacing: 4,
+    },
+    divider: {
+      width: 40,
+      height: 2,
+      backgroundColor: colors.accent,
+      marginVertical: 16,
+      borderRadius: 1,
+      opacity: 0.5,
+    },
+    subtitle: {
+      fontFamily: "Lato",
+      fontSize: 13,
+      color: colors.textSecondary,
+      textTransform: "uppercase",
+      letterSpacing: 3,
+      textAlign: "center",
+    },
+  });

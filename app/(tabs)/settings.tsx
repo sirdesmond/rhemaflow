@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -26,16 +26,19 @@ import {
   Volume2,
   Plus,
   X,
+  Sun,
+  Moon,
+  Monitor,
 } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import { Typography } from "../../components/ui/Typography";
-import { COLORS, SHADOWS } from "../../constants/theme";
 import { ATMOSPHERE_TRACKS } from "../../constants/tracks";
 import { AtmosphereType, UserSettings, LifeStage } from "../../types";
 import { useRouter } from "expo-router";
 import { auth } from "../../services/firebase";
 import { signOut, deleteAccount } from "../../services/auth";
 import { useSubscription } from "../../hooks/useSubscription";
+import { useTheme } from "../../hooks/useTheme";
 import {
   scheduleMultipleNotifications,
   cancelNotifications,
@@ -72,10 +75,17 @@ function formatTime(time: string): string {
   return `${hour12}:${String(minute).padStart(2, "0")} ${period}`;
 }
 
+const THEME_OPTIONS = [
+  { id: "light" as const, label: "Light", Icon: Sun },
+  { id: "dark" as const, label: "Dark", Icon: Moon },
+  { id: "system" as const, label: "System", Icon: Monitor },
+];
+
 export default function SettingsScreen() {
   const user = auth.currentUser;
   const router = useRouter();
   const { isPro, usage } = useSubscription();
+  const { colors, shadows, mode, setMode } = useTheme();
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [notificationTimes, setNotificationTimes] = useState<string[]>([]);
   const [defaultAtmosphere, setDefaultAtmosphere] =
@@ -88,6 +98,8 @@ export default function SettingsScreen() {
   const [lifeStages, setLifeStages] = useState<LifeStage[]>([]);
   const [showLifeStages, setShowLifeStages] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const styles = useMemo(() => createStyles(colors, shadows), [colors, shadows]);
 
   // Load saved settings from Firestore on mount
   useEffect(() => {
@@ -187,6 +199,11 @@ export default function SettingsScreen() {
     });
   };
 
+  const handleThemeChange = (newMode: "light" | "dark" | "system") => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setMode(newMode);
+  };
+
   const handleSignOut = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     Alert.alert("Sign Out", "Are you sure you want to sign out?", [
@@ -258,13 +275,13 @@ export default function SettingsScreen() {
       {/* Profile section */}
       <View style={styles.profileSection}>
         <LinearGradient
-          colors={[COLORS.purple, COLORS.accent]}
+          colors={[colors.purple, colors.accent]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.avatarRing}
         >
           <View style={styles.avatar}>
-            <User size={32} color={COLORS.textTertiary} />
+            <User size={32} color={colors.textTertiary} />
           </View>
         </LinearGradient>
         <View style={styles.profileInfo}>
@@ -278,18 +295,18 @@ export default function SettingsScreen() {
                   flexDirection: "row",
                   alignItems: "center",
                   gap: 4,
-                  backgroundColor: COLORS.accentMuted,
+                  backgroundColor: colors.accentMuted,
                   paddingHorizontal: 8,
                   paddingVertical: 3,
                   borderRadius: 10,
                 }}
               >
-                <Crown size={10} color={COLORS.accent} />
+                <Crown size={10} color={colors.accent} />
                 <Text
                   style={{
                     fontFamily: "Lato-Bold",
                     fontSize: 9,
-                    color: COLORS.accent,
+                    color: colors.accent,
                     textTransform: "uppercase",
                     letterSpacing: 1,
                   }}
@@ -305,6 +322,41 @@ export default function SettingsScreen() {
         </View>
       </View>
 
+      {/* Appearance section */}
+      <View style={styles.section}>
+        <Typography variant="caption" style={styles.sectionTitle}>
+          APPEARANCE
+        </Typography>
+        <View style={styles.themePillRow}>
+          {THEME_OPTIONS.map((opt) => {
+            const isActive = mode === opt.id;
+            return (
+              <Pressable
+                key={opt.id}
+                style={[
+                  styles.themePill,
+                  isActive && styles.themePillActive,
+                ]}
+                onPress={() => handleThemeChange(opt.id)}
+              >
+                <opt.Icon
+                  size={16}
+                  color={isActive ? colors.accent : colors.textTertiary}
+                />
+                <Text
+                  style={[
+                    styles.themePillText,
+                    isActive && styles.themePillTextActive,
+                  ]}
+                >
+                  {opt.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      </View>
+
       {/* Notifications section */}
       <View style={styles.section}>
         <Typography variant="caption" style={styles.sectionTitle}>
@@ -313,8 +365,8 @@ export default function SettingsScreen() {
 
         <View style={styles.row}>
           <View style={styles.rowLeft}>
-            <View style={[styles.iconCircle, { backgroundColor: COLORS.purpleMuted }]}>
-              <Bell size={18} color={COLORS.purple} />
+            <View style={[styles.iconCircle, { backgroundColor: colors.purpleMuted }]}>
+              <Bell size={18} color={colors.purple} />
             </View>
             <Typography variant="body" style={styles.rowLabel}>
               Daily Reminders
@@ -324,11 +376,11 @@ export default function SettingsScreen() {
             value={notificationsEnabled}
             onValueChange={handleToggleNotifications}
             trackColor={{
-              false: COLORS.border,
-              true: COLORS.purple + "80",
+              false: colors.border,
+              true: colors.purple + "80",
             }}
             thumbColor={
-              notificationsEnabled ? COLORS.purple : COLORS.textTertiary
+              notificationsEnabled ? colors.purple : colors.textTertiary
             }
           />
         </View>
@@ -341,8 +393,8 @@ export default function SettingsScreen() {
                   style={styles.rowLeft}
                   onPress={() => openTimePicker(index)}
                 >
-                  <View style={[styles.iconCircle, { backgroundColor: COLORS.accentMuted }]}>
-                    <Clock size={18} color={COLORS.accent} />
+                  <View style={[styles.iconCircle, { backgroundColor: colors.accentMuted }]}>
+                    <Clock size={18} color={colors.accent} />
                   </View>
                   <Typography variant="body" style={styles.rowLabel}>
                     {formatTime(time)}
@@ -352,7 +404,7 @@ export default function SettingsScreen() {
                   onPress={() => handleRemoveTime(index)}
                   hitSlop={8}
                 >
-                  <X size={18} color={COLORS.textTertiary} />
+                  <X size={18} color={colors.textTertiary} />
                 </Pressable>
               </View>
             ))}
@@ -363,10 +415,10 @@ export default function SettingsScreen() {
                 onPress={() => openTimePicker(null)}
               >
                 <View style={styles.rowLeft}>
-                  <View style={[styles.iconCircle, { backgroundColor: COLORS.purpleMuted }]}>
-                    <Plus size={18} color={COLORS.purple} />
+                  <View style={[styles.iconCircle, { backgroundColor: colors.purpleMuted }]}>
+                    <Plus size={18} color={colors.purple} />
                   </View>
-                  <Typography variant="body" style={[styles.rowLabel, { color: COLORS.purple }]}>
+                  <Typography variant="body" style={[styles.rowLabel, { color: colors.purple }]}>
                     Add Reminder
                   </Typography>
                 </View>
@@ -387,8 +439,8 @@ export default function SettingsScreen() {
           onPress={() => setShowAtmospherePicker(!showAtmospherePicker)}
         >
           <View style={styles.rowLeft}>
-            <View style={[styles.iconCircle, { backgroundColor: COLORS.accentMuted }]}>
-              <Music size={18} color={COLORS.accent} />
+            <View style={[styles.iconCircle, { backgroundColor: colors.accentMuted }]}>
+              <Music size={18} color={colors.accent} />
             </View>
             <Typography variant="body" style={styles.rowLabel}>
               Default Atmosphere
@@ -398,7 +450,7 @@ export default function SettingsScreen() {
             <Typography variant="caption" style={styles.rowValue}>
               {atmosphereLabel}
             </Typography>
-            <ChevronRight size={16} color={COLORS.textTertiary} />
+            <ChevronRight size={16} color={colors.textTertiary} />
           </View>
         </Pressable>
 
@@ -433,8 +485,8 @@ export default function SettingsScreen() {
           onPress={() => handleVoiceGenderChange(voiceGender === "male" ? "female" : "male")}
         >
           <View style={styles.rowLeft}>
-            <View style={[styles.iconCircle, { backgroundColor: COLORS.accentMuted }]}>
-              <Volume2 size={18} color={COLORS.accent} />
+            <View style={[styles.iconCircle, { backgroundColor: colors.accentMuted }]}>
+              <Volume2 size={18} color={colors.accent} />
             </View>
             <Typography variant="body" style={styles.rowLabel}>
               Voice
@@ -444,7 +496,7 @@ export default function SettingsScreen() {
             <Typography variant="caption" style={styles.rowValue}>
               {voiceGender === "male" ? "Male" : "Female"}
             </Typography>
-            <ChevronRight size={16} color={COLORS.textTertiary} />
+            <ChevronRight size={16} color={colors.textTertiary} />
           </View>
         </Pressable>
 
@@ -454,21 +506,21 @@ export default function SettingsScreen() {
           onPress={() => setShowLifeStages(!showLifeStages)}
         >
           <View style={styles.rowLeft}>
-            <View style={[styles.iconCircle, { backgroundColor: COLORS.purpleMuted }]}>
-              <User size={18} color={COLORS.purple} />
+            <View style={[styles.iconCircle, { backgroundColor: colors.purpleMuted }]}>
+              <User size={18} color={colors.purple} />
             </View>
             <View>
               <Typography variant="body" style={styles.rowLabel}>
                 Life Stages
               </Typography>
               {lifeStages.length > 0 && !showLifeStages && (
-                <Typography variant="caption" style={{ color: COLORS.textTertiary, marginTop: 2 }}>
+                <Typography variant="caption" style={{ color: colors.textTertiary, marginTop: 2 }}>
                   {lifeStages.map((s) => s === "business-owner" ? "Business Owner" : s.charAt(0).toUpperCase() + s.slice(1)).join(", ")}
                 </Typography>
               )}
             </View>
           </View>
-          <ChevronRight size={16} color={COLORS.textTertiary} />
+          <ChevronRight size={16} color={colors.textTertiary} />
         </Pressable>
 
         {showLifeStages && (
@@ -512,14 +564,14 @@ export default function SettingsScreen() {
           <>
             <View style={styles.row}>
               <View style={styles.rowLeft}>
-                <View style={[styles.iconCircle, { backgroundColor: COLORS.accentMuted }]}>
-                  <Crown size={18} color={COLORS.accent} />
+                <View style={[styles.iconCircle, { backgroundColor: colors.accentMuted }]}>
+                  <Crown size={18} color={colors.accent} />
                 </View>
                 <View>
                   <Typography variant="body" style={styles.rowLabel}>
                     RhemaFlow Pro
                   </Typography>
-                  <Typography variant="caption" style={{ color: COLORS.accent, marginTop: 2 }}>
+                  <Typography variant="caption" style={{ color: colors.accent, marginTop: 2 }}>
                     Active
                   </Typography>
                 </View>
@@ -534,29 +586,29 @@ export default function SettingsScreen() {
               )}
             >
               <View style={styles.rowLeft}>
-                <View style={[styles.iconCircle, { backgroundColor: COLORS.purpleMuted }]}>
-                  <Zap size={18} color={COLORS.purple} />
+                <View style={[styles.iconCircle, { backgroundColor: colors.purpleMuted }]}>
+                  <Zap size={18} color={colors.purple} />
                 </View>
                 <Typography variant="body" style={styles.rowLabel}>
                   Manage Subscription
                 </Typography>
               </View>
-              <ChevronRight size={16} color={COLORS.textTertiary} />
+              <ChevronRight size={16} color={colors.textTertiary} />
             </Pressable>
           </>
         ) : (
           <>
             <View style={styles.row}>
               <View style={styles.rowLeft}>
-                <View style={[styles.iconCircle, { backgroundColor: COLORS.backgroundMuted }]}>
-                  <Crown size={18} color={COLORS.textTertiary} />
+                <View style={[styles.iconCircle, { backgroundColor: colors.backgroundMuted }]}>
+                  <Crown size={18} color={colors.textTertiary} />
                 </View>
                 <View>
                   <Typography variant="body" style={styles.rowLabel}>
                     Free Plan
                   </Typography>
                   {usage && (
-                    <Typography variant="caption" style={{ color: COLORS.textTertiary, marginTop: 2 }}>
+                    <Typography variant="caption" style={{ color: colors.textTertiary, marginTop: 2 }}>
                       {usage.declarationsToday}/{usage.dailyLimit} declarations used today
                     </Typography>
                   )}
@@ -571,14 +623,14 @@ export default function SettingsScreen() {
               }}
             >
               <View style={styles.rowLeft}>
-                <View style={[styles.iconCircle, { backgroundColor: COLORS.accentMuted }]}>
-                  <Zap size={18} color={COLORS.accent} />
+                <View style={[styles.iconCircle, { backgroundColor: colors.accentMuted }]}>
+                  <Zap size={18} color={colors.accent} />
                 </View>
-                <Typography variant="body" style={[styles.rowLabel, { color: COLORS.accent }]}>
+                <Typography variant="body" style={[styles.rowLabel, { color: colors.accent }]}>
                   Upgrade to Pro
                 </Typography>
               </View>
-              <ChevronRight size={16} color={COLORS.accent} />
+              <ChevronRight size={16} color={colors.accent} />
             </Pressable>
           </>
         )}
@@ -592,10 +644,10 @@ export default function SettingsScreen() {
 
         <Pressable style={styles.row} onPress={handleSignOut}>
           <View style={styles.rowLeft}>
-            <View style={[styles.iconCircle, { backgroundColor: COLORS.errorLight }]}>
-              <LogOut size={18} color={COLORS.error} />
+            <View style={[styles.iconCircle, { backgroundColor: colors.errorLight }]}>
+              <LogOut size={18} color={colors.error} />
             </View>
-            <Typography variant="body" style={[styles.rowLabel, { color: COLORS.error }]}>
+            <Typography variant="body" style={[styles.rowLabel, { color: colors.error }]}>
               Sign Out
             </Typography>
           </View>
@@ -607,10 +659,10 @@ export default function SettingsScreen() {
           disabled={isDeleting}
         >
           <View style={styles.rowLeft}>
-            <View style={[styles.iconCircle, { backgroundColor: COLORS.errorLight }]}>
-              <Trash2 size={18} color={COLORS.error} />
+            <View style={[styles.iconCircle, { backgroundColor: colors.errorLight }]}>
+              <Trash2 size={18} color={colors.error} />
             </View>
-            <Typography variant="body" style={[styles.rowLabel, { color: COLORS.error }]}>
+            <Typography variant="body" style={[styles.rowLabel, { color: colors.error }]}>
               {isDeleting ? "Deleting Account..." : "Delete Account"}
             </Typography>
           </View>
@@ -655,159 +707,191 @@ export default function SettingsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  content: {
-    padding: 20,
-    paddingBottom: 120,
-  },
-  profileSection: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 16,
-    paddingVertical: 24,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.borderLight,
-    marginBottom: 8,
-  },
-  avatarRing: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  avatar: {
-    width: 62,
-    height: 62,
-    borderRadius: 31,
-    backgroundColor: COLORS.backgroundWarm,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  profileInfo: {
-    flex: 1,
-  },
-  profileName: {
-    color: COLORS.textPrimary,
-    fontSize: 20,
-  },
-  profileEmail: {
-    color: COLORS.textTertiary,
-    marginTop: 2,
-  },
-  section: {
-    marginTop: 24,
-  },
-  sectionTitle: {
-    color: COLORS.accent,
-    fontSize: 11,
-    letterSpacing: 2,
-    marginBottom: 12,
-    textTransform: "uppercase",
-  },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: COLORS.surface,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 14,
-    marginBottom: 8,
-    ...SHADOWS.small,
-  },
-  iconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  rowLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  rowLabel: {
-    color: COLORS.textPrimary,
-    fontSize: 15,
-  },
-  rowRight: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  rowValue: {
-    color: COLORS.textTertiary,
-  },
-  pickerContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    paddingHorizontal: 8,
-    paddingBottom: 8,
-  },
-  pickerOption: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: COLORS.backgroundWarm,
-  },
-  pickerOptionActive: {
-    backgroundColor: COLORS.accentMuted,
-    borderWidth: 1,
-    borderColor: COLORS.accent,
-  },
-  pickerText: {
-    color: COLORS.textTertiary,
-    fontSize: 14,
-  },
-  pickerTextActive: {
-    color: COLORS.accent,
-  },
-  version: {
-    color: COLORS.textTertiary,
-    textAlign: "center",
-    marginTop: 40,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContent: {
-    backgroundColor: COLORS.surface,
-    borderRadius: 24,
-    padding: 28,
-    alignItems: "center",
-    width: "85%",
-    ...SHADOWS.large,
-  },
-  modalTitle: {
-    fontFamily: "Cinzel",
-    fontSize: 18,
-    color: COLORS.textPrimary,
-    marginBottom: 24,
-    textTransform: "uppercase",
-    letterSpacing: 2,
-  },
-  modalSaveButton: {
-    backgroundColor: COLORS.purple,
-    paddingVertical: 14,
-    paddingHorizontal: 48,
-    borderRadius: 14,
-    marginTop: 24,
-  },
-  modalSaveText: {
-    fontFamily: "Lato-Bold",
-    fontSize: 16,
-    color: COLORS.textInverse,
-    textTransform: "uppercase",
-    letterSpacing: 1,
-  },
-});
+function createStyles(colors: any, shadows: any) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    content: {
+      padding: 20,
+      paddingBottom: 120,
+    },
+    profileSection: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 16,
+      paddingVertical: 24,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.borderLight,
+      marginBottom: 8,
+    },
+    avatarRing: {
+      width: 68,
+      height: 68,
+      borderRadius: 34,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    avatar: {
+      width: 62,
+      height: 62,
+      borderRadius: 31,
+      backgroundColor: colors.backgroundWarm,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    profileInfo: {
+      flex: 1,
+    },
+    profileName: {
+      color: colors.textPrimary,
+      fontSize: 20,
+    },
+    profileEmail: {
+      color: colors.textTertiary,
+      marginTop: 2,
+    },
+    section: {
+      marginTop: 24,
+    },
+    sectionTitle: {
+      color: colors.accent,
+      fontSize: 11,
+      letterSpacing: 2,
+      marginBottom: 12,
+      textTransform: "uppercase",
+    },
+    themePillRow: {
+      flexDirection: "row",
+      gap: 8,
+      marginBottom: 8,
+    },
+    themePill: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 6,
+      paddingVertical: 10,
+      borderRadius: 12,
+      backgroundColor: colors.surface,
+      ...shadows.small,
+    },
+    themePillActive: {
+      backgroundColor: colors.accentMuted,
+      borderWidth: 1,
+      borderColor: colors.accent,
+    },
+    themePillText: {
+      fontFamily: "Lato",
+      fontSize: 13,
+      color: colors.textTertiary,
+    },
+    themePillTextActive: {
+      fontFamily: "Lato-Bold",
+      color: colors.accent,
+    },
+    row: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      backgroundColor: colors.surface,
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+      borderRadius: 14,
+      marginBottom: 8,
+      ...shadows.small,
+    },
+    iconCircle: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    rowLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+    },
+    rowLabel: {
+      color: colors.textPrimary,
+      fontSize: 15,
+    },
+    rowRight: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+    },
+    rowValue: {
+      color: colors.textTertiary,
+    },
+    pickerContainer: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 8,
+      paddingHorizontal: 8,
+      paddingBottom: 8,
+    },
+    pickerOption: {
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      borderRadius: 20,
+      backgroundColor: colors.backgroundWarm,
+    },
+    pickerOptionActive: {
+      backgroundColor: colors.accentMuted,
+      borderWidth: 1,
+      borderColor: colors.accent,
+    },
+    pickerText: {
+      color: colors.textTertiary,
+      fontSize: 14,
+    },
+    pickerTextActive: {
+      color: colors.accent,
+    },
+    version: {
+      color: colors.textTertiary,
+      textAlign: "center",
+      marginTop: 40,
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.4)",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    modalContent: {
+      backgroundColor: colors.surface,
+      borderRadius: 24,
+      padding: 28,
+      alignItems: "center",
+      width: "85%",
+      ...shadows.large,
+    },
+    modalTitle: {
+      fontFamily: "Cinzel",
+      fontSize: 18,
+      color: colors.textPrimary,
+      marginBottom: 24,
+      textTransform: "uppercase",
+      letterSpacing: 2,
+    },
+    modalSaveButton: {
+      backgroundColor: colors.purple,
+      paddingVertical: 14,
+      paddingHorizontal: 48,
+      borderRadius: 14,
+      marginTop: 24,
+    },
+    modalSaveText: {
+      fontFamily: "Lato-Bold",
+      fontSize: 16,
+      color: colors.textInverse,
+      textTransform: "uppercase",
+      letterSpacing: 1,
+    },
+  });
+}

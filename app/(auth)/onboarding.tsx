@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { View, Text, Pressable, StyleSheet, Platform, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
 import { ArrowRight, ArrowLeft } from "lucide-react-native";
-import { COLORS, FONTS, SHADOWS } from "../../constants/theme";
+import { FONTS } from "../../constants/theme";
+import { useTheme } from "../../hooks/useTheme";
 import { updateUserSettings } from "../../services/settings";
 import { DeclarationCategory, AgeRange, LifeStage } from "../../types";
 
@@ -44,6 +45,7 @@ const FAITH_CATEGORIES: { value: DeclarationCategory; label: string }[] = [
 ];
 
 export default function OnboardingScreen() {
+  const { colors, shadows } = useTheme();
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [gender, setGender] = useState<GenderOption>(null);
@@ -53,6 +55,8 @@ export default function OnboardingScreen() {
   const [faithFocusAreas, setFaithFocusAreas] = useState<DeclarationCategory[]>([]);
   const [hasSelectedGender, setHasSelectedGender] = useState(false);
   const [hasSelectedMarital, setHasSelectedMarital] = useState(false);
+
+  const styles = useMemo(() => createStyles(colors, shadows), [colors, shadows]);
 
   const handleSelectGender = (g: GenderOption) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -143,14 +147,14 @@ export default function OnboardingScreen() {
 
   return (
     <LinearGradient
-      colors={[COLORS.background, "#F0E6D6", COLORS.background]}
+      colors={[colors.background, "#F0E6D6", colors.background]}
       locations={[0, 0.45, 1]}
       style={styles.container}
     >
       {/* Back button (step 2+) */}
       {step > 1 && (
         <Pressable onPress={handleBack} style={styles.backButton}>
-          <ArrowLeft size={20} color={COLORS.textTertiary} />
+          <ArrowLeft size={20} color={colors.textTertiary} />
         </Pressable>
       )}
 
@@ -321,7 +325,7 @@ export default function OnboardingScreen() {
             style={({ pressed }) => [styles.ctaButton, pressed && styles.ctaButtonPressed]}
           >
             <Text style={styles.ctaText}>{isLastStep ? "Get Started" : "Continue"}</Text>
-            <ArrowRight size={20} color={COLORS.textInverse} />
+            <ArrowRight size={20} color={colors.textInverse} />
           </Pressable>
         )}
       </View>
@@ -329,177 +333,178 @@ export default function OnboardingScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  backButton: {
-    position: "absolute",
-    top: Platform.OS === "ios" ? 60 : 40,
-    left: 24,
-    zIndex: 10,
-    padding: 8,
-  },
-  skipButton: {
-    position: "absolute",
-    top: Platform.OS === "ios" ? 60 : 40,
-    right: 24,
-    zIndex: 10,
-    padding: 8,
-  },
-  skipText: {
-    fontFamily: FONTS.bodyBold,
-    fontSize: 14,
-    color: COLORS.textTertiary,
-    letterSpacing: 2,
-    textTransform: "uppercase",
-  },
-  content: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 32,
-  },
-  stepIndicator: {
-    flexDirection: "row",
-    gap: 8,
-    marginBottom: 24,
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: COLORS.border,
-  },
-  dotActive: {
-    backgroundColor: COLORS.accent,
-    width: 24,
-  },
-  headline: {
-    fontFamily: FONTS.display,
-    fontSize: 24,
-    color: COLORS.textPrimary,
-    textAlign: "center",
-  },
-  headlineAccent: {
-    fontFamily: FONTS.display,
-    fontSize: 24,
-    color: COLORS.accent,
-    textAlign: "center",
-    marginBottom: 16,
-  },
-  tagline: {
-    fontFamily: FONTS.body,
-    fontSize: 16,
-    color: COLORS.textSecondary,
-    textAlign: "center",
-    lineHeight: 24,
-    marginBottom: 40,
-  },
-  pillContainer: {
-    flexDirection: "row",
-    gap: 16,
-    width: "100%",
-    marginBottom: 40,
-  },
-  pill: {
-    flex: 1,
-    alignItems: "center",
-    paddingVertical: 24,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    backgroundColor: COLORS.surface,
-    ...SHADOWS.medium,
-  },
-  pillActive: {
-    backgroundColor: COLORS.surface,
-    borderWidth: 2,
-    borderColor: COLORS.accent,
-    ...SHADOWS.medium,
-  },
-  pillEmoji: {
-    fontSize: 36,
-    marginBottom: 12,
-  },
-  pillLabel: {
-    fontFamily: FONTS.bodyBold,
-    fontSize: 18,
-    color: COLORS.textPrimary,
-    marginBottom: 6,
-  },
-  pillLabelActive: {
-    color: COLORS.accent,
-  },
-  pillDesc: {
-    fontFamily: FONTS.body,
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    textAlign: "center",
-    lineHeight: 18,
-  },
-  chipContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12,
-    justifyContent: "center",
-    marginBottom: 40,
-    width: "100%",
-  },
-  chip: {
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    borderRadius: 24,
-    backgroundColor: COLORS.surface,
-    ...SHADOWS.small,
-  },
-  chipWide: {
-    width: "100%",
-    alignItems: "center",
-  },
-  chipActive: {
-    backgroundColor: COLORS.surface,
-    borderWidth: 2,
-    borderColor: COLORS.accent,
-    ...SHADOWS.medium,
-  },
-  chipDisabled: {
-    opacity: 0.35,
-  },
-  chipLabel: {
-    fontFamily: FONTS.bodyBold,
-    fontSize: 15,
-    color: COLORS.textPrimary,
-  },
-  chipLabelActive: {
-    color: COLORS.accent,
-  },
-  chipLabelDisabled: {
-    color: COLORS.textTertiary,
-  },
-  chipDesc: {
-    fontFamily: FONTS.body,
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    marginTop: 4,
-  },
-  ctaButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    backgroundColor: COLORS.purple,
-    width: "100%",
-    paddingVertical: 18,
-    borderRadius: 16,
-  },
-  ctaButtonPressed: {
-    opacity: 0.8,
-  },
-  ctaText: {
-    fontFamily: FONTS.display,
-    fontSize: 18,
-    color: COLORS.textInverse,
-    letterSpacing: 2,
-    textTransform: "uppercase",
-  },
-});
+const createStyles = (colors: any, shadows: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    backButton: {
+      position: "absolute",
+      top: Platform.OS === "ios" ? 60 : 40,
+      left: 24,
+      zIndex: 10,
+      padding: 8,
+    },
+    skipButton: {
+      position: "absolute",
+      top: Platform.OS === "ios" ? 60 : 40,
+      right: 24,
+      zIndex: 10,
+      padding: 8,
+    },
+    skipText: {
+      fontFamily: FONTS.bodyBold,
+      fontSize: 14,
+      color: colors.textTertiary,
+      letterSpacing: 2,
+      textTransform: "uppercase",
+    },
+    content: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      paddingHorizontal: 32,
+    },
+    stepIndicator: {
+      flexDirection: "row",
+      gap: 8,
+      marginBottom: 24,
+    },
+    dot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: colors.border,
+    },
+    dotActive: {
+      backgroundColor: colors.accent,
+      width: 24,
+    },
+    headline: {
+      fontFamily: FONTS.display,
+      fontSize: 24,
+      color: colors.textPrimary,
+      textAlign: "center",
+    },
+    headlineAccent: {
+      fontFamily: FONTS.display,
+      fontSize: 24,
+      color: colors.accent,
+      textAlign: "center",
+      marginBottom: 16,
+    },
+    tagline: {
+      fontFamily: FONTS.body,
+      fontSize: 16,
+      color: colors.textSecondary,
+      textAlign: "center",
+      lineHeight: 24,
+      marginBottom: 40,
+    },
+    pillContainer: {
+      flexDirection: "row",
+      gap: 16,
+      width: "100%",
+      marginBottom: 40,
+    },
+    pill: {
+      flex: 1,
+      alignItems: "center",
+      paddingVertical: 24,
+      paddingHorizontal: 16,
+      borderRadius: 20,
+      backgroundColor: colors.surface,
+      ...shadows.medium,
+    },
+    pillActive: {
+      backgroundColor: colors.surface,
+      borderWidth: 2,
+      borderColor: colors.accent,
+      ...shadows.medium,
+    },
+    pillEmoji: {
+      fontSize: 36,
+      marginBottom: 12,
+    },
+    pillLabel: {
+      fontFamily: FONTS.bodyBold,
+      fontSize: 18,
+      color: colors.textPrimary,
+      marginBottom: 6,
+    },
+    pillLabelActive: {
+      color: colors.accent,
+    },
+    pillDesc: {
+      fontFamily: FONTS.body,
+      fontSize: 12,
+      color: colors.textSecondary,
+      textAlign: "center",
+      lineHeight: 18,
+    },
+    chipContainer: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 12,
+      justifyContent: "center",
+      marginBottom: 40,
+      width: "100%",
+    },
+    chip: {
+      paddingHorizontal: 20,
+      paddingVertical: 14,
+      borderRadius: 24,
+      backgroundColor: colors.surface,
+      ...shadows.small,
+    },
+    chipWide: {
+      width: "100%",
+      alignItems: "center",
+    },
+    chipActive: {
+      backgroundColor: colors.surface,
+      borderWidth: 2,
+      borderColor: colors.accent,
+      ...shadows.medium,
+    },
+    chipDisabled: {
+      opacity: 0.35,
+    },
+    chipLabel: {
+      fontFamily: FONTS.bodyBold,
+      fontSize: 15,
+      color: colors.textPrimary,
+    },
+    chipLabelActive: {
+      color: colors.accent,
+    },
+    chipLabelDisabled: {
+      color: colors.textTertiary,
+    },
+    chipDesc: {
+      fontFamily: FONTS.body,
+      fontSize: 12,
+      color: colors.textSecondary,
+      marginTop: 4,
+    },
+    ctaButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 10,
+      backgroundColor: colors.purple,
+      width: "100%",
+      paddingVertical: 18,
+      borderRadius: 16,
+    },
+    ctaButtonPressed: {
+      opacity: 0.8,
+    },
+    ctaText: {
+      fontFamily: FONTS.display,
+      fontSize: 18,
+      color: colors.textInverse,
+      letterSpacing: 2,
+      textTransform: "uppercase",
+    },
+  });

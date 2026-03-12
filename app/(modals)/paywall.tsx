@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { View, Text, Pressable, Alert, ActivityIndicator, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -6,7 +6,8 @@ import { X, Flame, Infinity, Mic, Heart, Check } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import { PurchasesPackage } from "react-native-purchases";
 import * as Haptics from "expo-haptics";
-import { COLORS, SHADOWS } from "../../constants/theme";
+import { COLORS } from "../../constants/theme";
+import { useTheme } from "../../hooks/useTheme";
 import { useAuth } from "../../hooks/useAuth";
 import { useSubscription } from "../../hooks/useSubscription";
 import {
@@ -34,12 +35,15 @@ export default function PaywallScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const { refreshUsage } = useSubscription();
+  const { colors, shadows } = useTheme();
   const [packages, setPackages] = useState<PurchasesPackage[]>([]);
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   const isAnonymous = user?.isAnonymous ?? true;
+
+  const styles = useMemo(() => createStyles(colors, shadows), [colors, shadows]);
 
   useEffect(() => {
     if (isAnonymous) {
@@ -167,7 +171,7 @@ export default function PaywallScreen() {
           router.back();
         }}
       >
-        <X size={20} color={COLORS.textPrimary} />
+        <X size={20} color={colors.textPrimary} />
       </Pressable>
 
       {/* Branding */}
@@ -189,7 +193,7 @@ export default function PaywallScreen() {
         {FEATURES.map((feat) => (
           <View key={feat.label} style={styles.featureRow}>
             <View style={styles.featureIcon}>
-              <feat.icon size={18} color={COLORS.accent} />
+              <feat.icon size={18} color={colors.accent} />
             </View>
             <Text style={styles.featureText}>{feat.label}</Text>
           </View>
@@ -199,7 +203,7 @@ export default function PaywallScreen() {
       {/* Content area */}
       <View style={styles.contentArea}>
         {loading ? (
-          <ActivityIndicator color={COLORS.accent} size="large" />
+          <ActivityIndicator color={colors.accent} size="large" />
         ) : isAnonymous ? (
           // Anonymous: prompt sign-in first
           <View style={styles.anonSection}>
@@ -211,13 +215,13 @@ export default function PaywallScreen() {
               style={[styles.signInButton, { backgroundColor: "#4285F4" }]}
               onPress={() => handleSignIn("google")}
             >
-              <Text style={[styles.signInText, { color: COLORS.textInverse }]}>Continue with Google</Text>
+              <Text style={[styles.signInText, { color: colors.textInverse }]}>Continue with Google</Text>
             </Pressable>
             <Pressable
-              style={[styles.signInButton, { backgroundColor: COLORS.textPrimary }]}
+              style={[styles.signInButton, { backgroundColor: colors.textPrimary }]}
               onPress={() => handleSignIn("apple")}
             >
-              <Text style={[styles.signInText, { color: COLORS.textInverse }]}>
+              <Text style={[styles.signInText, { color: colors.textInverse }]}>
                 Continue with Apple
               </Text>
             </Pressable>
@@ -230,10 +234,10 @@ export default function PaywallScreen() {
               Pro subscriptions are not yet available. Check back soon for unlimited declarations, TTS audio, and more.
             </Text>
             <Pressable
-              style={[styles.signInButton, { backgroundColor: COLORS.backgroundWarm }]}
+              style={[styles.signInButton, { backgroundColor: colors.backgroundWarm }]}
               onPress={() => router.back()}
             >
-              <Text style={[styles.signInText, { color: COLORS.textPrimary }]}>Got it</Text>
+              <Text style={[styles.signInText, { color: colors.textPrimary }]}>Got it</Text>
             </Pressable>
           </View>
         ) : (
@@ -311,179 +315,180 @@ export default function PaywallScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-    padding: 24,
-  },
-  closeButton: {
-    alignSelf: "flex-end",
-    padding: 8,
-    backgroundColor: COLORS.surface,
-    borderRadius: 20,
-    ...SHADOWS.small,
-  },
-  branding: {
-    alignItems: "center",
-    marginTop: 16,
-    gap: 12,
-  },
-  iconCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  title: {
-    fontFamily: "Cinzel",
-    fontSize: 28,
-    color: COLORS.accent,
-    textTransform: "uppercase",
-    letterSpacing: 2,
-  },
-  subtitle: {
-    fontFamily: "Lato",
-    fontSize: 16,
-    color: COLORS.textSecondary,
-    textAlign: "center",
-  },
-  features: {
-    marginTop: 32,
-    gap: 16,
-  },
-  featureRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 14,
-  },
-  featureIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: COLORS.accentMuted,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  featureText: {
-    fontFamily: "Lato",
-    fontSize: 16,
-    color: COLORS.textPrimary,
-  },
-  contentArea: {
-    flex: 1,
-    justifyContent: "center",
-  },
-  packages: {
-    gap: 10,
-    marginBottom: 24,
-  },
-  packageOption: {
-    borderRadius: 14,
-    padding: 16,
-    backgroundColor: COLORS.surface,
-    ...SHADOWS.small,
-  },
-  packageSelected: {
-    backgroundColor: COLORS.accentMuted,
-    borderWidth: 2,
-    borderColor: COLORS.accent,
-  },
-  packageRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  radio: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 2,
-    borderColor: COLORS.border,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  radioSelected: {
-    borderColor: COLORS.accent,
-    backgroundColor: COLORS.accent,
-  },
-  packageLabel: {
-    fontFamily: "Lato-Bold",
-    fontSize: 16,
-    color: COLORS.textPrimary,
-  },
-  packagePrice: {
-    fontFamily: "Lato",
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    marginTop: 2,
-  },
-  badge: {
-    backgroundColor: COLORS.accentMuted,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  badgeText: {
-    fontFamily: "Lato-Bold",
-    fontSize: 11,
-    color: COLORS.accent,
-    textTransform: "uppercase",
-    letterSpacing: 1,
-  },
-  purchaseButton: {
-    borderRadius: 16,
-    overflow: "hidden",
-    marginBottom: 16,
-  },
-  purchaseGradient: {
-    height: 56,
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 16,
-  },
-  purchaseText: {
-    fontFamily: "Lato-Bold",
-    fontSize: 18,
-    color: "white",
-    textTransform: "uppercase",
-    letterSpacing: 1,
-  },
-  restoreText: {
-    fontFamily: "Lato",
-    fontSize: 14,
-    color: COLORS.textTertiary,
-    textAlign: "center",
-    textDecorationLine: "underline",
-  },
-  anonSection: {
-    alignItems: "center",
-    gap: 16,
-  },
-  anonTitle: {
-    fontFamily: "Cinzel",
-    fontSize: 20,
-    color: COLORS.textPrimary,
-    textAlign: "center",
-  },
-  anonSubtitle: {
-    fontFamily: "Lato",
-    fontSize: 15,
-    color: COLORS.textSecondary,
-    textAlign: "center",
-    marginBottom: 8,
-  },
-  signInButton: {
-    width: "100%",
-    height: 50,
-    borderRadius: 14,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  signInText: {
-    fontFamily: "Lato-Bold",
-    fontSize: 16,
-    color: COLORS.textInverse,
-  },
-});
+const createStyles = (colors: any, shadows: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+      padding: 24,
+    },
+    closeButton: {
+      alignSelf: "flex-end",
+      padding: 8,
+      backgroundColor: colors.surface,
+      borderRadius: 20,
+      ...shadows.small,
+    },
+    branding: {
+      alignItems: "center",
+      marginTop: 16,
+      gap: 12,
+    },
+    iconCircle: {
+      width: 72,
+      height: 72,
+      borderRadius: 36,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    title: {
+      fontFamily: "Cinzel",
+      fontSize: 28,
+      color: colors.accent,
+      textTransform: "uppercase",
+      letterSpacing: 2,
+    },
+    subtitle: {
+      fontFamily: "Lato",
+      fontSize: 16,
+      color: colors.textSecondary,
+      textAlign: "center",
+    },
+    features: {
+      marginTop: 32,
+      gap: 16,
+    },
+    featureRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 14,
+    },
+    featureIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: colors.accentMuted,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    featureText: {
+      fontFamily: "Lato",
+      fontSize: 16,
+      color: colors.textPrimary,
+    },
+    contentArea: {
+      flex: 1,
+      justifyContent: "center",
+    },
+    packages: {
+      gap: 10,
+      marginBottom: 24,
+    },
+    packageOption: {
+      borderRadius: 14,
+      padding: 16,
+      backgroundColor: colors.surface,
+      ...shadows.small,
+    },
+    packageSelected: {
+      backgroundColor: colors.accentMuted,
+      borderWidth: 2,
+      borderColor: colors.accent,
+    },
+    packageRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+    },
+    radio: {
+      width: 22,
+      height: 22,
+      borderRadius: 11,
+      borderWidth: 2,
+      borderColor: colors.border,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    radioSelected: {
+      borderColor: colors.accent,
+      backgroundColor: colors.accent,
+    },
+    packageLabel: {
+      fontFamily: "Lato-Bold",
+      fontSize: 16,
+      color: colors.textPrimary,
+    },
+    packagePrice: {
+      fontFamily: "Lato",
+      fontSize: 14,
+      color: colors.textSecondary,
+      marginTop: 2,
+    },
+    badge: {
+      backgroundColor: colors.accentMuted,
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 12,
+    },
+    badgeText: {
+      fontFamily: "Lato-Bold",
+      fontSize: 11,
+      color: colors.accent,
+      textTransform: "uppercase",
+      letterSpacing: 1,
+    },
+    purchaseButton: {
+      borderRadius: 16,
+      overflow: "hidden",
+      marginBottom: 16,
+    },
+    purchaseGradient: {
+      height: 56,
+      justifyContent: "center",
+      alignItems: "center",
+      borderRadius: 16,
+    },
+    purchaseText: {
+      fontFamily: "Lato-Bold",
+      fontSize: 18,
+      color: "white",
+      textTransform: "uppercase",
+      letterSpacing: 1,
+    },
+    restoreText: {
+      fontFamily: "Lato",
+      fontSize: 14,
+      color: colors.textTertiary,
+      textAlign: "center",
+      textDecorationLine: "underline",
+    },
+    anonSection: {
+      alignItems: "center",
+      gap: 16,
+    },
+    anonTitle: {
+      fontFamily: "Cinzel",
+      fontSize: 20,
+      color: colors.textPrimary,
+      textAlign: "center",
+    },
+    anonSubtitle: {
+      fontFamily: "Lato",
+      fontSize: 15,
+      color: colors.textSecondary,
+      textAlign: "center",
+      marginBottom: 8,
+    },
+    signInButton: {
+      width: "100%",
+      height: 50,
+      borderRadius: 14,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    signInText: {
+      fontFamily: "Lato-Bold",
+      fontSize: 16,
+      color: colors.textInverse,
+    },
+  });

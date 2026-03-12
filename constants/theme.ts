@@ -1,5 +1,5 @@
-export const COLORS = {
-  // ── Light / Warm tokens ──
+// ── Themed color tokens ──
+export const LIGHT_COLORS = {
   background: "#FBF8F3",
   backgroundWarm: "#F5EFE6",
   backgroundMuted: "#EDE7DC",
@@ -27,8 +27,44 @@ export const COLORS = {
 
   error: "#DC2626",
   errorLight: "#FEF2F2",
+} as const;
 
-  // ── Legacy tokens (kept for DeclarationCard / ShareCard / dark contexts) ──
+export type ThemeColors = { [K in keyof typeof LIGHT_COLORS]: string };
+
+export const DARK_COLORS: ThemeColors = {
+  background: "#1A1412",
+  backgroundWarm: "#221C18",
+  backgroundMuted: "#2A2320",
+  surface: "#2E2620",
+  surfacePressed: "#382F28",
+
+  textPrimary: "#F5EFE6",
+  textSecondary: "#C4B8A8",
+  textTertiary: "#7A6E62",
+  textInverse: "#1A1412",
+
+  accent: "#E8A850",
+  accentLight: "#3D2E1A",
+  accentMuted: "rgba(232,168,80,0.15)",
+
+  amber: "#F5B731",
+  amberLight: "rgba(245,183,49,0.15)",
+
+  purple: "#A78BFA",
+  purpleLight: "#2D2248",
+  purpleMuted: "rgba(167,139,250,0.15)",
+
+  border: "#3D3430",
+  borderLight: "#2E2620",
+
+  error: "#EF4444",
+  errorLight: "#3B1A1A",
+} as const;
+
+// Backward-compat alias — static references (DeclarationCard, ShareCard, etc.)
+export const COLORS = {
+  ...LIGHT_COLORS,
+  // Legacy tokens (kept for DeclarationCard / ShareCard / dark contexts)
   electricPurple: "#7C3AED",
   deepPurple: "#4C1D95",
   fireOrange: "#F59E0B",
@@ -44,7 +80,7 @@ export const COLORS = {
   glassBorder: "rgba(255,255,255,0.12)",
 } as const;
 
-export const SHADOWS = {
+export const LIGHT_SHADOWS = {
   small: {
     shadowColor: "#B8A68E",
     shadowOffset: { width: 0, height: 2 },
@@ -67,6 +103,42 @@ export const SHADOWS = {
     elevation: 8,
   },
 } as const;
+
+type ShadowValue = {
+  shadowColor: string;
+  shadowOffset: { width: number; height: number };
+  shadowOpacity: number;
+  shadowRadius: number;
+  elevation: number;
+};
+export type ThemeShadows = { small: ShadowValue; medium: ShadowValue; large: ShadowValue };
+
+export const DARK_SHADOWS: ThemeShadows = {
+  small: {
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.20,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  medium: {
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 4,
+  },
+  large: {
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.30,
+    shadowRadius: 24,
+    elevation: 8,
+  },
+} as const;
+
+// Backward-compat alias
+export const SHADOWS = LIGHT_SHADOWS;
 
 export const FONTS = {
   display: "Cinzel",

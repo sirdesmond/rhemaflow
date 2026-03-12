@@ -15,6 +15,7 @@ const DEFAULT_SETTINGS: UserSettings = {
   ageRange: null,
   lifeStages: [],
   faithFocusAreas: [],
+  themeMode: "system",
 };
 
 /**

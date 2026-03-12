@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import {
   View,
   TextInput,
@@ -9,7 +9,8 @@ import {
 } from "react-native";
 import { Mic, ArrowRight, Sparkles } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
-import { COLORS, FONTS, SHADOWS } from "../constants/theme";
+import { FONTS } from "../constants/theme";
+import { useTheme } from "../hooks/useTheme";
 
 interface DeclarationInputProps {
   onSubmit: (text: string) => void;
@@ -26,9 +27,12 @@ export function DeclarationInput({
   transcript,
   onMicPress,
 }: DeclarationInputProps) {
+  const { colors, shadows } = useTheme();
   const [text, setText] = useState("");
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const pulseRef = useRef<Animated.CompositeAnimation | null>(null);
+
+  const styles = useMemo(() => createStyles(colors, shadows), [colors, shadows]);
 
   // Sync transcript into local text state
   useEffect(() => {
@@ -96,7 +100,7 @@ export function DeclarationInput({
         <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
           <Mic
             size={20}
-            color={isListening ? COLORS.accent : COLORS.textTertiary}
+            color={isListening ? colors.accent : colors.textTertiary}
           />
         </Animated.View>
       </Pressable>
@@ -105,7 +109,7 @@ export function DeclarationInput({
       <TextInput
         style={styles.input}
         placeholder="Declare healing, breakthrough, favor..."
-        placeholderTextColor={COLORS.textTertiary}
+        placeholderTextColor={colors.textTertiary}
         value={text}
         onChangeText={setText}
         returnKeyType="send"
@@ -128,11 +132,11 @@ export function DeclarationInput({
         disabled={isLoading || !hasText}
       >
         {isLoading ? (
-          <Sparkles size={20} color={COLORS.textInverse} />
+          <Sparkles size={20} color={colors.textInverse} />
         ) : (
           <ArrowRight
             size={20}
-            color={hasText ? COLORS.textInverse : COLORS.textTertiary}
+            color={hasText ? colors.textInverse : colors.textTertiary}
           />
         )}
       </Pressable>
@@ -140,53 +144,54 @@ export function DeclarationInput({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: COLORS.surface,
-    borderRadius: 16,
-    paddingHorizontal: 6,
-    paddingVertical: 4,
-    ...SHADOWS.medium,
-  },
-  containerDefault: {
-    shadowColor: COLORS.accent,
-    shadowOpacity: 0.10,
-  },
-  containerListening: {
-    shadowColor: COLORS.accent,
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-  },
-  micButton: {
-    width: 44,
-    height: 44,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  input: {
-    flex: 1,
-    fontFamily: FONTS.body,
-    fontSize: 15,
-    color: COLORS.textPrimary,
-    paddingVertical: 12,
-    paddingHorizontal: 4,
-  },
-  sendButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  sendButtonActive: {
-    backgroundColor: COLORS.accent,
-  },
-  sendButtonInactive: {
-    backgroundColor: COLORS.backgroundMuted,
-  },
-  sendButtonLoading: {
-    backgroundColor: COLORS.backgroundMuted,
-  },
-});
+const createStyles = (colors: any, shadows: any) =>
+  StyleSheet.create({
+    container: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.surface,
+      borderRadius: 16,
+      paddingHorizontal: 6,
+      paddingVertical: 4,
+      ...shadows.medium,
+    },
+    containerDefault: {
+      shadowColor: colors.accent,
+      shadowOpacity: 0.10,
+    },
+    containerListening: {
+      shadowColor: colors.accent,
+      shadowOpacity: 0.25,
+      shadowRadius: 20,
+    },
+    micButton: {
+      width: 44,
+      height: 44,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    input: {
+      flex: 1,
+      fontFamily: FONTS.body,
+      fontSize: 15,
+      color: colors.textPrimary,
+      paddingVertical: 12,
+      paddingHorizontal: 4,
+    },
+    sendButton: {
+      width: 44,
+      height: 44,
+      borderRadius: 12,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    sendButtonActive: {
+      backgroundColor: colors.accent,
+    },
+    sendButtonInactive: {
+      backgroundColor: colors.backgroundMuted,
+    },
+    sendButtonLoading: {
+      backgroundColor: colors.backgroundMuted,
+    },
+  });

@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback } from "react";
+import React, { useRef, useEffect, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -9,7 +9,8 @@ import {
   NativeScrollEvent,
 } from "react-native";
 import * as Haptics from "expo-haptics";
-import { COLORS, FONTS, SHADOWS } from "../constants/theme";
+import { FONTS } from "../constants/theme";
+import { useTheme } from "../hooks/useTheme";
 
 const ITEM_HEIGHT = 48;
 const VISIBLE_ITEMS = 3;
@@ -66,6 +67,8 @@ function WheelColumn({
   onSelect: (index: number) => void;
   formatItem: (item: number | string) => string;
 }) {
+  const { colors } = useTheme();
+  const wheelStyles = useMemo(() => createWheelStyles(colors), [colors]);
   const flatListRef = useRef<FlatList>(null);
   const isUserScroll = useRef(false);
   const lastReportedIndex = useRef(selectedIndex);
@@ -152,6 +155,8 @@ export function ScrollWheelTimePicker({
   value,
   onChange,
 }: ScrollWheelTimePickerProps) {
+  const { colors, shadows } = useTheme();
+  const styles = useMemo(() => createStyles(colors, shadows), [colors, shadows]);
   const { hour12, minute, period } = parse24h(value);
 
   const hourIndex = HOURS.indexOf(hour12);
@@ -200,61 +205,65 @@ export function ScrollWheelTimePicker({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 4,
-  },
-  colon: {
-    fontFamily: FONTS.bodyBold,
-    fontSize: 28,
-    color: COLORS.accent,
-    marginBottom: 2,
-  },
-  periodButton: {
-    backgroundColor: COLORS.surface,
-    borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    marginLeft: 8,
-    ...SHADOWS.small,
-  },
-  periodText: {
-    fontFamily: FONTS.bodyBold,
-    fontSize: 18,
-    color: COLORS.accent,
-  },
-});
+function createStyles(colors: any, shadows: any) {
+  return StyleSheet.create({
+    container: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 4,
+    },
+    colon: {
+      fontFamily: FONTS.bodyBold,
+      fontSize: 28,
+      color: colors.accent,
+      marginBottom: 2,
+    },
+    periodButton: {
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      paddingVertical: 10,
+      paddingHorizontal: 14,
+      marginLeft: 8,
+      ...shadows.small,
+    },
+    periodText: {
+      fontFamily: FONTS.bodyBold,
+      fontSize: 18,
+      color: colors.accent,
+    },
+  });
+}
 
-const wheelStyles = StyleSheet.create({
-  item: {
-    justifyContent: "center",
-    alignItems: "center",
-    width: 64,
-  },
-  itemText: {
-    fontFamily: FONTS.bodyBold,
-    fontSize: 28,
-    color: COLORS.textTertiary,
-  },
-  itemTextSelected: {
-    color: COLORS.accent,
-    fontSize: 32,
-  },
-  itemTextFaded: {
-    opacity: 0.4,
-  },
-  highlight: {
-    position: "absolute",
-    top: ITEM_HEIGHT,
-    left: 0,
-    right: 0,
-    height: ITEM_HEIGHT,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.accentMuted,
-  },
-});
+function createWheelStyles(colors: any) {
+  return StyleSheet.create({
+    item: {
+      justifyContent: "center",
+      alignItems: "center",
+      width: 64,
+    },
+    itemText: {
+      fontFamily: FONTS.bodyBold,
+      fontSize: 28,
+      color: colors.textTertiary,
+    },
+    itemTextSelected: {
+      color: colors.accent,
+      fontSize: 32,
+    },
+    itemTextFaded: {
+      opacity: 0.4,
+    },
+    highlight: {
+      position: "absolute",
+      top: ITEM_HEIGHT,
+      left: 0,
+      right: 0,
+      height: ITEM_HEIGHT,
+      borderTopWidth: 1,
+      borderBottomWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.accentMuted,
+    },
+  });
+}

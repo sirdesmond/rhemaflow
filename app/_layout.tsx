@@ -7,6 +7,7 @@ import { StatusBar } from "expo-status-bar";
 import { useRouter, useSegments } from "expo-router";
 import { useAuth } from "../hooks/useAuth";
 import { SubscriptionProvider } from "../hooks/useSubscription";
+import { ThemeProvider, useTheme } from "../hooks/useTheme";
 import { getUserSettings } from "../services/settings";
 import { initCrashlytics } from "../services/crashlytics";
 import "react-native-reanimated";
@@ -64,6 +65,23 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function ThemedApp() {
+  const { isDark } = useTheme();
+  return (
+    <>
+      <StatusBar style={isDark ? "light" : "dark"} />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen
+          name="(modals)"
+          options={{ presentation: "modal" }}
+        />
+      </Stack>
+    </>
+  );
+}
+
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
     Cinzel: require("../assets/fonts/Cinzel-Bold.ttf"),
@@ -89,17 +107,11 @@ export default function RootLayout() {
 
   return (
     <AuthGate>
-      <SubscriptionProvider>
-        <StatusBar style="dark" />
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(auth)" />
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen
-            name="(modals)"
-            options={{ presentation: "modal" }}
-          />
-        </Stack>
-      </SubscriptionProvider>
+      <ThemeProvider>
+        <SubscriptionProvider>
+          <ThemedApp />
+        </SubscriptionProvider>
+      </ThemeProvider>
     </AuthGate>
   );
 }

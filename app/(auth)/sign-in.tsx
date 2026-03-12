@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { View, Text, Pressable, Alert, Platform, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ChevronLeft } from "lucide-react-native";
@@ -8,10 +9,14 @@ import {
   signInAnonymously,
 } from "../../services/auth";
 import { logError } from "../../services/crashlytics";
-import { COLORS, FONTS, SHADOWS } from "../../constants/theme";
+import { FONTS } from "../../constants/theme";
+import { useTheme } from "../../hooks/useTheme";
 
 export default function SignInScreen() {
+  const { colors, shadows } = useTheme();
   const router = useRouter();
+
+  const styles = useMemo(() => createStyles(colors, shadows), [colors, shadows]);
 
   const handleGoogle = async () => {
     try {
@@ -55,7 +60,7 @@ export default function SignInScreen() {
     <SafeAreaView style={styles.container}>
       {/* Back button */}
       <Pressable onPress={() => router.back()} style={styles.backBtn}>
-        <ChevronLeft size={24} color={COLORS.textPrimary} />
+        <ChevronLeft size={24} color={colors.textPrimary} />
       </Pressable>
 
       <View style={styles.content}>
@@ -103,73 +108,74 @@ export default function SignInScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  backBtn: {
-    padding: 16,
-    alignSelf: "flex-start",
-  },
-  content: {
-    flex: 1,
-    justifyContent: "center",
-    paddingHorizontal: 24,
-  },
-  title: {
-    fontFamily: FONTS.display,
-    fontSize: 32,
-    color: COLORS.textPrimary,
-    textAlign: "center",
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontFamily: FONTS.body,
-    fontSize: 15,
-    color: COLORS.textSecondary,
-    textAlign: "center",
-    marginBottom: 40,
-  },
-  googleBtn: {
-    backgroundColor: COLORS.surface,
-    paddingVertical: 16,
-    borderRadius: 16,
-    alignItems: "center",
-    marginBottom: 12,
-    ...SHADOWS.medium,
-  },
-  googleBtnText: {
-    fontFamily: FONTS.bodyBold,
-    fontSize: 16,
-    color: COLORS.textPrimary,
-  },
-  appleBtn: {
-    backgroundColor: COLORS.textPrimary,
-    paddingVertical: 16,
-    borderRadius: 16,
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  appleBtnText: {
-    fontFamily: FONTS.bodyBold,
-    fontSize: 16,
-    color: COLORS.textInverse,
-  },
-  anonBtn: {
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    paddingVertical: 16,
-    borderRadius: 16,
-    alignItems: "center",
-    marginTop: 24,
-  },
-  anonBtnText: {
-    fontFamily: FONTS.body,
-    fontSize: 15,
-    color: COLORS.textTertiary,
-  },
-  pressed: {
-    opacity: 0.8,
-  },
-});
+const createStyles = (colors: any, shadows: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    backBtn: {
+      padding: 16,
+      alignSelf: "flex-start",
+    },
+    content: {
+      flex: 1,
+      justifyContent: "center",
+      paddingHorizontal: 24,
+    },
+    title: {
+      fontFamily: FONTS.display,
+      fontSize: 32,
+      color: colors.textPrimary,
+      textAlign: "center",
+      marginBottom: 8,
+    },
+    subtitle: {
+      fontFamily: FONTS.body,
+      fontSize: 15,
+      color: colors.textSecondary,
+      textAlign: "center",
+      marginBottom: 40,
+    },
+    googleBtn: {
+      backgroundColor: colors.surface,
+      paddingVertical: 16,
+      borderRadius: 16,
+      alignItems: "center",
+      marginBottom: 12,
+      ...shadows.medium,
+    },
+    googleBtnText: {
+      fontFamily: FONTS.bodyBold,
+      fontSize: 16,
+      color: colors.textPrimary,
+    },
+    appleBtn: {
+      backgroundColor: colors.textPrimary,
+      paddingVertical: 16,
+      borderRadius: 16,
+      alignItems: "center",
+      marginBottom: 12,
+    },
+    appleBtnText: {
+      fontFamily: FONTS.bodyBold,
+      fontSize: 16,
+      color: colors.textInverse,
+    },
+    anonBtn: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingVertical: 16,
+      borderRadius: 16,
+      alignItems: "center",
+      marginTop: 24,
+    },
+    anonBtnText: {
+      fontFamily: FONTS.body,
+      fontSize: 15,
+      color: colors.textTertiary,
+    },
+    pressed: {
+      opacity: 0.8,
+    },
+  });

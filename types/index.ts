@@ -73,6 +73,7 @@ export interface UserSettings {
   ageRange: AgeRange | null;
   lifeStages: LifeStage[];
   faithFocusAreas: DeclarationCategory[];
+  themeMode: "light" | "dark" | "system";
 }
 
 export interface UserProfile {

@@ -1,11 +1,12 @@
 import { Tabs } from "expo-router";
 import { View } from "react-native";
 import { Home, Heart, Settings } from "lucide-react-native";
-import { COLORS, SHADOWS } from "../../constants/theme";
+import { useTheme } from "../../hooks/useTheme";
 import { useNetwork } from "../../hooks/useNetwork";
 import { OfflineBanner } from "../../components/OfflineBanner";
 
 function ActiveDot({ focused }: { focused: boolean }) {
+  const { colors } = useTheme();
   if (!focused) return null;
   return (
     <View
@@ -13,7 +14,7 @@ function ActiveDot({ focused }: { focused: boolean }) {
         width: 4,
         height: 4,
         borderRadius: 2,
-        backgroundColor: COLORS.accent,
+        backgroundColor: colors.accent,
         marginTop: 4,
       }}
     />
@@ -21,6 +22,7 @@ function ActiveDot({ focused }: { focused: boolean }) {
 }
 
 export default function TabLayout() {
+  const { colors, shadows } = useTheme();
   const { isConnected } = useNetwork();
 
   return (
@@ -29,8 +31,8 @@ export default function TabLayout() {
       <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: COLORS.accent,
-        tabBarInactiveTintColor: COLORS.textTertiary,
+        tabBarActiveTintColor: colors.accent,
+        tabBarInactiveTintColor: colors.textTertiary,
         tabBarBackground: () => (
           <View
             style={{
@@ -39,10 +41,10 @@ export default function TabLayout() {
               left: 0,
               right: 0,
               bottom: 0,
-              backgroundColor: COLORS.surface,
+              backgroundColor: colors.surface,
               borderTopWidth: 1,
-              borderTopColor: COLORS.borderLight,
-              ...SHADOWS.small,
+              borderTopColor: colors.borderLight,
+              ...shadows.small,
             }}
           />
         ),

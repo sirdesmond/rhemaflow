@@ -1,7 +1,7 @@
 import { ScrollView, Pressable, Text, View } from "react-native";
 import * as Haptics from "expo-haptics";
 import { DeclarationCategory } from "../types";
-import { COLORS, SHADOWS } from "../constants/theme";
+import { useTheme } from "../hooks/useTheme";
 
 interface CategoryNavProps {
   selectedCategory: DeclarationCategory;
@@ -9,6 +9,7 @@ interface CategoryNavProps {
 }
 
 export function CategoryNav({ selectedCategory, onSelect }: CategoryNavProps) {
+  const { colors, shadows } = useTheme();
   const categories = Object.values(DeclarationCategory);
 
   return (
@@ -31,18 +32,18 @@ export function CategoryNav({ selectedCategory, onSelect }: CategoryNavProps) {
               paddingVertical: 10,
               borderRadius: 9999,
               backgroundColor: isSelected
-                ? COLORS.purple
-                : COLORS.surface,
+                ? colors.purple
+                : colors.surface,
               ...(isSelected
                 ? {}
-                : SHADOWS.small),
+                : shadows.small),
             }}
           >
             <Text
               style={{
                 fontFamily: "Lato-Bold",
                 fontSize: 13,
-                color: isSelected ? COLORS.textInverse : COLORS.textSecondary,
+                color: isSelected ? colors.textInverse : colors.textSecondary,
                 letterSpacing: 0.3,
               }}
             >

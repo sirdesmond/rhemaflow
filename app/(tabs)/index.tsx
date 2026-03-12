@@ -31,7 +31,7 @@ import {
   LifeStage,
   StreakData,
 } from "../../types";
-import { COLORS, SHADOWS } from "../../constants/theme";
+import { useTheme } from "../../hooks/useTheme";
 import { getUserSettings } from "../../services/settings";
 import { logError } from "../../services/crashlytics";
 import {
@@ -46,6 +46,7 @@ import {
 } from "../../services/analytics";
 
 export default function HomeScreen() {
+  const { colors, shadows } = useTheme();
   const [currentCategory, setCurrentCategory] = useState<DeclarationCategory>(
     DeclarationCategory.GENERAL
   );
@@ -273,7 +274,7 @@ export default function HomeScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Header */}
       <View
         style={{
@@ -291,27 +292,27 @@ export default function HomeScreen() {
               style={{
                 padding: 8,
                 marginLeft: -8,
-                backgroundColor: COLORS.surface,
+                backgroundColor: colors.surface,
                 borderRadius: 20,
-                ...SHADOWS.small,
+                ...shadows.small,
               }}
             >
-              <ChevronLeft size={20} color={COLORS.textPrimary} />
+              <ChevronLeft size={20} color={colors.textPrimary} />
             </Pressable>
           ) : (
-            <Flame size={22} color={COLORS.accent} fill={COLORS.accent} />
+            <Flame size={22} color={colors.accent} fill={colors.accent} />
           )}
           <Text
             style={{
               fontFamily: "Cinzel",
               fontSize: 20,
-              color: COLORS.textPrimary,
+              color: colors.textPrimary,
               textTransform: "uppercase",
               letterSpacing: 1,
             }}
           >
             Rhema
-            <Text style={{ color: COLORS.accent }}>Flow</Text>
+            <Text style={{ color: colors.accent }}>Flow</Text>
           </Text>
           {isPro && (
             <View
@@ -319,18 +320,18 @@ export default function HomeScreen() {
                 flexDirection: "row",
                 alignItems: "center",
                 gap: 4,
-                backgroundColor: COLORS.accentMuted,
+                backgroundColor: colors.accentMuted,
                 paddingHorizontal: 8,
                 paddingVertical: 3,
                 borderRadius: 10,
               }}
             >
-              <Crown size={10} color={COLORS.accent} />
+              <Crown size={10} color={colors.accent} />
               <Text
                 style={{
                   fontFamily: "Lato-Bold",
                   fontSize: 9,
-                  color: COLORS.accent,
+                  color: colors.accent,
                   textTransform: "uppercase",
                   letterSpacing: 1,
                 }}
@@ -348,18 +349,18 @@ export default function HomeScreen() {
               flexDirection: "row",
               alignItems: "center",
               gap: 4,
-              backgroundColor: COLORS.accentMuted,
+              backgroundColor: colors.accentMuted,
               paddingHorizontal: 10,
               paddingVertical: 4,
               borderRadius: 12,
             }}
           >
-            <Flame size={14} color={COLORS.accent} fill={COLORS.accent} />
+            <Flame size={14} color={colors.accent} fill={colors.accent} />
             <Text
               style={{
                 fontFamily: "Lato-Bold",
                 fontSize: 13,
-                color: COLORS.accent,
+                color: colors.accent,
               }}
             >
               {streak}
@@ -383,7 +384,7 @@ export default function HomeScreen() {
             style={{
               fontFamily: "Lato-Bold",
               fontSize: 13,
-              color: COLORS.accent,
+              color: colors.accent,
               textAlign: "center",
             }}
           >
@@ -393,7 +394,7 @@ export default function HomeScreen() {
       )}
 
       {/* Subtle divider */}
-      <View style={{ height: 1, backgroundColor: COLORS.borderLight, marginHorizontal: 16 }} />
+      <View style={{ height: 1, backgroundColor: colors.borderLight, marginHorizontal: 16 }} />
 
       {/* Main Content */}
       {isLoading ? (
@@ -413,7 +414,7 @@ export default function HomeScreen() {
               style={{
                 fontFamily: "Cinzel",
                 fontSize: 26,
-                color: COLORS.textPrimary,
+                color: colors.textPrimary,
                 textAlign: "center",
                 lineHeight: 36,
                 marginBottom: 8,
@@ -425,7 +426,7 @@ export default function HomeScreen() {
               style={{
                 fontFamily: "Lato",
                 fontSize: 14,
-                color: COLORS.textSecondary,
+                color: colors.textSecondary,
                 textAlign: "center",
                 marginBottom: 32,
               }}
@@ -470,15 +471,15 @@ export default function HomeScreen() {
                   paddingHorizontal: 16,
                   marginTop: 16,
                   borderRadius: 12,
-                  backgroundColor: COLORS.surface,
-                  ...SHADOWS.small,
+                  backgroundColor: colors.surface,
+                  ...shadows.small,
                 }}
               >
                 <Text
                   style={{
                     fontFamily: "Lato",
                     fontSize: 14,
-                    color: usage.canGenerate ? COLORS.textSecondary : COLORS.error,
+                    color: usage.canGenerate ? colors.textSecondary : colors.error,
                   }}
                 >
                   {usage.canGenerate
@@ -489,7 +490,7 @@ export default function HomeScreen() {
                   style={{
                     fontFamily: "Lato-Bold",
                     fontSize: 12,
-                    color: COLORS.accent,
+                    color: colors.accent,
                     textTransform: "uppercase",
                   }}
                 >
@@ -546,21 +547,21 @@ export default function HomeScreen() {
             style={{
               marginTop: 12,
               height: 56,
-              backgroundColor: COLORS.surface,
+              backgroundColor: colors.surface,
               borderRadius: 16,
               flexDirection: "row",
               alignItems: "center",
               justifyContent: "center",
               gap: 8,
-              ...SHADOWS.small,
+              ...shadows.small,
             }}
           >
-            <Sparkles size={18} color={COLORS.accent} />
+            <Sparkles size={18} color={colors.accent} />
             <Text
               style={{
                 fontFamily: "Lato-Bold",
                 fontSize: 14,
-                color: COLORS.accent,
+                color: colors.accent,
                 textTransform: "uppercase",
                 letterSpacing: 1.5,
               }}
