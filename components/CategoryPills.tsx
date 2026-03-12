@@ -2,7 +2,7 @@ import { View, Pressable, Text, StyleSheet } from "react-native";
 import * as Haptics from "expo-haptics";
 import { MOOD_PRESETS } from "../constants/categories";
 import { MoodPreset } from "../types";
-import { COLORS } from "../constants/theme";
+import { COLORS, SHADOWS } from "../constants/theme";
 
 interface CategoryPillsProps {
   onSelect: (preset: MoodPreset) => void;
@@ -45,13 +45,12 @@ const styles = StyleSheet.create({
   pill: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: COLORS.glass,
+    backgroundColor: COLORS.surface,
     borderRadius: 9999,
-    borderWidth: 1,
-    borderColor: COLORS.glassBorder,
     paddingHorizontal: 14,
     paddingVertical: 8,
     gap: 6,
+    ...SHADOWS.small,
   },
   emoji: {
     fontSize: 14,
@@ -59,7 +58,7 @@ const styles = StyleSheet.create({
   label: {
     fontFamily: "Lato-Bold",
     fontSize: 11,
-    color: COLORS.white,
+    color: COLORS.textPrimary,
     letterSpacing: 0.3,
   },
 });

@@ -8,7 +8,7 @@ import {
   signInAnonymously,
 } from "../../services/auth";
 import { logError } from "../../services/crashlytics";
-import { COLORS, FONTS } from "../../constants/theme";
+import { COLORS, FONTS, SHADOWS } from "../../constants/theme";
 
 export default function SignInScreen() {
   const router = useRouter();
@@ -55,7 +55,7 @@ export default function SignInScreen() {
     <SafeAreaView style={styles.container}>
       {/* Back button */}
       <Pressable onPress={() => router.back()} style={styles.backBtn}>
-        <ChevronLeft size={24} color="white" />
+        <ChevronLeft size={24} color={COLORS.textPrimary} />
       </Pressable>
 
       <View style={styles.content}>
@@ -106,7 +106,7 @@ export default function SignInScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.voidBlack,
+    backgroundColor: COLORS.background,
   },
   backBtn: {
     padding: 16,
@@ -120,31 +120,32 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: FONTS.display,
     fontSize: 32,
-    color: COLORS.white,
+    color: COLORS.textPrimary,
     textAlign: "center",
     marginBottom: 8,
   },
   subtitle: {
     fontFamily: FONTS.body,
     fontSize: 15,
-    color: COLORS.slate400,
+    color: COLORS.textSecondary,
     textAlign: "center",
     marginBottom: 40,
   },
   googleBtn: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.surface,
     paddingVertical: 16,
     borderRadius: 16,
     alignItems: "center",
     marginBottom: 12,
+    ...SHADOWS.medium,
   },
   googleBtnText: {
     fontFamily: FONTS.bodyBold,
     fontSize: 16,
-    color: COLORS.voidBlack,
+    color: COLORS.textPrimary,
   },
   appleBtn: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.textPrimary,
     paddingVertical: 16,
     borderRadius: 16,
     alignItems: "center",
@@ -153,11 +154,11 @@ const styles = StyleSheet.create({
   appleBtnText: {
     fontFamily: FONTS.bodyBold,
     fontSize: 16,
-    color: COLORS.voidBlack,
+    color: COLORS.textInverse,
   },
   anonBtn: {
     borderWidth: 1,
-    borderColor: COLORS.slate700,
+    borderColor: COLORS.border,
     paddingVertical: 16,
     borderRadius: 16,
     alignItems: "center",
@@ -166,7 +167,7 @@ const styles = StyleSheet.create({
   anonBtnText: {
     fontFamily: FONTS.body,
     fontSize: 15,
-    color: COLORS.slate400,
+    color: COLORS.textTertiary,
   },
   pressed: {
     opacity: 0.8,

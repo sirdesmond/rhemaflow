@@ -6,7 +6,7 @@ import { X, Flame, Infinity, Mic, Heart, Check } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import { PurchasesPackage } from "react-native-purchases";
 import * as Haptics from "expo-haptics";
-import { COLORS } from "../../constants/theme";
+import { COLORS, SHADOWS } from "../../constants/theme";
 import { useAuth } from "../../hooks/useAuth";
 import { useSubscription } from "../../hooks/useSubscription";
 import {
@@ -167,13 +167,13 @@ export default function PaywallScreen() {
           router.back();
         }}
       >
-        <X size={20} color="white" />
+        <X size={20} color={COLORS.textPrimary} />
       </Pressable>
 
       {/* Branding */}
       <View style={styles.branding}>
         <LinearGradient
-          colors={[COLORS.fireOrange, COLORS.divineGold]}
+          colors={[COLORS.fireOrange, COLORS.warmGold]}
           style={styles.iconCircle}
         >
           <Flame size={32} color="white" fill="white" />
@@ -189,7 +189,7 @@ export default function PaywallScreen() {
         {FEATURES.map((feat) => (
           <View key={feat.label} style={styles.featureRow}>
             <View style={styles.featureIcon}>
-              <feat.icon size={18} color={COLORS.divineGold} />
+              <feat.icon size={18} color={COLORS.accent} />
             </View>
             <Text style={styles.featureText}>{feat.label}</Text>
           </View>
@@ -199,7 +199,7 @@ export default function PaywallScreen() {
       {/* Content area */}
       <View style={styles.contentArea}>
         {loading ? (
-          <ActivityIndicator color={COLORS.divineGold} size="large" />
+          <ActivityIndicator color={COLORS.accent} size="large" />
         ) : isAnonymous ? (
           // Anonymous: prompt sign-in first
           <View style={styles.anonSection}>
@@ -211,13 +211,13 @@ export default function PaywallScreen() {
               style={[styles.signInButton, { backgroundColor: "#4285F4" }]}
               onPress={() => handleSignIn("google")}
             >
-              <Text style={styles.signInText}>Continue with Google</Text>
+              <Text style={[styles.signInText, { color: COLORS.textInverse }]}>Continue with Google</Text>
             </Pressable>
             <Pressable
-              style={[styles.signInButton, { backgroundColor: "white" }]}
+              style={[styles.signInButton, { backgroundColor: COLORS.textPrimary }]}
               onPress={() => handleSignIn("apple")}
             >
-              <Text style={[styles.signInText, { color: "black" }]}>
+              <Text style={[styles.signInText, { color: COLORS.textInverse }]}>
                 Continue with Apple
               </Text>
             </Pressable>
@@ -230,10 +230,10 @@ export default function PaywallScreen() {
               Pro subscriptions are not yet available. Check back soon for unlimited declarations, TTS audio, and more.
             </Text>
             <Pressable
-              style={[styles.signInButton, { backgroundColor: COLORS.glass, borderWidth: 1, borderColor: COLORS.glassBorder }]}
+              style={[styles.signInButton, { backgroundColor: COLORS.backgroundWarm }]}
               onPress={() => router.back()}
             >
-              <Text style={styles.signInText}>Got it</Text>
+              <Text style={[styles.signInText, { color: COLORS.textPrimary }]}>Got it</Text>
             </Pressable>
           </View>
         ) : (
@@ -314,16 +314,15 @@ export default function PaywallScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.voidBlack,
+    backgroundColor: COLORS.background,
     padding: 24,
   },
   closeButton: {
     alignSelf: "flex-end",
     padding: 8,
-    backgroundColor: COLORS.glass,
+    backgroundColor: COLORS.surface,
     borderRadius: 20,
-    borderWidth: 1,
-    borderColor: COLORS.glassBorder,
+    ...SHADOWS.small,
   },
   branding: {
     alignItems: "center",
@@ -340,14 +339,14 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: "Cinzel",
     fontSize: 28,
-    color: COLORS.divineGold,
+    color: COLORS.accent,
     textTransform: "uppercase",
     letterSpacing: 2,
   },
   subtitle: {
     fontFamily: "Lato",
     fontSize: 16,
-    color: COLORS.slate400,
+    color: COLORS.textSecondary,
     textAlign: "center",
   },
   features: {
@@ -363,14 +362,14 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "rgba(251,191,36,0.12)",
+    backgroundColor: COLORS.accentMuted,
     justifyContent: "center",
     alignItems: "center",
   },
   featureText: {
     fontFamily: "Lato",
     fontSize: 16,
-    color: "white",
+    color: COLORS.textPrimary,
   },
   contentArea: {
     flex: 1,
@@ -381,15 +380,15 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   packageOption: {
-    borderWidth: 1,
-    borderColor: COLORS.glassBorder,
     borderRadius: 14,
     padding: 16,
-    backgroundColor: COLORS.glass,
+    backgroundColor: COLORS.surface,
+    ...SHADOWS.small,
   },
   packageSelected: {
-    borderColor: COLORS.divineGold,
-    backgroundColor: "rgba(251,191,36,0.08)",
+    backgroundColor: COLORS.accentMuted,
+    borderWidth: 2,
+    borderColor: COLORS.accent,
   },
   packageRow: {
     flexDirection: "row",
@@ -401,27 +400,27 @@ const styles = StyleSheet.create({
     height: 22,
     borderRadius: 11,
     borderWidth: 2,
-    borderColor: COLORS.slate700,
+    borderColor: COLORS.border,
     justifyContent: "center",
     alignItems: "center",
   },
   radioSelected: {
-    borderColor: COLORS.divineGold,
-    backgroundColor: COLORS.divineGold,
+    borderColor: COLORS.accent,
+    backgroundColor: COLORS.accent,
   },
   packageLabel: {
     fontFamily: "Lato-Bold",
     fontSize: 16,
-    color: "white",
+    color: COLORS.textPrimary,
   },
   packagePrice: {
     fontFamily: "Lato",
     fontSize: 14,
-    color: COLORS.slate400,
+    color: COLORS.textSecondary,
     marginTop: 2,
   },
   badge: {
-    backgroundColor: "rgba(251,191,36,0.15)",
+    backgroundColor: COLORS.accentMuted,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
@@ -429,7 +428,7 @@ const styles = StyleSheet.create({
   badgeText: {
     fontFamily: "Lato-Bold",
     fontSize: 11,
-    color: COLORS.divineGold,
+    color: COLORS.accent,
     textTransform: "uppercase",
     letterSpacing: 1,
   },
@@ -454,7 +453,7 @@ const styles = StyleSheet.create({
   restoreText: {
     fontFamily: "Lato",
     fontSize: 14,
-    color: COLORS.slate400,
+    color: COLORS.textTertiary,
     textAlign: "center",
     textDecorationLine: "underline",
   },
@@ -465,13 +464,13 @@ const styles = StyleSheet.create({
   anonTitle: {
     fontFamily: "Cinzel",
     fontSize: 20,
-    color: "white",
+    color: COLORS.textPrimary,
     textAlign: "center",
   },
   anonSubtitle: {
     fontFamily: "Lato",
     fontSize: 15,
-    color: COLORS.slate400,
+    color: COLORS.textSecondary,
     textAlign: "center",
     marginBottom: 8,
   },
@@ -485,6 +484,6 @@ const styles = StyleSheet.create({
   signInText: {
     fontFamily: "Lato-Bold",
     fontSize: 16,
-    color: "white",
+    color: COLORS.textInverse,
   },
 });

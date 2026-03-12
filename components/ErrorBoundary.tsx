@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { Flame } from "lucide-react-native";
 import { COLORS, FONTS } from "../constants/theme";
 
@@ -38,12 +37,9 @@ export class ErrorBoundary extends React.Component<Props, State> {
     }
 
     return (
-      <LinearGradient
-        colors={[COLORS.voidBlack, "#1a0a2e", COLORS.voidBlack]}
-        style={styles.container}
-      >
+      <View style={styles.container}>
         <View style={styles.iconContainer}>
-          <Flame size={48} color={COLORS.fireOrange} strokeWidth={1.5} />
+          <Flame size={48} color={COLORS.accent} strokeWidth={1.5} />
         </View>
 
         <Text style={styles.heading}>Something went wrong</Text>
@@ -59,7 +55,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
         >
           <Text style={styles.buttonText}>Try Again</Text>
         </TouchableOpacity>
-      </LinearGradient>
+      </View>
     );
   }
 }
@@ -70,48 +66,42 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 32,
+    backgroundColor: COLORS.background,
   },
   iconContainer: {
     width: 88,
     height: 88,
     borderRadius: 44,
-    backgroundColor: "rgba(245,158,11,0.1)",
+    backgroundColor: COLORS.accentMuted,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 24,
-    borderWidth: 1,
-    borderColor: "rgba(245,158,11,0.2)",
   },
   heading: {
     fontFamily: FONTS.display,
     fontSize: 24,
-    color: COLORS.white,
+    color: COLORS.textPrimary,
     textAlign: "center",
     marginBottom: 12,
   },
   subtitle: {
     fontFamily: FONTS.body,
     fontSize: 16,
-    color: COLORS.slate400,
+    color: COLORS.textSecondary,
     textAlign: "center",
     lineHeight: 24,
     marginBottom: 32,
   },
   button: {
-    backgroundColor: COLORS.electricPurple,
+    backgroundColor: COLORS.purple,
     paddingHorizontal: 32,
     paddingVertical: 14,
     borderRadius: 12,
-    shadowColor: COLORS.electricPurple,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
   },
   buttonText: {
     fontFamily: FONTS.bodyBold,
     fontSize: 16,
-    color: COLORS.white,
+    color: COLORS.textInverse,
     letterSpacing: 1,
     textTransform: "uppercase",
   },

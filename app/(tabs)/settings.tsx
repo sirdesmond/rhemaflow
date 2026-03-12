@@ -29,7 +29,7 @@ import {
 } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import { Typography } from "../../components/ui/Typography";
-import { COLORS } from "../../constants/theme";
+import { COLORS, SHADOWS } from "../../constants/theme";
 import { ATMOSPHERE_TRACKS } from "../../constants/tracks";
 import { AtmosphereType, UserSettings, LifeStage } from "../../types";
 import { useRouter } from "expo-router";
@@ -258,13 +258,13 @@ export default function SettingsScreen() {
       {/* Profile section */}
       <View style={styles.profileSection}>
         <LinearGradient
-          colors={[COLORS.electricPurple, COLORS.warmGold]}
+          colors={[COLORS.purple, COLORS.accent]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.avatarRing}
         >
           <View style={styles.avatar}>
-            <User size={32} color={COLORS.slate400} />
+            <User size={32} color={COLORS.textTertiary} />
           </View>
         </LinearGradient>
         <View style={styles.profileInfo}>
@@ -278,20 +278,18 @@ export default function SettingsScreen() {
                   flexDirection: "row",
                   alignItems: "center",
                   gap: 4,
-                  backgroundColor: "rgba(251,191,36,0.15)",
+                  backgroundColor: COLORS.accentMuted,
                   paddingHorizontal: 8,
                   paddingVertical: 3,
                   borderRadius: 10,
-                  borderWidth: 1,
-                  borderColor: "rgba(251,191,36,0.3)",
                 }}
               >
-                <Crown size={10} color={COLORS.divineGold} />
+                <Crown size={10} color={COLORS.accent} />
                 <Text
                   style={{
                     fontFamily: "Lato-Bold",
                     fontSize: 9,
-                    color: COLORS.divineGold,
+                    color: COLORS.accent,
                     textTransform: "uppercase",
                     letterSpacing: 1,
                   }}
@@ -315,8 +313,8 @@ export default function SettingsScreen() {
 
         <View style={styles.row}>
           <View style={styles.rowLeft}>
-            <View style={[styles.iconCircle, { backgroundColor: COLORS.electricPurple + "20" }]}>
-              <Bell size={18} color={COLORS.electricPurple} />
+            <View style={[styles.iconCircle, { backgroundColor: COLORS.purpleMuted }]}>
+              <Bell size={18} color={COLORS.purple} />
             </View>
             <Typography variant="body" style={styles.rowLabel}>
               Daily Reminders
@@ -326,11 +324,11 @@ export default function SettingsScreen() {
             value={notificationsEnabled}
             onValueChange={handleToggleNotifications}
             trackColor={{
-              false: COLORS.slate700,
-              true: COLORS.electricPurple + "80",
+              false: COLORS.border,
+              true: COLORS.purple + "80",
             }}
             thumbColor={
-              notificationsEnabled ? COLORS.electricPurple : COLORS.slate400
+              notificationsEnabled ? COLORS.purple : COLORS.textTertiary
             }
           />
         </View>
@@ -343,8 +341,8 @@ export default function SettingsScreen() {
                   style={styles.rowLeft}
                   onPress={() => openTimePicker(index)}
                 >
-                  <View style={[styles.iconCircle, { backgroundColor: COLORS.fireOrange + "20" }]}>
-                    <Clock size={18} color={COLORS.fireOrange} />
+                  <View style={[styles.iconCircle, { backgroundColor: COLORS.accentMuted }]}>
+                    <Clock size={18} color={COLORS.accent} />
                   </View>
                   <Typography variant="body" style={styles.rowLabel}>
                     {formatTime(time)}
@@ -354,7 +352,7 @@ export default function SettingsScreen() {
                   onPress={() => handleRemoveTime(index)}
                   hitSlop={8}
                 >
-                  <X size={18} color={COLORS.slate400} />
+                  <X size={18} color={COLORS.textTertiary} />
                 </Pressable>
               </View>
             ))}
@@ -365,10 +363,10 @@ export default function SettingsScreen() {
                 onPress={() => openTimePicker(null)}
               >
                 <View style={styles.rowLeft}>
-                  <View style={[styles.iconCircle, { backgroundColor: COLORS.electricPurple + "20" }]}>
-                    <Plus size={18} color={COLORS.electricPurple} />
+                  <View style={[styles.iconCircle, { backgroundColor: COLORS.purpleMuted }]}>
+                    <Plus size={18} color={COLORS.purple} />
                   </View>
-                  <Typography variant="body" style={[styles.rowLabel, { color: COLORS.electricPurple }]}>
+                  <Typography variant="body" style={[styles.rowLabel, { color: COLORS.purple }]}>
                     Add Reminder
                   </Typography>
                 </View>
@@ -389,8 +387,8 @@ export default function SettingsScreen() {
           onPress={() => setShowAtmospherePicker(!showAtmospherePicker)}
         >
           <View style={styles.rowLeft}>
-            <View style={[styles.iconCircle, { backgroundColor: COLORS.divineGold + "20" }]}>
-              <Music size={18} color={COLORS.divineGold} />
+            <View style={[styles.iconCircle, { backgroundColor: COLORS.accentMuted }]}>
+              <Music size={18} color={COLORS.accent} />
             </View>
             <Typography variant="body" style={styles.rowLabel}>
               Default Atmosphere
@@ -400,7 +398,7 @@ export default function SettingsScreen() {
             <Typography variant="caption" style={styles.rowValue}>
               {atmosphereLabel}
             </Typography>
-            <ChevronRight size={16} color={COLORS.slate400} />
+            <ChevronRight size={16} color={COLORS.textTertiary} />
           </View>
         </Pressable>
 
@@ -435,8 +433,8 @@ export default function SettingsScreen() {
           onPress={() => handleVoiceGenderChange(voiceGender === "male" ? "female" : "male")}
         >
           <View style={styles.rowLeft}>
-            <View style={[styles.iconCircle, { backgroundColor: COLORS.fireOrange + "20" }]}>
-              <Volume2 size={18} color={COLORS.fireOrange} />
+            <View style={[styles.iconCircle, { backgroundColor: COLORS.accentMuted }]}>
+              <Volume2 size={18} color={COLORS.accent} />
             </View>
             <Typography variant="body" style={styles.rowLabel}>
               Voice
@@ -446,7 +444,7 @@ export default function SettingsScreen() {
             <Typography variant="caption" style={styles.rowValue}>
               {voiceGender === "male" ? "Male" : "Female"}
             </Typography>
-            <ChevronRight size={16} color={COLORS.slate400} />
+            <ChevronRight size={16} color={COLORS.textTertiary} />
           </View>
         </Pressable>
 
@@ -456,21 +454,21 @@ export default function SettingsScreen() {
           onPress={() => setShowLifeStages(!showLifeStages)}
         >
           <View style={styles.rowLeft}>
-            <View style={[styles.iconCircle, { backgroundColor: COLORS.electricPurple + "20" }]}>
-              <User size={18} color={COLORS.electricPurple} />
+            <View style={[styles.iconCircle, { backgroundColor: COLORS.purpleMuted }]}>
+              <User size={18} color={COLORS.purple} />
             </View>
             <View>
               <Typography variant="body" style={styles.rowLabel}>
                 Life Stages
               </Typography>
               {lifeStages.length > 0 && !showLifeStages && (
-                <Typography variant="caption" style={{ color: COLORS.slate400, marginTop: 2 }}>
+                <Typography variant="caption" style={{ color: COLORS.textTertiary, marginTop: 2 }}>
                   {lifeStages.map((s) => s === "business-owner" ? "Business Owner" : s.charAt(0).toUpperCase() + s.slice(1)).join(", ")}
                 </Typography>
               )}
             </View>
           </View>
-          <ChevronRight size={16} color={COLORS.slate400} />
+          <ChevronRight size={16} color={COLORS.textTertiary} />
         </Pressable>
 
         {showLifeStages && (
@@ -514,14 +512,14 @@ export default function SettingsScreen() {
           <>
             <View style={styles.row}>
               <View style={styles.rowLeft}>
-                <View style={[styles.iconCircle, { backgroundColor: "rgba(251,191,36,0.15)" }]}>
-                  <Crown size={18} color={COLORS.divineGold} />
+                <View style={[styles.iconCircle, { backgroundColor: COLORS.accentMuted }]}>
+                  <Crown size={18} color={COLORS.accent} />
                 </View>
                 <View>
                   <Typography variant="body" style={styles.rowLabel}>
                     RhemaFlow Pro
                   </Typography>
-                  <Typography variant="caption" style={{ color: COLORS.divineGold, marginTop: 2 }}>
+                  <Typography variant="caption" style={{ color: COLORS.accent, marginTop: 2 }}>
                     Active
                   </Typography>
                 </View>
@@ -536,29 +534,29 @@ export default function SettingsScreen() {
               )}
             >
               <View style={styles.rowLeft}>
-                <View style={[styles.iconCircle, { backgroundColor: COLORS.electricPurple + "20" }]}>
-                  <Zap size={18} color={COLORS.electricPurple} />
+                <View style={[styles.iconCircle, { backgroundColor: COLORS.purpleMuted }]}>
+                  <Zap size={18} color={COLORS.purple} />
                 </View>
                 <Typography variant="body" style={styles.rowLabel}>
                   Manage Subscription
                 </Typography>
               </View>
-              <ChevronRight size={16} color={COLORS.slate400} />
+              <ChevronRight size={16} color={COLORS.textTertiary} />
             </Pressable>
           </>
         ) : (
           <>
             <View style={styles.row}>
               <View style={styles.rowLeft}>
-                <View style={[styles.iconCircle, { backgroundColor: COLORS.slate700 + "40" }]}>
-                  <Crown size={18} color={COLORS.slate400} />
+                <View style={[styles.iconCircle, { backgroundColor: COLORS.backgroundMuted }]}>
+                  <Crown size={18} color={COLORS.textTertiary} />
                 </View>
                 <View>
                   <Typography variant="body" style={styles.rowLabel}>
                     Free Plan
                   </Typography>
                   {usage && (
-                    <Typography variant="caption" style={{ color: COLORS.slate400, marginTop: 2 }}>
+                    <Typography variant="caption" style={{ color: COLORS.textTertiary, marginTop: 2 }}>
                       {usage.declarationsToday}/{usage.dailyLimit} declarations used today
                     </Typography>
                   )}
@@ -566,21 +564,21 @@ export default function SettingsScreen() {
               </View>
             </View>
             <Pressable
-              style={[styles.row, { borderColor: COLORS.divineGold + "40" }]}
+              style={styles.row}
               onPress={() => {
                 trackPaywallViewed("settings");
                 router.push("/(modals)/paywall" as any);
               }}
             >
               <View style={styles.rowLeft}>
-                <View style={[styles.iconCircle, { backgroundColor: "rgba(251,191,36,0.15)" }]}>
-                  <Zap size={18} color={COLORS.divineGold} />
+                <View style={[styles.iconCircle, { backgroundColor: COLORS.accentMuted }]}>
+                  <Zap size={18} color={COLORS.accent} />
                 </View>
-                <Typography variant="body" style={[styles.rowLabel, { color: COLORS.divineGold }]}>
+                <Typography variant="body" style={[styles.rowLabel, { color: COLORS.accent }]}>
                   Upgrade to Pro
                 </Typography>
               </View>
-              <ChevronRight size={16} color={COLORS.divineGold} />
+              <ChevronRight size={16} color={COLORS.accent} />
             </Pressable>
           </>
         )}
@@ -594,10 +592,10 @@ export default function SettingsScreen() {
 
         <Pressable style={styles.row} onPress={handleSignOut}>
           <View style={styles.rowLeft}>
-            <View style={[styles.iconCircle, { backgroundColor: "rgba(239,68,68,0.15)" }]}>
-              <LogOut size={18} color="#EF4444" />
+            <View style={[styles.iconCircle, { backgroundColor: COLORS.errorLight }]}>
+              <LogOut size={18} color={COLORS.error} />
             </View>
-            <Typography variant="body" style={[styles.rowLabel, { color: "#EF4444" }]}>
+            <Typography variant="body" style={[styles.rowLabel, { color: COLORS.error }]}>
               Sign Out
             </Typography>
           </View>
@@ -609,10 +607,10 @@ export default function SettingsScreen() {
           disabled={isDeleting}
         >
           <View style={styles.rowLeft}>
-            <View style={[styles.iconCircle, { backgroundColor: "rgba(239,68,68,0.15)" }]}>
-              <Trash2 size={18} color="#EF4444" />
+            <View style={[styles.iconCircle, { backgroundColor: COLORS.errorLight }]}>
+              <Trash2 size={18} color={COLORS.error} />
             </View>
-            <Typography variant="body" style={[styles.rowLabel, { color: "#EF4444" }]}>
+            <Typography variant="body" style={[styles.rowLabel, { color: COLORS.error }]}>
               {isDeleting ? "Deleting Account..." : "Delete Account"}
             </Typography>
           </View>
@@ -660,7 +658,7 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.voidBlack,
+    backgroundColor: COLORS.background,
   },
   content: {
     padding: 20,
@@ -672,7 +670,7 @@ const styles = StyleSheet.create({
     gap: 16,
     paddingVertical: 24,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.glassBorder,
+    borderBottomColor: COLORS.borderLight,
     marginBottom: 8,
   },
   avatarRing: {
@@ -686,7 +684,7 @@ const styles = StyleSheet.create({
     width: 62,
     height: 62,
     borderRadius: 31,
-    backgroundColor: COLORS.slate900,
+    backgroundColor: COLORS.backgroundWarm,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -694,18 +692,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   profileName: {
-    color: COLORS.white,
+    color: COLORS.textPrimary,
     fontSize: 20,
   },
   profileEmail: {
-    color: COLORS.slate400,
+    color: COLORS.textTertiary,
     marginTop: 2,
   },
   section: {
     marginTop: 24,
   },
   sectionTitle: {
-    color: COLORS.warmGold,
+    color: COLORS.accent,
     fontSize: 11,
     letterSpacing: 2,
     marginBottom: 12,
@@ -715,13 +713,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: COLORS.glass,
+    backgroundColor: COLORS.surface,
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderRadius: 14,
     marginBottom: 8,
-    borderWidth: 1,
-    borderColor: COLORS.glassBorder,
+    ...SHADOWS.small,
   },
   iconCircle: {
     width: 36,
@@ -736,7 +733,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   rowLabel: {
-    color: COLORS.white,
+    color: COLORS.textPrimary,
     fontSize: 15,
   },
   rowRight: {
@@ -745,7 +742,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   rowValue: {
-    color: COLORS.slate400,
+    color: COLORS.textTertiary,
   },
   pickerContainer: {
     flexDirection: "row",
@@ -758,51 +755,49 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: COLORS.glass,
-    borderWidth: 1,
-    borderColor: COLORS.glassBorder,
+    backgroundColor: COLORS.backgroundWarm,
   },
   pickerOptionActive: {
-    borderColor: COLORS.warmGold,
-    backgroundColor: "rgba(212,168,84,0.15)",
+    backgroundColor: COLORS.accentMuted,
+    borderWidth: 1,
+    borderColor: COLORS.accent,
   },
   pickerText: {
-    color: COLORS.slate400,
+    color: COLORS.textTertiary,
     fontSize: 14,
   },
   pickerTextActive: {
-    color: COLORS.warmGold,
+    color: COLORS.accent,
   },
   version: {
-    color: COLORS.slate700,
+    color: COLORS.textTertiary,
     textAlign: "center",
     marginTop: 40,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.7)",
+    backgroundColor: "rgba(0,0,0,0.4)",
     justifyContent: "center",
     alignItems: "center",
   },
   modalContent: {
-    backgroundColor: COLORS.slate900,
+    backgroundColor: COLORS.surface,
     borderRadius: 24,
     padding: 28,
     alignItems: "center",
     width: "85%",
-    borderWidth: 1,
-    borderColor: COLORS.glassBorder,
+    ...SHADOWS.large,
   },
   modalTitle: {
     fontFamily: "Cinzel",
     fontSize: 18,
-    color: COLORS.white,
+    color: COLORS.textPrimary,
     marginBottom: 24,
     textTransform: "uppercase",
     letterSpacing: 2,
   },
   modalSaveButton: {
-    backgroundColor: COLORS.electricPurple,
+    backgroundColor: COLORS.purple,
     paddingVertical: 14,
     paddingHorizontal: 48,
     borderRadius: 14,
@@ -811,7 +806,7 @@ const styles = StyleSheet.create({
   modalSaveText: {
     fontFamily: "Lato-Bold",
     fontSize: 16,
-    color: COLORS.white,
+    color: COLORS.textInverse,
     textTransform: "uppercase",
     letterSpacing: 1,
   },

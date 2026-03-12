@@ -21,7 +21,7 @@ import {
   View,
 } from "react-native";
 import { ScrollWheelTimePicker } from "../../components/ScrollWheelTimePicker";
-import { COLORS, FONTS } from "../../constants/theme";
+import { COLORS, FONTS, SHADOWS } from "../../constants/theme";
 import { scheduleDailyNotification } from "../../hooks/useNotifications";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -82,7 +82,7 @@ export default function WelcomeScreen() {
                 {/* Flame icon */}
                 <View style={styles.flameContainer}>
                   <View style={styles.flameGlow} />
-                  <Flame size={80} color={COLORS.fireOrange} />
+                  <Flame size={80} color={COLORS.accent} />
                 </View>
 
                 {/* Branding */}
@@ -119,10 +119,10 @@ export default function WelcomeScreen() {
                     <View
                       style={[
                         styles.stepIcon,
-                        { borderColor: "rgba(245,158,11,0.3)" },
+                        { backgroundColor: "rgba(212,149,74,0.10)" },
                       ]}
                     >
-                      <Layers size={26} color={COLORS.fireOrange} />
+                      <Layers size={26} color={COLORS.accent} />
                     </View>
                     <View style={styles.stepText}>
                       <Text style={styles.stepLabel}>STEP 1</Text>
@@ -140,16 +140,16 @@ export default function WelcomeScreen() {
                     <View
                       style={[
                         styles.stepIcon,
-                        { borderColor: "rgba(124,58,237,0.3)" },
+                        { backgroundColor: COLORS.purpleMuted },
                       ]}
                     >
-                      <Volume2 size={26} color={COLORS.electricPurple} />
+                      <Volume2 size={26} color={COLORS.purple} />
                     </View>
                     <View style={styles.stepText}>
                       <Text
                         style={[
                           styles.stepLabel,
-                          { color: COLORS.electricPurple },
+                          { color: COLORS.purple },
                         ]}
                       >
                         STEP 2
@@ -168,16 +168,16 @@ export default function WelcomeScreen() {
                     <View
                       style={[
                         styles.stepIcon,
-                        { borderColor: "rgba(251,191,36,0.3)" },
+                        { backgroundColor: COLORS.accentMuted },
                       ]}
                     >
-                      <Share2 size={26} color={COLORS.divineGold} />
+                      <Share2 size={26} color={COLORS.accent} />
                     </View>
                     <View style={styles.stepText}>
                       <Text
                         style={[
                           styles.stepLabel,
-                          { color: COLORS.divineGold },
+                          { color: COLORS.accent },
                         ]}
                       >
                         STEP 3
@@ -203,7 +203,7 @@ export default function WelcomeScreen() {
                 <View style={styles.bellContainer}>
                   <View style={styles.bellGlow} />
                   <View style={styles.bellCircle}>
-                    <Bell size={44} color={COLORS.white} />
+                    <Bell size={44} color={COLORS.textInverse} />
                   </View>
                 </View>
 
@@ -233,7 +233,7 @@ export default function WelcomeScreen() {
                   ]}
                 >
                   <Text style={styles.ctaText}>Get Started</Text>
-                  <ArrowRight size={20} color={COLORS.white} />
+                  <ArrowRight size={20} color={COLORS.textInverse} />
                 </Pressable>
               </View>
             </View>
@@ -245,7 +245,7 @@ export default function WelcomeScreen() {
 
   return (
     <LinearGradient
-      colors={[COLORS.voidBlack, COLORS.deepPurple, COLORS.voidBlack]}
+      colors={[COLORS.background, "#F0E6D6", COLORS.background]}
       locations={[0, 0.45, 1]}
       style={styles.container}
     >
@@ -305,7 +305,7 @@ export default function WelcomeScreen() {
               pressed && { opacity: 0.7 },
             ]}
           >
-            <ChevronRight size={22} color={COLORS.white} />
+            <ChevronRight size={22} color={COLORS.textPrimary} />
           </Pressable>
         ) : (
           <View style={{ width: 48 }} />
@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
   skipText: {
     fontFamily: FONTS.bodyBold,
     fontSize: 14,
-    color: COLORS.slate400,
+    color: COLORS.textTertiary,
     letterSpacing: 2,
     textTransform: "uppercase",
   },
@@ -361,43 +361,43 @@ const styles = StyleSheet.create({
     width: 160,
     height: 160,
     borderRadius: 80,
-    backgroundColor: "rgba(245,158,11,0.15)",
+    backgroundColor: "rgba(212,149,74,0.12)",
   },
   brandTitle: {
     fontFamily: FONTS.display,
     fontSize: 44,
-    color: COLORS.white,
+    color: COLORS.textPrimary,
     textAlign: "center",
     letterSpacing: 6,
     lineHeight: 54,
   },
   brandAccent: {
-    color: COLORS.electricPurple,
+    color: COLORS.purple,
   },
   divider: {
     width: 60,
     height: 3,
     borderRadius: 2,
-    backgroundColor: COLORS.fireOrange,
+    backgroundColor: COLORS.accent,
     marginVertical: 24,
   },
   headline: {
     fontFamily: FONTS.display,
     fontSize: 24,
-    color: COLORS.white,
+    color: COLORS.textPrimary,
     textAlign: "center",
   },
   headlineAccent: {
     fontFamily: FONTS.display,
     fontSize: 24,
-    color: COLORS.divineGold,
+    color: COLORS.accent,
     textAlign: "center",
     marginBottom: 16,
   },
   tagline: {
     fontFamily: FONTS.body,
     fontSize: 16,
-    color: COLORS.slate400,
+    color: COLORS.textSecondary,
     textAlign: "center",
     lineHeight: 24,
   },
@@ -406,7 +406,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontFamily: FONTS.display,
     fontSize: 28,
-    color: COLORS.white,
+    color: COLORS.textPrimary,
     textAlign: "center",
     marginBottom: 40,
   },
@@ -423,10 +423,9 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 16,
-    borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(255,255,255,0.04)",
+    ...SHADOWS.small,
   },
   stepText: {
     flex: 1,
@@ -434,19 +433,19 @@ const styles = StyleSheet.create({
   stepLabel: {
     fontFamily: FONTS.bodyBold,
     fontSize: 10,
-    color: COLORS.fireOrange,
+    color: COLORS.accent,
     letterSpacing: 3,
     marginBottom: 4,
   },
   stepTitle: {
     fontFamily: FONTS.bodyBold,
     fontSize: 17,
-    color: COLORS.white,
+    color: COLORS.textPrimary,
   },
   stepDesc: {
     fontFamily: FONTS.body,
     fontSize: 13,
-    color: COLORS.slate400,
+    color: COLORS.textSecondary,
     marginTop: 4,
     lineHeight: 18,
   },
@@ -462,20 +461,20 @@ const styles = StyleSheet.create({
     width: 140,
     height: 140,
     borderRadius: 70,
-    backgroundColor: "rgba(124,58,237,0.15)",
+    backgroundColor: "rgba(139,92,246,0.10)",
   },
   bellCircle: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: COLORS.electricPurple,
+    backgroundColor: COLORS.purple,
     alignItems: "center",
     justifyContent: "center",
   },
   timeLabel: {
     fontFamily: FONTS.bodyBold,
     fontSize: 10,
-    color: COLORS.slate400,
+    color: COLORS.textTertiary,
     letterSpacing: 3,
     marginTop: 28,
     marginBottom: 12,
@@ -488,7 +487,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 10,
-    backgroundColor: COLORS.electricPurple,
+    backgroundColor: COLORS.purple,
     width: "100%",
     paddingVertical: 18,
     borderRadius: 16,
@@ -499,7 +498,7 @@ const styles = StyleSheet.create({
   ctaText: {
     fontFamily: FONTS.display,
     fontSize: 18,
-    color: COLORS.white,
+    color: COLORS.textInverse,
     letterSpacing: 2,
     textTransform: "uppercase",
   },
@@ -523,21 +522,20 @@ const styles = StyleSheet.create({
   dotActive: {
     width: 28,
     height: 6,
-    backgroundColor: COLORS.divineGold,
+    backgroundColor: COLORS.accent,
   },
   dotInactive: {
     width: 8,
     height: 6,
-    backgroundColor: COLORS.slate700,
+    backgroundColor: COLORS.border,
   },
   nextButton: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: "rgba(255,255,255,0.1)",
-    borderWidth: 1,
-    borderColor: COLORS.glassBorder,
+    backgroundColor: COLORS.surface,
     alignItems: "center",
     justifyContent: "center",
+    ...SHADOWS.small,
   },
 });

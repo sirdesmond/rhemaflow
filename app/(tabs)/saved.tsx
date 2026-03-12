@@ -15,8 +15,8 @@ import ViewShot from "react-native-view-shot";
 import { Typography } from "../../components/ui/Typography";
 import { DeclarationCard } from "../../components/DeclarationCard";
 import { ShareCard } from "../../components/ShareCard";
-import { COLORS } from "../../constants/theme";
-import { CATEGORY_GRADIENTS } from "../../constants/categories";
+import { COLORS, SHADOWS } from "../../constants/theme";
+import { CATEGORY_TINTS } from "../../constants/categories";
 import { Declaration, DeclarationCategory } from "../../types";
 import {
   onDeclarationsSnapshot,
@@ -163,7 +163,7 @@ export default function SavedScreen() {
         {/* Header with back button */}
         <View style={styles.detailHeader}>
           <Pressable onPress={handleBack} style={styles.backBtn}>
-            <ChevronLeft size={18} color="white" />
+            <ChevronLeft size={18} color={COLORS.textPrimary} />
             <Typography variant="caption" style={styles.backBtnText}>
               Back
             </Typography>
@@ -211,9 +211,9 @@ export default function SavedScreen() {
 
   // List view
   const renderItem = ({ item }: { item: Declaration }) => {
-    const gradientColors =
-      CATEGORY_GRADIENTS[item.category] ||
-      CATEGORY_GRADIENTS[DeclarationCategory.GENERAL];
+    const tint =
+      CATEGORY_TINTS[item.category] ||
+      CATEGORY_TINTS[DeclarationCategory.GENERAL];
 
     return (
       <Pressable onPress={() => handleCardPress(item)}>
@@ -222,7 +222,7 @@ export default function SavedScreen() {
           <View
             style={[
               styles.accentBar,
-              { backgroundColor: gradientColors[0] },
+              { backgroundColor: tint.text },
             ]}
           />
           <View style={styles.cardBody}>
@@ -231,12 +231,12 @@ export default function SavedScreen() {
               <View
                 style={[
                   styles.categoryPill,
-                  { backgroundColor: gradientColors[0] + "20" },
+                  { backgroundColor: tint.bg },
                 ]}
               >
                 <Typography
                   variant="caption"
-                  style={[styles.categoryText, { color: gradientColors[0] }]}
+                  style={[styles.categoryText, { color: tint.text }]}
                 >
                   {item.category}
                 </Typography>
@@ -252,9 +252,9 @@ export default function SavedScreen() {
                   <Heart
                     size={18}
                     color={
-                      item.isFavorite ? COLORS.divineGold : COLORS.slate400
+                      item.isFavorite ? COLORS.accent : COLORS.textTertiary
                     }
-                    fill={item.isFavorite ? COLORS.divineGold : "transparent"}
+                    fill={item.isFavorite ? COLORS.accent : "transparent"}
                   />
                 </Pressable>
                 <Pressable
@@ -264,7 +264,7 @@ export default function SavedScreen() {
                   }}
                   style={styles.iconBtn}
                 >
-                  <Trash2 size={18} color={COLORS.slate400} />
+                  <Trash2 size={18} color={COLORS.textTertiary} />
                 </Pressable>
               </View>
             </View>
@@ -280,7 +280,7 @@ export default function SavedScreen() {
 
             {/* Scripture */}
             <View style={styles.scriptureRow}>
-              <BookOpen size={14} color={COLORS.divineGold} />
+              <BookOpen size={14} color={COLORS.accent} />
               <Typography variant="caption" style={styles.reference}>
                 {item.reference}
               </Typography>
@@ -333,11 +333,11 @@ export default function SavedScreen() {
 
       {loading ? (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color={COLORS.electricPurple} />
+          <ActivityIndicator size="large" color={COLORS.purple} />
         </View>
       ) : filtered.length === 0 ? (
         <View style={styles.center}>
-          <Heart size={48} color={COLORS.slate700} />
+          <Heart size={48} color={COLORS.border} />
           <Typography variant="heading" style={styles.emptyTitle}>
             {filter === "favorites"
               ? "No favorites yet"
@@ -365,7 +365,7 @@ export default function SavedScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.voidBlack,
+    backgroundColor: COLORS.background,
   },
   // Detail view
   detailHeader: {
@@ -375,7 +375,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(255,255,255,0.05)",
+    borderBottomColor: COLORS.borderLight,
   },
   backBtn: {
     flexDirection: "row",
@@ -384,17 +384,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
-    backgroundColor: COLORS.glass,
-    borderWidth: 1,
-    borderColor: COLORS.glassBorder,
+    backgroundColor: COLORS.surface,
+    ...SHADOWS.small,
   },
   backBtnText: {
-    color: "white",
+    color: COLORS.textPrimary,
     fontSize: 12,
     letterSpacing: 0.5,
   },
   detailHeaderText: {
-    color: COLORS.slate400,
+    color: COLORS.textTertiary,
     fontSize: 11,
     letterSpacing: 2,
     textTransform: "uppercase",
@@ -416,21 +415,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: COLORS.glass,
-    borderWidth: 1,
-    borderColor: COLORS.glassBorder,
+    backgroundColor: COLORS.surface,
+    ...SHADOWS.small,
   },
   filterBtnActive: {
-    borderColor: COLORS.warmGold,
-    backgroundColor: "rgba(212,168,84,0.15)",
+    backgroundColor: COLORS.accent,
   },
   filterText: {
-    color: COLORS.slate400,
+    color: COLORS.textSecondary,
     fontSize: 13,
     letterSpacing: 0.5,
   },
   filterTextActive: {
-    color: COLORS.warmGold,
+    color: COLORS.textInverse,
   },
   list: {
     padding: 20,
@@ -440,10 +437,9 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: 16,
     overflow: "hidden",
-    borderWidth: 1,
-    borderColor: COLORS.glassBorder,
-    backgroundColor: COLORS.glass,
+    backgroundColor: COLORS.surface,
     flexDirection: "row",
+    ...SHADOWS.medium,
   },
   accentBar: {
     width: 4,
@@ -476,7 +472,7 @@ const styles = StyleSheet.create({
     padding: 6,
   },
   declarationText: {
-    color: COLORS.white,
+    color: COLORS.textPrimary,
     lineHeight: 24,
     marginBottom: 12,
   },
@@ -486,7 +482,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   reference: {
-    color: COLORS.divineGold,
+    color: COLORS.accent,
     fontSize: 12,
   },
   center: {
@@ -497,11 +493,11 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   emptyTitle: {
-    color: COLORS.slate400,
+    color: COLORS.textSecondary,
     textAlign: "center",
   },
   emptySubtitle: {
-    color: COLORS.slate700,
+    color: COLORS.textTertiary,
     textAlign: "center",
     lineHeight: 20,
   },

@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { Mic, ArrowRight, Sparkles } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
-import { COLORS, FONTS } from "../constants/theme";
+import { COLORS, FONTS, SHADOWS } from "../constants/theme";
 
 interface DeclarationInputProps {
   onSubmit: (text: string) => void;
@@ -96,7 +96,7 @@ export function DeclarationInput({
         <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
           <Mic
             size={20}
-            color={isListening ? COLORS.divineGold : COLORS.slate400}
+            color={isListening ? COLORS.accent : COLORS.textTertiary}
           />
         </Animated.View>
       </Pressable>
@@ -105,7 +105,7 @@ export function DeclarationInput({
       <TextInput
         style={styles.input}
         placeholder="Declare healing, breakthrough, favor..."
-        placeholderTextColor={COLORS.slate700}
+        placeholderTextColor={COLORS.textTertiary}
         value={text}
         onChangeText={setText}
         returnKeyType="send"
@@ -128,11 +128,11 @@ export function DeclarationInput({
         disabled={isLoading || !hasText}
       >
         {isLoading ? (
-          <Sparkles size={20} color={COLORS.white} />
+          <Sparkles size={20} color={COLORS.textInverse} />
         ) : (
           <ArrowRight
             size={20}
-            color={hasText ? COLORS.voidBlack : COLORS.slate700}
+            color={hasText ? COLORS.textInverse : COLORS.textTertiary}
           />
         )}
       </Pressable>
@@ -144,25 +144,20 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: COLORS.glass,
-    borderWidth: 1,
+    backgroundColor: COLORS.surface,
     borderRadius: 16,
     paddingHorizontal: 6,
     paddingVertical: 4,
+    ...SHADOWS.medium,
   },
   containerDefault: {
-    borderColor: COLORS.divineGold + "40",
-    shadowColor: COLORS.divineGold,
-    shadowOffset: { width: 0, height: 0 },
-    shadowRadius: 12,
-    shadowOpacity: 0.15,
+    shadowColor: COLORS.accent,
+    shadowOpacity: 0.10,
   },
   containerListening: {
-    borderColor: COLORS.divineGold + "80",
-    shadowColor: COLORS.divineGold,
-    shadowOffset: { width: 0, height: 0 },
+    shadowColor: COLORS.accent,
+    shadowOpacity: 0.25,
     shadowRadius: 20,
-    shadowOpacity: 0.35,
   },
   micButton: {
     width: 44,
@@ -174,7 +169,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: FONTS.body,
     fontSize: 15,
-    color: COLORS.white,
+    color: COLORS.textPrimary,
     paddingVertical: 12,
     paddingHorizontal: 4,
   },
@@ -186,16 +181,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   sendButtonActive: {
-    backgroundColor: COLORS.divineGold,
-    shadowColor: COLORS.divineGold,
-    shadowOffset: { width: 0, height: 0 },
-    shadowRadius: 8,
-    shadowOpacity: 0.3,
+    backgroundColor: COLORS.accent,
   },
   sendButtonInactive: {
-    backgroundColor: COLORS.slate700,
+    backgroundColor: COLORS.backgroundMuted,
   },
   sendButtonLoading: {
-    backgroundColor: COLORS.slate700,
+    backgroundColor: COLORS.backgroundMuted,
   },
 });

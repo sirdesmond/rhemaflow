@@ -6,7 +6,7 @@ export default {
     orientation: "portrait",
     icon: "./assets/images/icon.png",
     scheme: "rhemaflow",
-    userInterfaceStyle: "dark",
+    userInterfaceStyle: "light",
     newArchEnabled: true,
     updates: {
       url: "https://u.expo.dev/07320aee-cd96-4da8-8614-8b518ab20b89",
@@ -17,7 +17,7 @@ export default {
     splash: {
       image: "./assets/images/splash-icon.png",
       resizeMode: "contain",
-      backgroundColor: "#0F172A",
+      backgroundColor: "#FBF8F3",
     },
     ios: {
       supportsTablet: true,
@@ -37,7 +37,7 @@ export default {
         process.env.GOOGLE_SERVICES_JSON || "./google-services.json",
       adaptiveIcon: {
         foregroundImage: "./assets/images/adaptive-icon.png",
-        backgroundColor: "#0F172A",
+        backgroundColor: "#FBF8F3",
       },
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,

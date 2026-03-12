@@ -65,7 +65,7 @@ export function LoadingOverlay() {
       <View style={styles.iconWrapper}>
         <Animated.View style={[styles.glowRing, animatedGlow]} />
         <Animated.View style={[styles.iconContainer, animatedIcon]}>
-          <Flame size={56} color={COLORS.divineGold} fill={COLORS.fireOrange} />
+          <Flame size={56} color={COLORS.accent} fill={COLORS.accent} />
         </Animated.View>
       </View>
 
@@ -95,33 +95,31 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: COLORS.divineGold,
-    shadowColor: COLORS.divineGold,
+    backgroundColor: COLORS.accentLight,
+    shadowColor: COLORS.accent,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
+    shadowOpacity: 0.3,
     shadowRadius: 30,
   },
   iconContainer: {
     width: 96,
     height: 96,
     borderRadius: 48,
-    backgroundColor: "rgba(251,191,36,0.08)",
-    borderWidth: 1,
-    borderColor: "rgba(251,191,36,0.2)",
+    backgroundColor: COLORS.accentMuted,
     alignItems: "center",
     justifyContent: "center",
   },
   title: {
     fontFamily: "Cinzel",
     fontSize: 24,
-    color: COLORS.divineGold,
+    color: COLORS.accent,
     textAlign: "center",
     letterSpacing: 4,
   },
   divider: {
     width: 40,
     height: 2,
-    backgroundColor: COLORS.divineGold,
+    backgroundColor: COLORS.accent,
     marginVertical: 16,
     borderRadius: 1,
     opacity: 0.5,
@@ -129,7 +127,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontFamily: "Lato",
     fontSize: 13,
-    color: COLORS.slate400,
+    color: COLORS.textSecondary,
     textTransform: "uppercase",
     letterSpacing: 3,
     textAlign: "center",

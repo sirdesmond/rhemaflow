@@ -10,7 +10,7 @@ export function OfflineBanner({ visible }: { visible: boolean }) {
 
   return (
     <View style={[styles.banner, { paddingTop: insets.top + 4 }]}>
-      <WifiOff size={16} color={COLORS.voidBlack} strokeWidth={2} />
+      <WifiOff size={16} color="#92400E" strokeWidth={2} />
       <Text style={styles.text}>
         You're offline. Some features may not work.
       </Text>
@@ -25,11 +25,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 8,
     paddingBottom: 8,
-    backgroundColor: "#F59E0B",
+    backgroundColor: "#FEF3C7",
   },
   text: {
     fontFamily: FONTS.bodyBold,
     fontSize: 13,
-    color: COLORS.voidBlack,
+    color: "#92400E",
   },
 });

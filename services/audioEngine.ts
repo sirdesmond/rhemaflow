@@ -4,13 +4,16 @@ import { AtmosphereType } from "../types";
 import { BUNDLED_TRACK_ASSETS } from "../constants/tracks";
 import { logError } from "./crashlytics";
 
-const FADE_STEP_MS = 50;
+const FADE_STEP_MS = 200;
 const MUSIC_VOL_DURING_SPEECH = 0.3;
 const MUSIC_VOL_SWELL = 0.5;
 const FADE_IN_MS = 2000;
 const SWELL_MS = 1000;
 const HOLD_MS = 3000;
 const FADE_OUT_MS = 3000;
+
+type ProgressListener = (position: number, duration: number) => void;
+type ResetListener = () => void;
 
 class AudioEngine {
   private speechSound: Audio.Sound | null = null;
@@ -19,6 +22,24 @@ class AudioEngine {
   private isActive = false;
   private isPaused = false;
   private onProgress: ((position: number, duration: number) => void) | null = null;
+  private lastProgressTime = 0;
+
+  // Direct listeners for components (bypasses React state)
+  private progressListeners = new Set<ProgressListener>();
+  private resetListeners = new Set<ResetListener>();
+
+  addProgressListener(fn: ProgressListener) { this.progressListeners.add(fn); }
+  removeProgressListener(fn: ProgressListener) { this.progressListeners.delete(fn); }
+  addResetListener(fn: ResetListener) { this.resetListeners.add(fn); }
+  removeResetListener(fn: ResetListener) { this.resetListeners.delete(fn); }
+
+  private emitProgress(position: number, duration: number) {
+    this.progressListeners.forEach((fn) => fn(position, duration));
+  }
+
+  private emitReset() {
+    this.resetListeners.forEach((fn) => fn());
+  }
 
   /**
    * Configure the audio session for background playback in silent mode.
@@ -90,12 +111,21 @@ class AudioEngine {
         this.fadeVolume(this.musicSound, 0, MUSIC_VOL_DURING_SPEECH, FADE_IN_MS);
       }
 
-      // 6. Listen for speech completion and report progress
+      // 6. Listen for speech completion and report progress (throttled to 4x/sec)
       this.speechSound.setOnPlaybackStatusUpdate(
         (status: AVPlaybackStatus) => {
           if (!status.isLoaded) return;
-          if (this.onProgress && status.durationMillis) {
-            this.onProgress(status.positionMillis, status.durationMillis);
+          if (status.durationMillis) {
+            const now = Date.now();
+            if (now - this.lastProgressTime >= 250) {
+              this.lastProgressTime = now;
+              // Notify hook callback (for useAudio state)
+              if (this.onProgress) {
+                this.onProgress(status.positionMillis, status.durationMillis);
+              }
+              // Notify direct listeners (HighlightedText)
+              this.emitProgress(status.positionMillis, status.durationMillis);
+            }
           }
           if (status.didJustFinish && this.isActive) {
             this.handleSpeechEnd(onComplete);
@@ -273,6 +303,9 @@ class AudioEngine {
       }
       this.musicSound = null;
     }
+
+    // Notify listeners that playback ended
+    this.emitReset();
   }
 }
 

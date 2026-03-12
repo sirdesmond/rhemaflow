@@ -19,17 +19,17 @@ function ttsHash(text: string, voiceId: string): string {
 function pickVoice(text: string, voiceGender: string): string {
   const MALE_VOICES = [
     "nPczCjzI2devNBz1zQrb", // Brian — deep, resonant
-    "pNInz6obpgDQGcFmaJgB", // Adam — dominant, firm
     "onwK4e9ZLuTAKqWW03F9", // Daniel — strong broadcaster
     "JBFqnCBsd6RMkjVDRZzb", // George — warm, captivating
     "pqHfZKP75CvOlQylNhV4", // Bill — steady, authoritative
+    "iRc49NKOKzEg1DVxmcRs", // Sam - deep, resonant
   ];
   const FEMALE_VOICES = [
-    "EXAVITQu4vr4xnSDxMaL", // Sarah — clear, confident
-    "XrExE9yKIg1WjnnlVkGX", // Matilda — warm, authoritative
-    "cgSgspJ2msm6clMCkdW9", // Jessica — strong, expressive
-    "hpp4J3VqNfWAUOO0d1Us", // Bella — bold, engaging
-    "FGY2WhTYpPnrIDTdsKH5", // Laura — confident, articulate
+    "aFueGIISJUmscc05ZNfD",
+    "Lunvplg8eT6CdNzAkjF8",
+    "QLAlOeRuLwKX0skeTR7R",
+    "iBo5PWT1qLiEyqhM7TrG",
+    "8hJ5gV7NwkddDSPrYtar",
   ];
   const pool = voiceGender === "male" ? MALE_VOICES : FEMALE_VOICES;
   const hash = crypto.createHash("md5").update(text).digest();

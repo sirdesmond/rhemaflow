@@ -1,6 +1,20 @@
 import { ImageSourcePropType } from "react-native";
 import { DeclarationCategory, MoodPreset } from "../types";
 
+export const CATEGORY_TINTS: Record<DeclarationCategory, { bg: string; text: string }> = {
+  [DeclarationCategory.HEALTH]: { bg: "#ECFDF5", text: "#059669" },
+  [DeclarationCategory.WEALTH]: { bg: "#FEF3C7", text: "#D97706" },
+  [DeclarationCategory.IDENTITY]: { bg: "#EDE9FE", text: "#7C3AED" },
+  [DeclarationCategory.SUCCESS]: { bg: "#FEF2F2", text: "#DC2626" },
+  [DeclarationCategory.PROTECTION]: { bg: "#EFF6FF", text: "#2563EB" },
+  [DeclarationCategory.WISDOM]: { bg: "#ECFEFF", text: "#0891B2" },
+  [DeclarationCategory.MARRIAGE]: { bg: "#FFF1F2", text: "#E11D48" },
+  [DeclarationCategory.FAVOR]: { bg: "#F5F3FF", text: "#7C3AED" },
+  [DeclarationCategory.PEACE]: { bg: "#EFF6FF", text: "#1D4ED8" },
+  [DeclarationCategory.CHILDREN]: { bg: "#FFF7ED", text: "#EA580C" },
+  [DeclarationCategory.GENERAL]: { bg: "#EDE9FE", text: "#4C1D95" },
+};
+
 export const MOOD_PRESETS: MoodPreset[] = [
   {
     emoji: "\u{2764}\u{FE0F}\u{200D}\u{1F525}",

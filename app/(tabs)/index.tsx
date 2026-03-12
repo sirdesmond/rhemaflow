@@ -30,7 +30,7 @@ import {
   LifeStage,
   StreakData,
 } from "../../types";
-import { COLORS } from "../../constants/theme";
+import { COLORS, SHADOWS } from "../../constants/theme";
 import { getUserSettings } from "../../services/settings";
 import { logError } from "../../services/crashlytics";
 import {
@@ -271,7 +271,7 @@ export default function HomeScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.voidBlack }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
       {/* Header */}
       <View
         style={{
@@ -289,28 +289,27 @@ export default function HomeScreen() {
               style={{
                 padding: 8,
                 marginLeft: -8,
-                backgroundColor: COLORS.glass,
+                backgroundColor: COLORS.surface,
                 borderRadius: 20,
-                borderWidth: 1,
-                borderColor: COLORS.glassBorder,
+                ...SHADOWS.small,
               }}
             >
-              <ChevronLeft size={20} color="white" />
+              <ChevronLeft size={20} color={COLORS.textPrimary} />
             </Pressable>
           ) : (
-            <Flame size={22} color={COLORS.divineGold} fill={COLORS.fireOrange} />
+            <Flame size={22} color={COLORS.accent} fill={COLORS.accent} />
           )}
           <Text
             style={{
               fontFamily: "Cinzel",
               fontSize: 20,
-              color: "white",
+              color: COLORS.textPrimary,
               textTransform: "uppercase",
               letterSpacing: 1,
             }}
           >
             Rhema
-            <Text style={{ color: COLORS.divineGold }}>Flow</Text>
+            <Text style={{ color: COLORS.accent }}>Flow</Text>
           </Text>
           {isPro && (
             <View
@@ -318,20 +317,18 @@ export default function HomeScreen() {
                 flexDirection: "row",
                 alignItems: "center",
                 gap: 4,
-                backgroundColor: "rgba(251,191,36,0.15)",
+                backgroundColor: COLORS.accentMuted,
                 paddingHorizontal: 8,
                 paddingVertical: 3,
                 borderRadius: 10,
-                borderWidth: 1,
-                borderColor: "rgba(251,191,36,0.3)",
               }}
             >
-              <Crown size={10} color={COLORS.divineGold} />
+              <Crown size={10} color={COLORS.accent} />
               <Text
                 style={{
                   fontFamily: "Lato-Bold",
                   fontSize: 9,
-                  color: COLORS.divineGold,
+                  color: COLORS.accent,
                   textTransform: "uppercase",
                   letterSpacing: 1,
                 }}
@@ -349,20 +346,18 @@ export default function HomeScreen() {
               flexDirection: "row",
               alignItems: "center",
               gap: 4,
-              backgroundColor: "rgba(245,158,11,0.12)",
+              backgroundColor: COLORS.accentMuted,
               paddingHorizontal: 10,
               paddingVertical: 4,
               borderRadius: 12,
-              borderWidth: 1,
-              borderColor: "rgba(245,158,11,0.25)",
             }}
           >
-            <Flame size={14} color={COLORS.fireOrange} fill={COLORS.fireOrange} />
+            <Flame size={14} color={COLORS.accent} fill={COLORS.accent} />
             <Text
               style={{
                 fontFamily: "Lato-Bold",
                 fontSize: 13,
-                color: COLORS.fireOrange,
+                color: COLORS.accent,
               }}
             >
               {streak}
@@ -386,7 +381,7 @@ export default function HomeScreen() {
             style={{
               fontFamily: "Lato-Bold",
               fontSize: 13,
-              color: COLORS.divineGold,
+              color: COLORS.accent,
               textAlign: "center",
             }}
           >
@@ -395,10 +390,8 @@ export default function HomeScreen() {
         </Animated.View>
       )}
 
-      {/* Gold accent line */}
-      <View style={{ height: 1, backgroundColor: COLORS.glassBorder, marginHorizontal: 16 }}>
-        <View style={{ height: 1, width: 60, backgroundColor: COLORS.divineGold, opacity: 0.5 }} />
-      </View>
+      {/* Subtle divider */}
+      <View style={{ height: 1, backgroundColor: COLORS.borderLight, marginHorizontal: 16 }} />
 
       {/* Main Content */}
       {isLoading ? (
@@ -418,19 +411,19 @@ export default function HomeScreen() {
               style={{
                 fontFamily: "Cinzel",
                 fontSize: 26,
-                color: "white",
+                color: COLORS.textPrimary,
                 textAlign: "center",
                 lineHeight: 36,
                 marginBottom: 8,
               }}
             >
-              What are you{"\n"}believing God for?
+              Declare the Word{"\n"}over your life
             </Text>
             <Text
               style={{
                 fontFamily: "Lato",
                 fontSize: 14,
-                color: COLORS.slate400,
+                color: COLORS.textSecondary,
                 textAlign: "center",
                 marginBottom: 32,
               }}
@@ -475,16 +468,15 @@ export default function HomeScreen() {
                   paddingHorizontal: 16,
                   marginTop: 16,
                   borderRadius: 12,
-                  backgroundColor: COLORS.glass,
-                  borderWidth: 1,
-                  borderColor: COLORS.glassBorder,
+                  backgroundColor: COLORS.surface,
+                  ...SHADOWS.small,
                 }}
               >
                 <Text
                   style={{
                     fontFamily: "Lato",
                     fontSize: 14,
-                    color: usage.canGenerate ? COLORS.slate400 : COLORS.fireOrange,
+                    color: usage.canGenerate ? COLORS.textSecondary : COLORS.error,
                   }}
                 >
                   {usage.canGenerate
@@ -495,7 +487,7 @@ export default function HomeScreen() {
                   style={{
                     fontFamily: "Lato-Bold",
                     fontSize: 12,
-                    color: COLORS.divineGold,
+                    color: COLORS.accent,
                     textTransform: "uppercase",
                   }}
                 >
@@ -552,22 +544,21 @@ export default function HomeScreen() {
             style={{
               marginTop: 12,
               height: 56,
-              backgroundColor: COLORS.glass,
-              borderWidth: 1,
-              borderColor: COLORS.glassBorder,
+              backgroundColor: COLORS.surface,
               borderRadius: 16,
               flexDirection: "row",
               alignItems: "center",
               justifyContent: "center",
               gap: 8,
+              ...SHADOWS.small,
             }}
           >
-            <Sparkles size={18} color={COLORS.warmGold} />
+            <Sparkles size={18} color={COLORS.accent} />
             <Text
               style={{
                 fontFamily: "Lato-Bold",
                 fontSize: 14,
-                color: COLORS.warmGold,
+                color: COLORS.accent,
                 textTransform: "uppercase",
                 letterSpacing: 1.5,
               }}

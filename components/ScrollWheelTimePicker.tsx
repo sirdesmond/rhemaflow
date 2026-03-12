@@ -9,7 +9,7 @@ import {
   NativeScrollEvent,
 } from "react-native";
 import * as Haptics from "expo-haptics";
-import { COLORS, FONTS } from "../constants/theme";
+import { COLORS, FONTS, SHADOWS } from "../constants/theme";
 
 const ITEM_HEIGHT = 48;
 const VISIBLE_ITEMS = 3;
@@ -210,22 +210,21 @@ const styles = StyleSheet.create({
   colon: {
     fontFamily: FONTS.bodyBold,
     fontSize: 28,
-    color: COLORS.divineGold,
+    color: COLORS.accent,
     marginBottom: 2,
   },
   periodButton: {
-    backgroundColor: COLORS.glass,
-    borderWidth: 1,
-    borderColor: COLORS.glassBorder,
+    backgroundColor: COLORS.surface,
     borderRadius: 12,
     paddingVertical: 10,
     paddingHorizontal: 14,
     marginLeft: 8,
+    ...SHADOWS.small,
   },
   periodText: {
     fontFamily: FONTS.bodyBold,
     fontSize: 18,
-    color: COLORS.divineGold,
+    color: COLORS.accent,
   },
 });
 
@@ -238,10 +237,10 @@ const wheelStyles = StyleSheet.create({
   itemText: {
     fontFamily: FONTS.bodyBold,
     fontSize: 28,
-    color: COLORS.slate700,
+    color: COLORS.textTertiary,
   },
   itemTextSelected: {
-    color: COLORS.divineGold,
+    color: COLORS.accent,
     fontSize: 32,
   },
   itemTextFaded: {
@@ -255,7 +254,7 @@ const wheelStyles = StyleSheet.create({
     height: ITEM_HEIGHT,
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: COLORS.divineGold + "40",
-    backgroundColor: COLORS.divineGold + "08",
+    borderColor: COLORS.border,
+    backgroundColor: COLORS.accentMuted,
   },
 });

@@ -1,8 +1,7 @@
 import { Tabs } from "expo-router";
 import { View } from "react-native";
-import { BlurView } from "expo-blur";
 import { Home, Heart, Settings } from "lucide-react-native";
-import { COLORS } from "../../constants/theme";
+import { COLORS, SHADOWS } from "../../constants/theme";
 import { useNetwork } from "../../hooks/useNetwork";
 import { OfflineBanner } from "../../components/OfflineBanner";
 
@@ -14,13 +13,8 @@ function ActiveDot({ focused }: { focused: boolean }) {
         width: 4,
         height: 4,
         borderRadius: 2,
-        backgroundColor: COLORS.divineGold,
+        backgroundColor: COLORS.accent,
         marginTop: 4,
-        shadowColor: COLORS.divineGold,
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.8,
-        shadowRadius: 4,
-        elevation: 4,
       }}
     />
   );
@@ -35,21 +29,20 @@ export default function TabLayout() {
       <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: COLORS.white,
-        tabBarInactiveTintColor: COLORS.slate400,
+        tabBarActiveTintColor: COLORS.accent,
+        tabBarInactiveTintColor: COLORS.textTertiary,
         tabBarBackground: () => (
-          <BlurView
-            intensity={40}
-            tint="dark"
+          <View
             style={{
               position: "absolute",
               top: 0,
               left: 0,
               right: 0,
               bottom: 0,
-              backgroundColor: "rgba(15,23,42,0.85)",
+              backgroundColor: COLORS.surface,
               borderTopWidth: 1,
-              borderTopColor: COLORS.glassBorder,
+              borderTopColor: COLORS.borderLight,
+              ...SHADOWS.small,
             }}
           />
         ),
