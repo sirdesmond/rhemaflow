@@ -412,9 +412,10 @@ const styles = StyleSheet.create({
     ...SHADOWS.medium,
   },
   pillActive: {
-    backgroundColor: COLORS.accentMuted,
+    backgroundColor: COLORS.surface,
     borderWidth: 2,
     borderColor: COLORS.accent,
+    ...SHADOWS.medium,
   },
   pillEmoji: {
     fontSize: 36,
@@ -456,9 +457,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   chipActive: {
-    backgroundColor: COLORS.accentMuted,
+    backgroundColor: COLORS.surface,
     borderWidth: 2,
     borderColor: COLORS.accent,
+    ...SHADOWS.medium,
   },
   chipDisabled: {
     opacity: 0.35,

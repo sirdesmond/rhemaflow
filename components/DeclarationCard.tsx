@@ -1,3 +1,4 @@
+import { useEffect, useRef, useCallback } from "react";
 import { View, Text, Pressable, ImageBackground, StyleSheet, ScrollView } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
@@ -19,6 +20,7 @@ import { ATMOSPHERE_TRACKS } from "../constants/tracks";
 import { COLORS } from "../constants/theme";
 import { HighlightedText } from "./HighlightedText";
 import { AudioProgress } from "../hooks/useAudio";
+import { audioEngine } from "../services/audioEngine";
 
 interface DeclarationCardProps {
   text: string;
@@ -58,6 +60,41 @@ export function DeclarationCard({
   const [gradStart, gradEnd] = CATEGORY_GRADIENTS[category];
   const backgroundImage = CATEGORY_BACKGROUNDS[category];
   const trackMeta = ATMOSPHERE_TRACKS.find((t) => t.id === atmosphere);
+
+  // Autoscroll: track ScrollView dimensions and scroll proportionally with audio progress
+  const scrollRef = useRef<ScrollView>(null);
+  const scrollableHeight = useRef(0); // contentHeight - viewHeight
+  const viewHeight = useRef(0);
+
+  const onScrollLayout = useCallback((_e: any) => {
+    viewHeight.current = _e.nativeEvent.layout.height;
+  }, []);
+
+  const onContentSizeChange = useCallback((_w: number, h: number) => {
+    scrollableHeight.current = Math.max(0, h - viewHeight.current);
+  }, []);
+
+  useEffect(() => {
+    const onProgress = (position: number, duration: number) => {
+      if (scrollableHeight.current <= 0) return;
+      const ratio = Math.min(position / duration, 1);
+      scrollRef.current?.scrollTo({
+        y: ratio * scrollableHeight.current,
+        animated: true,
+      });
+    };
+
+    const onReset = () => {
+      scrollRef.current?.scrollTo({ y: 0, animated: false });
+    };
+
+    audioEngine.addProgressListener(onProgress);
+    audioEngine.addResetListener(onReset);
+    return () => {
+      audioEngine.removeProgressListener(onProgress);
+      audioEngine.removeResetListener(onReset);
+    };
+  }, []);
 
   const cardContent = (
     <View style={styles.cardInner}>
@@ -107,9 +144,12 @@ export function DeclarationCard({
 
       {/* Scrollable middle: declaration + scripture */}
       <ScrollView
+        ref={scrollRef}
         style={styles.scrollArea}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        onLayout={onScrollLayout}
+        onContentSizeChange={onContentSizeChange}
       >
         {/* Declaration text */}
         <View style={styles.declarationContainer}>
