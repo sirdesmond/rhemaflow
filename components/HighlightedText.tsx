@@ -12,10 +12,8 @@ interface HighlightedTextProps {
 /**
  * Renders declaration text with word-level highlighting during audio playback.
  *
- * Maps progress by character position (proportional to speech duration) then
- * snaps to the nearest word boundary. Characters correlate with spoken time
- * far better than word count since short words like "I" take less time than
- * long words like "understanding".
+ * Uses real word-level timestamps from ElevenLabs when available for precise
+ * sync. Falls back to punctuation-weighted estimation for cached audio.
  *
  * Performance: 3 Text spans (spoken / current / unspoken), direct subscription
  * to audioEngine, only re-renders when the active word changes.
@@ -23,42 +21,74 @@ interface HighlightedTextProps {
 function HighlightedTextInner({ text }: HighlightedTextProps) {
   const fullText = `\u201C${text}\u201D`;
 
-  // Build word map: each word's character start/end and its midpoint
-  const wordMap = useMemo(() => {
+  // Build display word map: character start/end positions for each word in fullText
+  const displayWords = useMemo(() => {
     const tokens = fullText.split(/(\s+)/);
-    const map: { start: number; end: number; mid: number }[] = [];
+    const words: { start: number; end: number }[] = [];
     let charPos = 0;
     for (const token of tokens) {
       if (token.trim().length > 0) {
-        const start = charPos;
-        const end = charPos + token.length;
-        map.push({ start, end, mid: (start + end) / 2 });
+        words.push({ start: charPos, end: charPos + token.length });
       }
       charPos += token.length;
     }
-    return map;
+    return words;
   }, [fullText]);
 
-  const totalChars = fullText.length;
+  // Fallback: weighted estimation for when timestamps aren't available
+  const { weightThresholds, totalWeight } = useMemo(() => {
+    const tokens = fullText.split(/(\s+)/);
+    const thresholds: number[] = [];
+    let cumulative = 0;
+    for (const token of tokens) {
+      if (token.trim().length > 0) {
+        let weight = token.length;
+        if (/[.!?]/.test(token.slice(-1))) weight += 6;
+        else if (/[,;:\u2014]/.test(token.slice(-1))) weight += 3;
+        cumulative += weight;
+        thresholds.push(cumulative);
+      }
+    }
+    return { weightThresholds: thresholds, totalWeight: cumulative };
+  }, [fullText]);
 
   const [wordIndex, setWordIndex] = useState(-1);
   const lastIndexRef = useRef(-1);
 
   useEffect(() => {
-    const onStatus = (position: number, duration: number) => {
-      const ratio = Math.min(position / duration, 1);
-      // Map time ratio to character position, then find which word contains it
-      const charPos = ratio * totalChars;
-      let idx = 0;
-      for (let i = 0; i < wordMap.length; i++) {
-        if (charPos >= wordMap[i].mid) {
-          idx = i + 1;
-        } else {
-          break;
+    const onStatus = (positionMs: number, durationMs: number) => {
+      const alignment = audioEngine.alignment;
+      let idx: number;
+
+      if (alignment && alignment.length > 0) {
+        // Use real timestamps from ElevenLabs (seconds)
+        const posSec = positionMs / 1000;
+        idx = 0;
+        for (let i = 0; i < alignment.length; i++) {
+          if (posSec >= alignment[i].start) {
+            idx = i;
+          } else {
+            break;
+          }
         }
+        // Clamp to display word count (alignment may differ slightly)
+        idx = Math.min(idx, displayWords.length - 1);
+      } else {
+        // Fallback: weighted character estimation
+        const ratio = Math.min(positionMs / durationMs, 1);
+        const target = ratio * totalWeight;
+        let lo = 0;
+        let hi = weightThresholds.length - 1;
+        while (lo < hi) {
+          const mid = (lo + hi) >> 1;
+          if (weightThresholds[mid] <= target) {
+            lo = mid + 1;
+          } else {
+            hi = mid;
+          }
+        }
+        idx = Math.min(lo, displayWords.length - 1);
       }
-      // idx is now the first word we haven't fully passed — that's the current word
-      idx = Math.min(idx, wordMap.length - 1);
 
       if (idx !== lastIndexRef.current) {
         lastIndexRef.current = idx;
@@ -68,7 +98,7 @@ function HighlightedTextInner({ text }: HighlightedTextProps) {
 
     audioEngine.addProgressListener(onStatus);
     return () => audioEngine.removeProgressListener(onStatus);
-  }, [wordMap, totalChars]);
+  }, [displayWords, weightThresholds, totalWeight]);
 
   useEffect(() => {
     const onReset = () => {
@@ -83,11 +113,11 @@ function HighlightedTextInner({ text }: HighlightedTextProps) {
   }, []);
 
   // No highlighting — single Text node
-  if (wordIndex < 0 || wordMap.length === 0) {
+  if (wordIndex < 0 || displayWords.length === 0) {
     return <Text style={styles.base}>{fullText}</Text>;
   }
 
-  const currentWord = wordMap[wordIndex];
+  const currentWord = displayWords[wordIndex];
 
   const spoken = fullText.slice(0, currentWord.start);
   const current = fullText.slice(currentWord.start, currentWord.end);

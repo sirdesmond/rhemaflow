@@ -12,6 +12,7 @@ const SWELL_MS = 1000;
 const HOLD_MS = 3000;
 const FADE_OUT_MS = 3000;
 
+export type WordTiming = { word: string; start: number; end: number };
 type ProgressListener = (position: number, duration: number) => void;
 type ResetListener = () => void;
 
@@ -23,6 +24,12 @@ class AudioEngine {
   private isPaused = false;
   private onProgress: ((position: number, duration: number) => void) | null = null;
   private lastProgressTime = 0;
+  private lastHookProgressTime = 0;
+
+  // Word-level alignment from ElevenLabs timestamps
+  private _alignment: WordTiming[] | null = null;
+  get alignment(): WordTiming[] | null { return this._alignment; }
+  setAlignment(a: WordTiming[] | null) { this._alignment = a; }
 
   // Direct listeners for components (bypasses React state)
   private progressListeners = new Set<ProgressListener>();
@@ -111,20 +118,21 @@ class AudioEngine {
         this.fadeVolume(this.musicSound, 0, MUSIC_VOL_DURING_SPEECH, FADE_IN_MS);
       }
 
-      // 6. Listen for speech completion and report progress (throttled to 4x/sec)
+      // 6. Listen for speech completion and report progress
       this.speechSound.setOnPlaybackStatusUpdate(
         (status: AVPlaybackStatus) => {
           if (!status.isLoaded) return;
           if (status.durationMillis) {
             const now = Date.now();
-            if (now - this.lastProgressTime >= 250) {
+            // Direct listeners (HighlightedText, autoscroll) — 10x/sec for smooth tracking
+            if (now - this.lastProgressTime >= 100) {
               this.lastProgressTime = now;
-              // Notify hook callback (for useAudio state)
-              if (this.onProgress) {
-                this.onProgress(status.positionMillis, status.durationMillis);
-              }
-              // Notify direct listeners (HighlightedText)
               this.emitProgress(status.positionMillis, status.durationMillis);
+            }
+            // Hook callback (useAudio React state) — 4x/sec to limit re-renders
+            if (this.onProgress && now - this.lastHookProgressTime >= 250) {
+              this.lastHookProgressTime = now;
+              this.onProgress(status.positionMillis, status.durationMillis);
             }
           }
           if (status.didJustFinish && this.isActive) {
@@ -278,6 +286,7 @@ class AudioEngine {
     this.isActive = false;
     this.isPaused = false;
     this.onProgress = null;
+    this._alignment = null;
 
     if (this.fadeInterval) {
       clearInterval(this.fadeInterval);

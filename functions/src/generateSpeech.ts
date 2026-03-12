@@ -63,15 +63,26 @@ async function getCachedAudio(
   }
 }
 
+interface WordTiming {
+  word: string;
+  start: number; // seconds
+  end: number;   // seconds
+}
+
+interface TtsResult {
+  mp3Buffer: Buffer;
+  alignment: WordTiming[];
+}
+
 /**
- * Generate speech via ElevenLabs TTS API (Turbo v2.5).
- * Returns MP3 buffer on success, or null on failure.
+ * Generate speech via ElevenLabs TTS API (Turbo v2.5) with word-level timestamps.
+ * Returns MP3 buffer + word timing alignment on success, or null on failure.
  */
 async function generateWithElevenLabs(
   text: string,
   voiceId: string,
   voiceGender: string
-): Promise<Buffer | null> {
+): Promise<TtsResult | null> {
   const apiKey = process.env.ELEVENLABS_API_KEY;
   if (!apiKey) {
     console.error("ELEVENLABS_API_KEY not set");
@@ -83,8 +94,21 @@ async function generateWithElevenLabs(
     .replace(/[\u2018\u2019\u0060\u00B4]/g, "'")
     .replace(/[\u201C\u201D]/g, '"');
 
+  const VOICE_NAMES: Record<string, string> = {
+    "nPczCjzI2devNBz1zQrb": "Brian",
+    "onwK4e9ZLuTAKqWW03F9": "Daniel",
+    "JBFqnCBsd6RMkjVDRZzb": "George",
+    "pqHfZKP75CvOlQylNhV4": "Bill",
+    "iRc49NKOKzEg1DVxmcRs": "Sam",
+    "aFueGIISJUmscc05ZNfD": "Female1",
+    "Lunvplg8eT6CdNzAkjF8": "Female2",
+    "QLAlOeRuLwKX0skeTR7R": "Female3",
+    "iBo5PWT1qLiEyqhM7TrG": "Female4",
+    "8hJ5gV7NwkddDSPrYtar": "Female5",
+  };
+
   const t0 = Date.now();
-  console.log(`[ElevenLabs] Generating for ${normalizedText.length} chars with voice=${voiceId}`);
+  console.log(`[ElevenLabs] voice=${voiceId} (${VOICE_NAMES[voiceId] ?? "unknown"}), gender=${voiceGender}, chars=${normalizedText.length}`);
 
   const body = JSON.stringify({
     text: normalizedText,
@@ -92,11 +116,13 @@ async function generateWithElevenLabs(
     voice_settings: voiceGender === "male"
       ? { stability: 0.90, similarity_boost: 0.85, style: 0.45, use_speaker_boost: true }
       : { stability: 0.93, similarity_boost: 0.85, style: 0.45, use_speaker_boost: true },
+    speed: 0.70,
   });
 
-  const url = `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_44100_128`;
+  // Use /with-timestamps endpoint for word-level alignment
+  const url = `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/with-timestamps?output_format=mp3_44100_128`;
 
-  const buffer = await new Promise<Buffer | null>((resolve, reject) => {
+  const rawJson = await new Promise<string | null>((resolve, reject) => {
     const req = https.request(
       url,
       {
@@ -118,12 +144,12 @@ async function generateWithElevenLabs(
           return;
         }
 
-        const chunks: Buffer[] = [];
-        res.on("data", (chunk: Buffer) => chunks.push(chunk));
+        const chunks: string[] = [];
+        res.setEncoding("utf8");
+        res.on("data", (chunk: string) => chunks.push(chunk));
         res.on("end", () => {
-          const result = Buffer.concat(chunks);
-          console.log(`[ElevenLabs] ${result.length} bytes in ${Date.now() - t0}ms`);
-          resolve(result);
+          console.log(`[ElevenLabs] response received in ${Date.now() - t0}ms`);
+          resolve(chunks.join(""));
         });
         res.on("error", (err) => reject(err));
       }
@@ -134,7 +160,45 @@ async function generateWithElevenLabs(
     req.end();
   });
 
-  return buffer;
+  if (!rawJson) return null;
+
+  try {
+    const parsed = JSON.parse(rawJson);
+    const mp3Buffer = Buffer.from(parsed.audio_base64, "base64");
+    console.log(`[ElevenLabs] ${mp3Buffer.length} bytes, parsing alignment...`);
+
+    // Group character-level timestamps into word-level timestamps
+    const chars: string[] = parsed.alignment?.characters ?? [];
+    const starts: number[] = parsed.alignment?.character_start_times_seconds ?? [];
+    const ends: number[] = parsed.alignment?.character_end_times_seconds ?? [];
+
+    const alignment: WordTiming[] = [];
+    let wordChars: string[] = [];
+    let wordStart = 0;
+    let wordEnd = 0;
+
+    for (let i = 0; i < chars.length; i++) {
+      if (chars[i] === " " || chars[i] === "\n") {
+        if (wordChars.length > 0) {
+          alignment.push({ word: wordChars.join(""), start: wordStart, end: wordEnd });
+          wordChars = [];
+        }
+      } else {
+        if (wordChars.length === 0) wordStart = starts[i] ?? 0;
+        wordChars.push(chars[i]);
+        wordEnd = ends[i] ?? wordEnd;
+      }
+    }
+    if (wordChars.length > 0) {
+      alignment.push({ word: wordChars.join(""), start: wordStart, end: wordEnd });
+    }
+
+    console.log(`[ElevenLabs] ${alignment.length} words aligned`);
+    return { mp3Buffer, alignment };
+  } catch (e) {
+    console.error("[ElevenLabs] Failed to parse timestamps response:", e);
+    return null;
+  }
 }
 
 export const generateSpeech = functions
@@ -170,15 +234,17 @@ export const generateSpeech = functions
       const cached = await getCachedAudio(uid, hash);
       if (cached) {
         console.log("[generateSpeech] Serving from cache");
-        return { audioBase64: null, audioUrl: cached.audioUrl };
+        return { audioBase64: null, audioUrl: cached.audioUrl, alignment: null };
       }
 
-      // 2. Generate fresh audio via ElevenLabs TTS
-      const mp3Buffer = await generateWithElevenLabs(text, voiceId, voiceGender);
+      // 2. Generate fresh audio via ElevenLabs TTS (with timestamps)
+      const ttsResult = await generateWithElevenLabs(text, voiceId, voiceGender);
 
-      if (!mp3Buffer) {
-        return { audioBase64: null, audioUrl: null };
+      if (!ttsResult) {
+        return { audioBase64: null, audioUrl: null, alignment: null };
       }
+
+      const { mp3Buffer, alignment } = ttsResult;
 
       // 3. Upload to Storage and get URL
       const bucket = admin.storage().bucket();
@@ -198,11 +264,10 @@ export const generateSpeech = functions
 
       const audioUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(filePath)}?alt=media&token=${token}`;
 
-      // Return base64 for immediate playback, audioUrl for saving to Firestore
-      // base64 is used by client for local file playback (reliable pause/resume)
-      return { audioBase64: mp3Buffer.toString("base64"), audioUrl };
+      // Return base64 for immediate playback, audioUrl for saving, alignment for highlighting
+      return { audioBase64: mp3Buffer.toString("base64"), audioUrl, alignment };
     } catch (error) {
       console.error("generateSpeech error:", error);
-      return { audioBase64: null, audioUrl: null };
+      return { audioBase64: null, audioUrl: null, alignment: null };
     }
   });

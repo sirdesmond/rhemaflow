@@ -19,6 +19,7 @@ import {
   generateDeclaration,
   generateSpeech,
 } from "../../services/declarations";
+import { audioEngine } from "../../services/audioEngine";
 import { saveDeclaration } from "../../services/favorites";
 import { getStreakData } from "../../services/streak";
 import {
@@ -190,6 +191,7 @@ export default function HomeScreen() {
             const audioSource = speech?.audioBase64 ?? speech?.audioUrl;
             if (audioSource) {
               setContent((prev) => prev ? { ...prev, audioBase64: speech?.audioBase64 ?? null, audioUrl: speech?.audioUrl ?? null } : null);
+              audioEngine.setAlignment(speech?.alignment ?? null);
               play(audioSource);
               trackAudioPlayed();
             }

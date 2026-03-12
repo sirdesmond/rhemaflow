@@ -24,6 +24,7 @@ import {
   toggleFavorite,
 } from "../../services/favorites";
 import { generateSpeech } from "../../services/declarations";
+import { audioEngine } from "../../services/audioEngine";
 import { useAudio } from "../../hooks/useAudio";
 import { getUserSettings } from "../../services/settings";
 import { logError } from "../../services/crashlytics";
@@ -128,6 +129,7 @@ export default function SavedScreen() {
       const source = speech.audioUrl ?? speech.audioBase64;
       if (source) {
         setAudioSource(source);
+        audioEngine.setAlignment(speech.alignment ?? null);
         await play(source);
       }
     } catch (e) {

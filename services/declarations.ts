@@ -62,11 +62,13 @@ export async function generateDeclaration(
  * Supports cancellation via AbortSignal to avoid wasting bandwidth
  * when the user triggers a new generation before TTS completes.
  */
+export type WordTiming = { word: string; start: number; end: number };
+
 export async function generateSpeech(
   text: string,
   voiceGender?: "male" | "female",
   signal?: AbortSignal
-): Promise<{ audioBase64: string | null; audioUrl: string | null }> {
+): Promise<{ audioBase64: string | null; audioUrl: string | null; alignment: WordTiming[] | null }> {
   try {
     const fn = functions.httpsCallable("generateSpeech");
     const resultPromise = fn({ text, voiceGender });
@@ -78,13 +80,13 @@ export async function generateSpeech(
         signal.addEventListener("abort", () => reject(new AbortError()));
       });
       const result = await Promise.race([resultPromise, abortPromise]);
-      const data = result.data as { audioBase64: string | null; audioUrl: string | null };
-      return { audioBase64: data.audioBase64, audioUrl: data.audioUrl ?? null };
+      const data = result.data as { audioBase64: string | null; audioUrl: string | null; alignment: WordTiming[] | null };
+      return { audioBase64: data.audioBase64, audioUrl: data.audioUrl ?? null, alignment: data.alignment ?? null };
     }
 
     const result = await resultPromise;
-    const data = result.data as { audioBase64: string | null; audioUrl: string | null };
-    return { audioBase64: data.audioBase64, audioUrl: data.audioUrl ?? null };
+    const data = result.data as { audioBase64: string | null; audioUrl: string | null; alignment: WordTiming[] | null };
+    return { audioBase64: data.audioBase64, audioUrl: data.audioUrl ?? null, alignment: data.alignment ?? null };
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") throw error;
     throw new Error(friendlyMessage(error));
