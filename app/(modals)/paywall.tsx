@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { View, Text, Pressable, Alert, ActivityIndicator, StyleSheet } from "react-native";
+import { View, Text, Pressable, Alert, ActivityIndicator, StyleSheet, Linking } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { X, Flame, Infinity, Mic, Heart, Check } from "lucide-react-native";
@@ -311,6 +311,17 @@ export default function PaywallScreen() {
           </>
         )}
       </View>
+
+      {/* Legal links */}
+      <View style={styles.legalRow}>
+        <Pressable onPress={() => Linking.openURL("https://sirdesmond.github.io/rhemaflow/terms-of-use.html")}>
+          <Text style={styles.legalText}>Terms of Use</Text>
+        </Pressable>
+        <Text style={styles.legalSeparator}>|</Text>
+        <Pressable onPress={() => Linking.openURL("https://sirdesmond.github.io/rhemaflow/privacy-policy.html")}>
+          <Text style={styles.legalText}>Privacy Policy</Text>
+        </Pressable>
+      </View>
     </SafeAreaView>
   );
 }
@@ -490,5 +501,23 @@ const createStyles = (colors: any, shadows: any) =>
       fontFamily: "Lato-Bold",
       fontSize: 16,
       color: colors.textInverse,
+    },
+    legalRow: {
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
+      gap: 8,
+      paddingBottom: 8,
+    },
+    legalText: {
+      fontFamily: "Lato",
+      fontSize: 12,
+      color: colors.textTertiary,
+      textDecorationLine: "underline",
+    },
+    legalSeparator: {
+      fontFamily: "Lato",
+      fontSize: 12,
+      color: colors.textTertiary,
     },
   });

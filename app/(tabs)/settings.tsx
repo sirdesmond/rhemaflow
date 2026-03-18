@@ -29,6 +29,8 @@ import {
   Sun,
   Moon,
   Monitor,
+  FileText,
+  Shield,
 } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import { Typography } from "../../components/ui/Typography";
@@ -666,6 +668,43 @@ export default function SettingsScreen() {
               {isDeleting ? "Deleting Account..." : "Delete Account"}
             </Typography>
           </View>
+        </Pressable>
+      </View>
+
+      {/* Legal section */}
+      <View style={styles.section}>
+        <Typography variant="caption" style={styles.sectionTitle}>
+          LEGAL
+        </Typography>
+
+        <Pressable
+          style={styles.row}
+          onPress={() => Linking.openURL("https://sirdesmond.github.io/rhemaflow/terms-of-use.html")}
+        >
+          <View style={styles.rowLeft}>
+            <View style={[styles.iconCircle, { backgroundColor: colors.backgroundMuted }]}>
+              <FileText size={18} color={colors.textTertiary} />
+            </View>
+            <Typography variant="body" style={styles.rowLabel}>
+              Terms of Use
+            </Typography>
+          </View>
+          <ChevronRight size={16} color={colors.textTertiary} />
+        </Pressable>
+
+        <Pressable
+          style={styles.row}
+          onPress={() => Linking.openURL("https://sirdesmond.github.io/rhemaflow/privacy-policy.html")}
+        >
+          <View style={styles.rowLeft}>
+            <View style={[styles.iconCircle, { backgroundColor: colors.backgroundMuted }]}>
+              <Shield size={18} color={colors.textTertiary} />
+            </View>
+            <Typography variant="body" style={styles.rowLabel}>
+              Privacy Policy
+            </Typography>
+          </View>
+          <ChevronRight size={16} color={colors.textTertiary} />
         </Pressable>
       </View>
 

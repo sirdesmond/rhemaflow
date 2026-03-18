@@ -90,6 +90,7 @@ export default {
     },
     extra: {
       privacyPolicyUrl: "https://sirdesmond.github.io/rhemaflow/privacy-policy.html",
+      termsOfUseUrl: "https://sirdesmond.github.io/rhemaflow/terms-of-use.html",
       router: {},
       eas: {
         projectId: "07320aee-cd96-4da8-8614-8b518ab20b89",
