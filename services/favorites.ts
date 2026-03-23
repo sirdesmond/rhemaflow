@@ -1,6 +1,8 @@
 import { db, auth } from "./firebase";
 import { Declaration, DeclarationCategory, AtmosphereType } from "../types";
 
+const PAGE_SIZE = 20;
+
 /**
  * Returns a reference to the current user's declarations subcollection.
  */
@@ -59,14 +61,16 @@ export async function toggleFavorite(
 }
 
 /**
- * Subscribe to real-time updates of the user's declarations.
+ * Subscribe to real-time updates of the user's declarations (paginated).
  * Returns an unsubscribe function.
  */
 export function onDeclarationsSnapshot(
-  callback: (declarations: Declaration[]) => void
+  callback: (declarations: Declaration[]) => void,
+  limit: number = PAGE_SIZE
 ) {
   return declarationsRef()
     .orderBy("createdAt", "desc")
+    .limit(limit)
     .onSnapshot((snapshot) => {
       const declarations = snapshot.docs.map(
         (doc) => doc.data() as Declaration

@@ -28,7 +28,7 @@ export async function getUserSettings(): Promise<UserSettings> {
 
   try {
     const doc = await db.collection("users").doc(uid).get();
-    if (doc.exists) {
+    if (doc.exists()) {
       const data = doc.data();
       const raw = data?.settings || {};
       const settings = { ...DEFAULT_SETTINGS, ...raw };

@@ -29,6 +29,8 @@ import { useAudio } from "../../hooks/useAudio";
 import { getUserSettings } from "../../services/settings";
 import { logError } from "../../services/crashlytics";
 
+const PAGE_SIZE = 20;
+
 export default function SavedScreen() {
   const { colors, shadows } = useTheme();
   const [declarations, setDeclarations] = useState<Declaration[]>([]);
@@ -37,6 +39,8 @@ export default function SavedScreen() {
   const [selected, setSelected] = useState<Declaration | null>(null);
   const [audioSource, setAudioSource] = useState<string | null>(null);
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
+  const [queryLimit, setQueryLimit] = useState(PAGE_SIZE);
+  const [hasMore, setHasMore] = useState(true);
 
   const { isPlaying, atmosphere, play, togglePlayback, cycleAtmosphere, stop, progress } =
     useAudio();
@@ -47,10 +51,17 @@ export default function SavedScreen() {
   useEffect(() => {
     const unsubscribe = onDeclarationsSnapshot((items) => {
       setDeclarations(items);
+      setHasMore(items.length >= queryLimit);
       setLoading(false);
-    });
+    }, queryLimit);
     return () => unsubscribe();
-  }, []);
+  }, [queryLimit]);
+
+  const handleLoadMore = useCallback(() => {
+    if (hasMore && !loading) {
+      setQueryLimit((prev) => prev + PAGE_SIZE);
+    }
+  }, [hasMore, loading]);
 
   const filtered =
     filter === "favorites"
@@ -361,6 +372,8 @@ export default function SavedScreen() {
           renderItem={renderItem}
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.5}
         />
       )}
     </SafeAreaView>

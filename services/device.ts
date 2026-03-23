@@ -10,5 +10,5 @@ export async function getDeviceId(): Promise<string> {
   if (Platform.OS === "ios") {
     return (await Application.getIosIdForVendorAsync()) ?? "unknown-ios";
   }
-  return Application.androidId ?? "unknown-android";
+  return Application.getAndroidId() ?? "unknown-android";
 }
