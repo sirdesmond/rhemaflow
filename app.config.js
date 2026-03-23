@@ -20,8 +20,7 @@ export default {
       backgroundColor: "#FBF8F3",
     },
     ios: {
-      supportsTablet: true,
-      isTabletOnly: false,
+      supportsTablet: false,
       bundleIdentifier: "com.rhemaflow.app",
       googleServicesFile:
         process.env.GOOGLE_SERVICE_INFO_PLIST || "./GoogleService-Info.plist",
